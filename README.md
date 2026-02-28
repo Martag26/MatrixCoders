@@ -16,14 +16,17 @@ Está diseñada para facilitar el aprendizaje diario y poder ampliarse con facil
 - **JavaScript**  
   Interactividad y funcionalidades en el cliente.
 
-- **Spring Boot**  
+- **PHP**  
   Backend y lógica del servidor; implementación del patrón MVC.
 
 - **Arquitectura MVC**  
   Organización del proyecto y separación de responsabilidades.
 
-- **PostgreSQL**  
-  Base de datos relacional para datos relacionados.
+- **phpMyAdmin**  
+  Gestión visual de la base de datos y administración de MySQL/MariaDB.
+
+- **Bootstrap**
+  Framework CSS para diseño responsive y componentes predefinidos.
 
 - **Stripe**  
   Simulación e integración de pagos.
