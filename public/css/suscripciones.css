@@ -1,0 +1,112 @@
+:root {
+    --mc-green: #6B8F71;
+    --mc-dark: #1B2336;
+    --mc-soft: #F8F8F8;
+    --mc-border: #e5e7eb;
+}
+
+.plans-page {
+    background: #fff;
+    padding: 44px 0 64px;
+    min-height: 70vh;
+}
+
+.plans-page .mc-container {
+    max-width: 1500px;
+    /* antes era 1200px como el resto */
+    margin: 0 auto;
+}
+
+.plans-title {
+    text-align: center;
+    font-size: 40px;
+    font-weight: 900;
+    color: #2b2b2b;
+    margin: 0 0 8px;
+}
+
+.plans-subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin: 0 0 28px;
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+    align-items: stretch;
+}
+
+.plan-card {
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, .05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-head {
+    padding: 18px;
+    color: #fff;
+}
+
+.plan-head.pink {
+    background: #e7a0ab;
+}
+
+.plan-head h3 {
+    margin: 0 0 6px;
+    font-weight: 900;
+    font-size: 16px;
+}
+
+.plan-head p {
+    margin: 0;
+    font-size: 13px;
+    opacity: .95;
+}
+
+.plan-list {
+    list-style: none;
+    margin: 0;
+    padding: 16px 18px 6px;
+    display: grid;
+    gap: 10px;
+    color: #111827;
+    font-size: 13px;
+}
+
+.plan-list .ok {
+    color: #16a34a;
+    font-weight: 900;
+}
+
+.plan-list .x {
+    color: #ef4444;
+    font-weight: 900;
+}
+
+.btn-plan {
+    margin: 14px 18px 18px;
+    background: #111827;
+    color: #fff;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-plan:hover {
+    opacity: .9;
+    color: #fff;
+}
+
+@media (max-width: 992px) {
+    .plans-grid {
+        grid-template-columns: 1fr;
+    }
+}
