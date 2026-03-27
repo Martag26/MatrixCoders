@@ -28,9 +28,7 @@ class CursoController
 
         // Instanciar el modelo Curso pasándole la conexión
         $cursoModel = new Curso($db);
-
-        // Obtener todos los cursos disponibles
-        $cursos = $cursoModel->obtenerTodos();
+        $cursos = $cursoModel->obtenerDestacados();
 
         // Cargar la vista que renderiza el listado de cursos
         require "../app/views/cursos/index.php";

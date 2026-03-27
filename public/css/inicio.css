@@ -20,6 +20,7 @@ body {
 .seccionPrincipal {
     background: var(--mc-soft);
     padding: 36px 0 34px;
+    min-height: 600px;
 }
 
 .seccionPrincipal h1 {
@@ -79,16 +80,24 @@ body {
     background: #fff;
     box-shadow: 0 10px 20px rgba(0, 0, 0, .04);
     transition: transform .18s ease, box-shadow .18s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
+    /* altura mínima de la tarjeta */
+}
+
+.course-thumb {
+    height: 200px;
+    object-fit: cover;
+    background: #f3f4f6;
+    /* color gris si no hay imagen */
+    flex-shrink: 0;
+    /* que no se encoja aunque no haya imagen */
 }
 
 .course-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 16px 28px rgba(0, 0, 0, .06);
-}
-
-.course-thumb {
-    height: 185px;
-    object-fit: cover;
 }
 
 .course-meta {
@@ -165,12 +174,12 @@ body {
 .ubicacion-title {
     font-weight: 800;
     color: var(--mc-gray);
-    margin-bottom: 12px;
+    margin-bottom: 22px;
 }
 
 .ubicacion-desc {
     max-width: 820px;
-    margin: 0 auto 20px;
+    margin: 0 auto 30px;
     color: #4b5563;
     line-height: 1.7;
 }
@@ -180,12 +189,10 @@ body {
     margin: 0 auto;
     border-radius: 14px;
     overflow: hidden;
-    border: 1px solid #eef2f7;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, .06);
 }
 
 .mapaContainer iframe {
-    height: 360px;
+    height: 500px;
 }
 
 @media (max-width: 768px) {

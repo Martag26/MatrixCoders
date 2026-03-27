@@ -44,8 +44,12 @@ $nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
                 <a href="<?= BASE_URL ?>/index.php?url=notificaciones" aria-label="notificaciones">
                     <img src="<?= BASE_URL ?>/img/campana.png" alt="campana">
                 </a>
-                <a href="<?= BASE_URL ?>/index.php?url=carrito" aria-label="carrito">
+                <?php $totalCarrito = $_SESSION['carrito'] ? array_sum($_SESSION['carrito']) : 0; ?>
+                <a href="<?= BASE_URL ?>/index.php?url=carrito" aria-label="carrito" style="position:relative;">
                     <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="cesta">
+                    <?php if ($totalCarrito > 0): ?>
+                        <span class="carrito-badge"><?= $totalCarrito ?></span>
+                    <?php endif; ?>
                 </a>
             </div>
 
