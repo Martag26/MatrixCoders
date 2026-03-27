@@ -87,7 +87,7 @@ $eventDays = array_flip($diasEventos ?? []);
                             <span class="etiqueta-banner">NOTEBOOKLMN</span>
                             <h1>Todo tu aprendizaje, centralizado con NotebookLMN</h1>
                         </div>
-                        <a class="btn-abrir" href="<?= BASE_URL ?>/index.php?url=app">Abrir ahora</a>
+                        <a class="btn-abrir" href="https://notebooklm.google.com/" target="_blank">Abrir ahora</a>
                     </div>
 
                     <!-- Acciones -->
