@@ -120,11 +120,12 @@
                     <div class="row g-4 mt-1">
                         <?php foreach ($cursos as $curso): ?>
                             <?php
-                            $img = imageFallback($curso['imagen'] ?? null);
-                            $dur = formatDuracionFallback($curso['duracion_min'] ?? null);
-                            $stu = (int)($curso['total_matriculas'] ?? 0);
+                            $img    = imageFallback($curso['imagen'] ?? null);
+                            $dur    = formatDuracionFallback($curso['duracion_min'] ?? null);
+                            $stu    = (int)($curso['total_matriculas'] ?? 0);
                             $precio = isset($curso['precio']) ? (float)$curso['precio'] : 33.99;
                             $titulo = $curso['titulo'] ?? 'Programación avanzada en PHP y MySQL';
+                            $desc   = $curso['descripcion'] ?? '';
                             ?>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <!-- Card clickable -->
