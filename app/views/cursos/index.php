@@ -82,17 +82,10 @@
                 Aprende, <span>crece</span> y avanza
             </h1>
 
-<<<<<<< HEAD
-            <!-- Formulario de búsqueda de cursos por texto -->
-            <form class="hero-search" method="GET" action="/index.php">
-                <input type="hidden" name="r" value="home/index">
-                <img class="icon" src="/matrixcoders/public/img/lupa.png" alt="buscar">
-=======
             <!-- Buscador -->
             <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php">
                 <input type="hidden" name="url" value="buscar">
                 <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
->>>>>>> develop-marta
                 <input
                     class="form-control w-100"
                     type="text"
@@ -127,25 +120,13 @@
                     <div class="row g-4 mt-1">
                         <?php foreach ($cursos as $curso): ?>
                             <?php
-<<<<<<< HEAD
-                            // Obtener los datos del curso con valores de respaldo si faltan campos en BD
-                            $img    = imageFallback($curso['imagen'] ?? null);
-                            $dur    = formatDuracionFallback($curso['duracion_min'] ?? null);
-                            $stu    = studentsFallback($curso['estudiantes'] ?? null);
-=======
                             $img = imageFallback($curso['imagen'] ?? null);
                             $dur = formatDuracionFallback($curso['duracion_min'] ?? null);
                             $stu = (int)($curso['total_matriculas'] ?? 0);
->>>>>>> develop-marta
                             $precio = isset($curso['precio']) ? (float)$curso['precio'] : 33.99;
                             $titulo = $curso['titulo'] ?? 'Programación avanzada en PHP y MySQL';
                             ?>
                             <div class="col-12 col-md-6 col-lg-4">
-<<<<<<< HEAD
-                                <div class="course-card h-100">
-                                    <!-- Imagen de portada del curso -->
-                                    <img src="<?= htmlspecialchars($img) ?>" class="course-thumb w-100" alt="Curso">
-=======
                                 <!-- Card clickable -->
                                 <div class="course-card h-100"
                                     style="cursor:pointer;"
@@ -158,27 +139,16 @@
                                     <?php else: ?>
                                         <div class="course-thumb w-100"></div>
                                     <?php endif; ?>
->>>>>>> develop-marta
 
                                     <div class="p-3 d-flex flex-column gap-2">
                                         <!-- Metadatos: número de estudiantes y duración -->
                                         <div class="course-meta">
                                             <span><?= $stu ?> <?= $stu === 1 ? 'estudiante' : 'estudiantes' ?></span>
                                         </div>
-<<<<<<< HEAD
-
-                                        <!-- Título del curso -->
-                                        <div class="course-title">
-                                            <?= htmlspecialchars($titulo) ?>
-                                        </div>
-
-                                        <!-- Precio y botón para añadir al carrito -->
-=======
                                         <div class="course-title"><?= htmlspecialchars($titulo) ?></div>
                                         <p class="text-muted" style="font-size:0.85rem; margin:0;">
                                             <?= htmlspecialchars($desc) ?>
                                         </p>
->>>>>>> develop-marta
                                         <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
                                             <div class="course-price">
                                                 <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
@@ -266,10 +236,6 @@
         </div>
     </section>
 
-<<<<<<< HEAD
-    <?php require __DIR__ . '/../layout/footer.php'; ?>
-
-=======
     <div class="modal fade" id="modalCarrito" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border-radius: 16px;">
@@ -295,7 +261,6 @@
     </div>
 
     <?php require __DIR__ . '/../layout/footer.php'; ?>
->>>>>>> develop-marta
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const input = document.querySelector('input[name="q"]');
@@ -421,9 +386,5 @@
     </script>
 
 </body>
-<<<<<<< HEAD
-</html>
-=======
 
 </html>
->>>>>>> develop-marta
