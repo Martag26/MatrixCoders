@@ -59,7 +59,9 @@
      */
     function imageFallback(?string $img): string
     {
-        return $img ? '/img/' . $img : '/img/curso1.jpg';
+        return $img
+            ? BASE_URL . '/img/' . $img
+            : BASE_URL . '/img/curso1.jpg';
     }
 
     // Si $cursos no está definido (llamada directa a la vista), inicializarlo como array vacío
@@ -80,17 +82,37 @@
                 Aprende, <span>crece</span> y avanza
             </h1>
 
+<<<<<<< HEAD
             <!-- Formulario de búsqueda de cursos por texto -->
             <form class="hero-search" method="GET" action="/index.php">
                 <input type="hidden" name="r" value="home/index">
                 <img class="icon" src="/matrixcoders/public/img/lupa.png" alt="buscar">
+=======
+            <!-- Buscador -->
+            <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php">
+                <input type="hidden" name="url" value="buscar">
+                <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
+>>>>>>> develop-marta
                 <input
-                    class="form-control"
+                    class="form-control w-100"
                     type="text"
                     name="q"
-                    value="<?= htmlspecialchars($q) ?>"
                     placeholder="Busca el curso que desees">
             </form>
+            <ul id="sugerencias" style="
+                display: none;
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 12px;
+                list-style: none;
+                margin: -20px auto 0;
+                padding: 4px 0;
+                max-width: 560px;
+                width: 100%;
+                box-shadow: 0 8px 24px rgba(0,0,0,.08);
+                position: relative;
+                z-index: 999;
+            "></ul>
 
             <!-- BLOQUE DE CURSOS: listado dinámico cargado desde la base de datos -->
             <div class="mt-4">
@@ -105,24 +127,45 @@
                     <div class="row g-4 mt-1">
                         <?php foreach ($cursos as $curso): ?>
                             <?php
+<<<<<<< HEAD
                             // Obtener los datos del curso con valores de respaldo si faltan campos en BD
                             $img    = imageFallback($curso['imagen'] ?? null);
                             $dur    = formatDuracionFallback($curso['duracion_min'] ?? null);
                             $stu    = studentsFallback($curso['estudiantes'] ?? null);
+=======
+                            $img = imageFallback($curso['imagen'] ?? null);
+                            $dur = formatDuracionFallback($curso['duracion_min'] ?? null);
+                            $stu = (int)($curso['total_matriculas'] ?? 0);
+>>>>>>> develop-marta
                             $precio = isset($curso['precio']) ? (float)$curso['precio'] : 33.99;
                             $titulo = $curso['titulo'] ?? 'Programación avanzada en PHP y MySQL';
                             ?>
                             <div class="col-12 col-md-6 col-lg-4">
+<<<<<<< HEAD
                                 <div class="course-card h-100">
                                     <!-- Imagen de portada del curso -->
                                     <img src="<?= htmlspecialchars($img) ?>" class="course-thumb w-100" alt="Curso">
+=======
+                                <!-- Card clickable -->
+                                <div class="course-card h-100"
+                                    style="cursor:pointer;"
+                                    onclick="window.location.href='<?= BASE_URL ?>/index.php?url=curso&id=<?= $curso['id'] ?>'">
+
+                                    <?php if ($img): ?>
+                                        <img src="<?= htmlspecialchars($img) ?>"
+                                            class="course-thumb w-100"
+                                            alt="<?= htmlspecialchars($titulo) ?>">
+                                    <?php else: ?>
+                                        <div class="course-thumb w-100"></div>
+                                    <?php endif; ?>
+>>>>>>> develop-marta
 
                                     <div class="p-3 d-flex flex-column gap-2">
                                         <!-- Metadatos: número de estudiantes y duración -->
                                         <div class="course-meta">
-                                            <span><?= $stu ?> Students</span>
-                                            <span><?= htmlspecialchars($dur) ?></span>
+                                            <span><?= $stu ?> <?= $stu === 1 ? 'estudiante' : 'estudiantes' ?></span>
                                         </div>
+<<<<<<< HEAD
 
                                         <!-- Título del curso -->
                                         <div class="course-title">
@@ -130,14 +173,25 @@
                                         </div>
 
                                         <!-- Precio y botón para añadir al carrito -->
+=======
+                                        <div class="course-title"><?= htmlspecialchars($titulo) ?></div>
+                                        <p class="text-muted" style="font-size:0.85rem; margin:0;">
+                                            <?= htmlspecialchars($desc) ?>
+                                        </p>
+>>>>>>> develop-marta
                                         <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
-                                            <div class="course-price"><?= number_format($precio, 2) ?>€</div>
-                                            <a class="btn btn-outline-secondary btn-sm" href="#" title="Añadir al carrito" aria-label="Añadir al carrito">
+                                            <div class="course-price">
+                                                <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
+                                            </div>
+                                            <!-- Botón cesta — stopPropagation para que no active el onclick de la card -->
+                                            <button
+                                                class="btn btn-outline-secondary btn-sm"
+                                                title="Añadir al carrito"
+                                                onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
                                                 🛒
-                                            </a>
+                                            </button>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -206,15 +260,170 @@
                     scrolling="no"
                     marginheight="0"
                     marginwidth="0"
-                    src="https://maps.google.com/maps?width=100%25&amp;height=600&amp;hl=es&amp;q=Vtar%20Don%20Benito+(MatrixCoders%20&amp;%20Co.)&amp;t=&amp;z=14&amp;ie=UTF8&amp;iwloc=B&amp;output=embed">
+                    src="https://maps.google.com/maps?width=100%25&amp;height=800&amp;hl=es&amp;q=Vtar%20Don%20Benito+(MatrixCoders%20&amp;%20Co.)&amp;t=&amp;z=14&amp;ie=UTF8&amp;iwloc=B&amp;output=embed">
                 </iframe>
             </div>
         </div>
     </section>
 
+<<<<<<< HEAD
     <?php require __DIR__ . '/../layout/footer.php'; ?>
 
+=======
+    <div class="modal fade" id="modalCarrito" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Añadir al carrito</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p id="modal-texto" class="mb-1" style="font-size:1rem;"></p>
+                    <p id="modal-precio" class="fw-bold" style="font-size:1.2rem; color:#111827;"></p>
+                    <p class="text-muted" style="font-size:.9rem;">¿Quieres añadir este curso a tu carrito?</p>
+                </div>
+                <div class="modal-footer border-0 pt-0 justify-content-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="btn-confirmar-carrito">
+                        Añadir al carrito
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <?php require __DIR__ . '/../layout/footer.php'; ?>
+>>>>>>> develop-marta
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const input = document.querySelector('input[name="q"]');
+        const lista = document.getElementById('sugerencias');
+        const baseUrl = '<?= BASE_URL ?>';
+        let timer = null;
+
+        input.addEventListener('input', function() {
+            const q = this.value.trim();
+            if (q === '') {
+                ocultarLista();
+                return;
+            }
+            clearTimeout(timer);
+            timer = setTimeout(() => buscarSugerencias(q), 250);
+        });
+
+        function buscarSugerencias(q) {
+            if (q.length < 1) {
+                ocultarLista();
+                return;
+            }
+
+            fetch(baseUrl + '/index.php?url=autocomplete&q=' + encodeURIComponent(q))
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        ocultarLista();
+                        return;
+                    }
+
+                    lista.innerHTML = '';
+                    data.forEach(curso => {
+                        const li = document.createElement('li');
+                        li.textContent = curso.titulo;
+                        li.style.cssText = 'padding: 10px 16px; cursor: pointer; font-size: .95rem; color: #111827;';
+                        li.addEventListener('mouseenter', () => li.style.background = '#f3f4f6');
+                        li.addEventListener('mouseleave', () => li.style.background = '#fff');
+                        li.addEventListener('click', () => {
+                            window.location.href = baseUrl + '/index.php?url=buscar&q=' + encodeURIComponent(curso.titulo);
+                        });
+                        lista.appendChild(li);
+                    });
+                    lista.style.display = 'block';
+                })
+                .catch(() => ocultarLista());
+        }
+
+        function ocultarLista() {
+            lista.style.display = 'none';
+            lista.innerHTML = '';
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !lista.contains(e.target)) ocultarLista();
+        });
+
+        input.addEventListener('keydown', function(e) {
+            const items = lista.querySelectorAll('li');
+            const activo = lista.querySelector('li.activo');
+            let idx = Array.from(items).indexOf(activo);
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (activo) {
+                    activo.classList.remove('activo');
+                    activo.style.background = '#fff';
+                }
+                idx = (idx + 1) % items.length;
+                items[idx].classList.add('activo');
+                items[idx].style.background = '#f3f4f6';
+                input.value = items[idx].textContent;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (activo) {
+                    activo.classList.remove('activo');
+                    activo.style.background = '#fff';
+                }
+                idx = (idx - 1 + items.length) % items.length;
+                items[idx].classList.add('activo');
+                items[idx].style.background = '#f3f4f6';
+                input.value = items[idx].textContent;
+            }
+            if (e.key === 'Escape') ocultarLista();
+        });
+
+        let cursoSeleccionado = null;
+
+        function abrirModal(id, titulo, precio) {
+            cursoSeleccionado = id;
+            document.getElementById('modal-texto').textContent = titulo;
+            document.getElementById('modal-precio').textContent =
+                precio > 0 ? precio.toFixed(2) + '€' : 'Gratis';
+            new bootstrap.Modal(document.getElementById('modalCarrito')).show();
+        }
+
+        document.getElementById('btn-confirmar-carrito').addEventListener('click', function() {
+            if (!cursoSeleccionado) return;
+
+            const formData = new FormData();
+            formData.append('curso_id', cursoSeleccionado);
+
+            fetch('<?= BASE_URL ?>/index.php?url=carrito-añadir', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        // Actualiza el badge sin recargar la página
+                        let badge = document.querySelector('.carrito-badge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'carrito-badge';
+                            document.querySelector('a[aria-label="carrito"]').appendChild(badge);
+                        }
+                        badge.textContent = data.total;
+                        bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                    }
+                });
+        });
+    </script>
 
 </body>
+<<<<<<< HEAD
 </html>
+=======
+
+</html>
+>>>>>>> develop-marta

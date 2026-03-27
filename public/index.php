@@ -36,49 +36,75 @@ switch ($url) {
         $controller->index();
         break;
 
-    // Muestra el formulario de inicio de sesión
+    // --- NUEVO: LOGIN ---
     case 'login':
         require_once "../app/controllers/AuthController.php";
         $controller = new AuthController();
         $controller->loginForm();
         break;
 
-    // Procesa las credenciales enviadas desde el formulario de login
     case 'doLogin':
         require_once "../app/controllers/AuthController.php";
         $controller = new AuthController();
         $controller->login();
         break;
 
-    // Cierra la sesión activa del usuario y redirige al inicio
     case 'logout':
         require_once "../app/controllers/AuthController.php";
         $controller = new AuthController();
         $controller->logout();
         break;
 
-    // Muestra el formulario de registro de nuevos usuarios
+    // --- NUEVO: REGISTER ---
     case 'register':
         require_once "../app/controllers/RegisterController.php";
         $controller = new RegisterController();
         $controller->registerForm();
         break;
 
-    // Procesa los datos enviados desde el formulario de registro
     case 'doRegister':
         require_once "../app/controllers/RegisterController.php";
         $controller = new RegisterController();
         $controller->register();
         break;
 
-    // Muestra la página de planes y precios de suscripción
+    // --- NUEVO: SUSCRIPCIONES ---
     case 'suscripciones':
         require_once "../app/controllers/SuscripcionController.php";
         $controller = new SuscripcionController();
         $controller->index();
         break;
 
-    // Ruta por defecto: muestra el listado de cursos disponibles (página de inicio)
+    case 'buscar':
+        require_once "../app/controllers/BuscarController.php";
+        $controller = new BuscarController();
+        $controller->index();
+        break;
+
+    case 'autocomplete':
+        require_once "../app/controllers/AutocompleteController.php";
+        $controller = new AutocompleteController();
+        $controller->index();
+        break;
+
+    case 'carrito-añadir':
+        require_once "../app/controllers/CarritoController.php";
+        $controller = new CarritoController();
+        $controller->añadir();
+        break;
+        
+    case 'carrito':
+        require_once "../app/controllers/CarritoController.php";
+        $controller = new CarritoController();
+        $controller->index();
+        break;
+
+    case 'carrito-eliminar':
+        require_once "../app/controllers/CarritoController.php";
+        $controller = new CarritoController();
+        $controller->eliminar();
+        break;
+
     default:
         require_once "../app/controllers/CursoController.php";
         $controller = new CursoController();

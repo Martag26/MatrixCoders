@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 
 /**
  * Controlador de suscripciones.
@@ -7,10 +8,13 @@
  * disponibles en la plataforma.
  */
 
+=======
+>>>>>>> develop-marta
 require_once __DIR__ . '/../config.php';
 
 class SuscripcionController
 {
+<<<<<<< HEAD
     /**
      * Muestra la página de planes de suscripción.
      *
@@ -19,6 +23,8 @@ class SuscripcionController
      *
      * @return void
      */
+=======
+>>>>>>> develop-marta
     public function index()
     {
         $pageTitle = "Suscripciones";

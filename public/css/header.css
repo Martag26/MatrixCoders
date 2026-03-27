@@ -66,6 +66,23 @@ header .btn-mc:hover {
     transition: background .15s ease, transform .15s ease;
 }
 
+.carrito-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--mc-green);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
 .header-icons a:hover {
     background: #f3f4f6;
     transform: translateY(-1px);
