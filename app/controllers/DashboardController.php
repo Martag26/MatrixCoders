@@ -47,14 +47,16 @@ class DashboardController
          * al menos una tarea con fecha límite asociada a los cursos
          * en los que el usuario está matriculado.
          */
+        // SQLite no tiene YEAR()/MONTH()/DAY(); se usa strftime() con parámetros
+        // formateados como cadenas con ceros a la izquierda (ej: '2026', '03').
         $sqlDiasEventos = "
-            SELECT DISTINCT DAY(t.fecha_limite) AS dia
+            SELECT DISTINCT CAST(strftime('%d', t.fecha_limite) AS INTEGER) AS dia
             FROM matricula m
             JOIN tarea t ON t.curso_id = m.curso_id
             WHERE m.usuario_id = ?
             AND t.fecha_limite IS NOT NULL
-            AND YEAR(t.fecha_limite) = ?
-            AND MONTH(t.fecha_limite) = ?
+            AND strftime('%Y', t.fecha_limite) = ?
+            AND strftime('%m', t.fecha_limite) = ?
         ";
 
         // Sobreescribir con los valores recibidos por GET si existen
@@ -69,7 +71,11 @@ class DashboardController
 
         // Ejecutar la consulta de días con eventos y mapear el resultado a un array de enteros
         $stmt = $conexion->prepare($sqlDiasEventos);
-        $stmt->execute([$usuario_id, $calYear, $calMonth]);
+        $stmt->execute([
+            $usuario_id,
+            sprintf('%04d', $calYear),   // '2026'
+            sprintf('%02d', $calMonth),  // '03'
+        ]);
         $diasEventos = array_map(fn($r) => (int)$r['dia'], $stmt->fetchAll(PDO::FETCH_ASSOC));
 
         // Obtener todas las carpetas pertenecientes al usuario
