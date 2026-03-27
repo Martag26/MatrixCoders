@@ -3,36 +3,43 @@
 /**
  * Clase de conexión a la base de datos.
  *
- * Gestiona la creación de la conexión PDO con el servidor MySQL
- * utilizado por la aplicación MatrixCoders.
+ * Gestiona la conexión PDO con SQLite (base de datos embebida dentro
+ * del propio proyecto en app/data/database.sqlite).
+ *
+ * Si el archivo todavía no existe, lo crea y ejecuta app/data/init.sql
+ * para inicializar el esquema y los datos de ejemplo automáticamente.
  */
 class Database
 {
+    /** Ruta al archivo SQLite de la aplicación */
+    private static string $dbPath  = __DIR__ . '/data/database.sqlite';
+
+    /** Ruta al script SQL de inicialización */
+    private static string $initSql = __DIR__ . '/data/init.sql';
+
     /**
-     * Crea y devuelve una conexión PDO a la base de datos.
+     * Crea y devuelve una conexión PDO a la base de datos SQLite.
      *
-     * Configura el modo de errores para que PDO lance excepciones
-     * ante cualquier fallo, facilitando la detección de errores.
-     * Si la conexión falla, detiene la ejecución mostrando el mensaje de error.
-     *
-     * @return PDO Instancia de la conexión activa a la base de datos.
+     * @return PDO Instancia de la conexión activa.
+     * @throws PDOException Si la conexión o la inicialización falla.
      */
-    public function connect()
+    public function connect(): PDO
     {
-        try {
-            // Crear la conexión PDO al servidor MySQL local con la base de datos del proyecto
-            $conexion = new PDO(
-                "mysql:host=localhost;dbname=matrixcoders_bd", "root", ""
-            );
+        $isNew = !file_exists(self::$dbPath);
 
-            // Configurar PDO para que lance excepciones ante errores de SQL
-            $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $conexion = new PDO('sqlite:' . self::$dbPath);
+        $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            return $conexion;
+        // Activar claves foráneas (SQLite las ignora por defecto)
+        $conexion->exec('PRAGMA foreign_keys = ON');
+        // WAL mejora el rendimiento en lecturas/escrituras concurrentes
+        $conexion->exec('PRAGMA journal_mode = WAL');
 
-        } catch (PDOException $e) {
-            // Detener la ejecución y mostrar el mensaje de error si la conexión falla
-            die("Error de conexión: " . $e->getMessage());
+        if ($isNew) {
+            $sql = file_get_contents(self::$initSql);
+            $conexion->exec($sql);
         }
+
+        return $conexion;
     }
 }
