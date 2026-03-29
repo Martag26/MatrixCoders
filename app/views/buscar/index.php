@@ -26,33 +26,38 @@ $pageTitle = 'Buscar cursos';
                 Aprende, <span>crece</span> y avanza
             </h1>
 
-            <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php">
-                <input type="hidden" name="url" value="buscar">
-                <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
-                <input
-                    class="form-control w-100"
-                    type="text"
-                    name="q"
-                    value="<?= htmlspecialchars($q) ?>"
-                    placeholder="Busca el curso que desees"
-                    autofocus>
-            </form>
+            <div style="position: relative; max-width: 560px; margin: 0 auto;">
 
-            <!-- Lista de sugerencias -->
-            <ul id="sugerencias" style="
+                <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php"
+                    style="margin-bottom: 0 !important;">
+                    <input type="hidden" name="url" value="buscar">
+                    <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
+                    <input
+                        class="form-control w-100"
+                        type="text"
+                        name="q"
+                        value="<?= htmlspecialchars($q) ?>"
+                        placeholder="Busca el curso que desees"
+                        autofocus>
+                </form>
+
+                <ul id="sugerencias" style="
                 display: none;
                 background: #fff;
                 border: 1px solid #e5e7eb;
                 border-radius: 12px;
                 list-style: none;
-                margin: -20px auto 0;
                 padding: 4px 0;
-                max-width: 560px;
+                margin: 0;
                 width: 100%;
                 box-shadow: 0 8px 24px rgba(0,0,0,.08);
-                position: relative;
-                z-index: 999;
+                position: absolute !important;
+                top: calc(100% + 4px);
+                left: 0;
+                z-index: 9999;
             "></ul>
+
+            </div>
 
             <div class="mt-4">
 

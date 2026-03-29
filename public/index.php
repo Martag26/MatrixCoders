@@ -80,6 +80,11 @@ switch ($url) {
         $controller->eliminar();
         break;
 
+    case 'curso':
+    case 'detallecurso':
+        require_once "../app/controllers/detallecursocontroller.php";
+        break;
+
     default:
         require_once "../app/controllers/CursoController.php";
         $controller = new CursoController();

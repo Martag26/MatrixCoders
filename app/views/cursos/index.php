@@ -55,30 +55,33 @@
                 Aprende, <span>crece</span> y avanza
             </h1>
 
-            <!-- Buscador -->
-            <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php">
-                <input type="hidden" name="url" value="buscar">
-                <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
-                <input
-                    class="form-control w-100"
-                    type="text"
-                    name="q"
-                    placeholder="Busca el curso que desees">
-            </form>
-            <ul id="sugerencias" style="
-                display: none;
-                background: #fff;
-                border: 1px solid #e5e7eb;
-                border-radius: 12px;
-                list-style: none;
-                margin: -20px auto 0;
-                padding: 4px 0;
-                max-width: 560px;
-                width: 100%;
-                box-shadow: 0 8px 24px rgba(0,0,0,.08);
-                position: relative;
-                z-index: 999;
-            "></ul>
+            <div style="position: relative; max-width: 560px; margin: 0 auto;">
+                <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php"
+                    style="margin-bottom: 0 !important;">
+                    <input type="hidden" name="url" value="buscar">
+                    <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
+                    <input
+                        class="form-control w-100"
+                        type="text"
+                        name="q"
+                        placeholder="Busca el curso que desees">
+                </form>
+                <ul id="sugerencias" style="
+                    display: none;
+                    background: #fff;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    list-style: none;
+                    padding: 4px 0;
+                    margin: 0;
+                    width: 100%;
+                    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+                    position: absolute !important;
+                    top: calc(100% + 4px);
+                    left: 0;
+                    z-index: 9999;
+                "></ul>
+            </div>
 
             <!-- BLOQUE CURSOS -->
             <div class="mt-4">
