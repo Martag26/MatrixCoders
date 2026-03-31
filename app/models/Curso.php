@@ -163,4 +163,105 @@ class Curso
     ");
         return $stmt->execute([$usuarioId, $cursoId]);
     }
+
+    /**
+     * Devuelve la primera lección del curso (para abrir al entrar).
+     */
+    public function getPrimeraLeccion(int $cursoId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT l.* FROM leccion l
+            JOIN unidad u ON l.unidad_id = u.id
+            WHERE u.curso_id = ?
+            ORDER BY u.orden ASC, l.orden ASC
+            LIMIT 1
+        ");
+        $stmt->execute([$cursoId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    /**
+     * Devuelve una lección por su ID.
+     */
+    public function getLeccionById(int $leccionId): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM leccion WHERE id = ?");
+        $stmt->execute([$leccionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    public function getUnidadById(int $unidadId): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM unidad WHERE id = ?");
+        $stmt->execute([$unidadId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    /**
+     * Lección anterior dentro del mismo curso (por orden de unidad y lección).
+     */
+    public function getLeccionAnterior(int $leccionId, int $cursoId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT l.* FROM leccion l
+            JOIN unidad u ON l.unidad_id = u.id
+            WHERE u.curso_id = ?
+              AND (u.orden < (SELECT u2.orden FROM unidad u2 JOIN leccion l2 ON l2.unidad_id = u2.id WHERE l2.id = ?)
+                  OR (u.orden = (SELECT u2.orden FROM unidad u2 JOIN leccion l2 ON l2.unidad_id = u2.id WHERE l2.id = ?)
+                      AND l.orden < (SELECT orden FROM leccion WHERE id = ?)))
+            ORDER BY u.orden DESC, l.orden DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$cursoId, $leccionId, $leccionId, $leccionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    /**
+     * Lección siguiente dentro del mismo curso.
+     */
+    public function getLeccionSiguiente(int $leccionId, int $cursoId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT l.* FROM leccion l
+            JOIN unidad u ON l.unidad_id = u.id
+            WHERE u.curso_id = ?
+              AND (u.orden > (SELECT u2.orden FROM unidad u2 JOIN leccion l2 ON l2.unidad_id = u2.id WHERE l2.id = ?)
+                  OR (u.orden = (SELECT u2.orden FROM unidad u2 JOIN leccion l2 ON l2.unidad_id = u2.id WHERE l2.id = ?)
+                      AND l.orden > (SELECT orden FROM leccion WHERE id = ?)))
+            ORDER BY u.orden ASC, l.orden ASC
+            LIMIT 1
+        ");
+        $stmt->execute([$cursoId, $leccionId, $leccionId, $leccionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    /**
+     * Guarda o actualiza la nota de un usuario para una lección.
+     */
+    public function guardarNota(int $usuarioId, int $leccionId, string $contenido): bool
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO nota (usuario_id, leccion_id, contenido, updated_at)
+            VALUES (?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE contenido = VALUES(contenido), updated_at = NOW()
+        ");
+        return $stmt->execute([$usuarioId, $leccionId, $contenido]);
+    }
+
+    /**
+     * Recupera la nota de un usuario para una lección.
+     */
+    public function getNota(int $usuarioId, int $leccionId): string
+    {
+        $stmt = $this->db->prepare("
+            SELECT contenido FROM nota WHERE usuario_id = ? AND leccion_id = ?
+        ");
+        $stmt->execute([$usuarioId, $leccionId]);
+        return (string)($stmt->fetchColumn() ?: '');
+    }
 }

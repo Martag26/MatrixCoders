@@ -35,8 +35,8 @@ class CarritoController
         }
 
         echo json_encode([
-            'ok'       => true,
-            'cantidad' => count($_SESSION['carrito'] ?? []),
+            'ok'    => true,
+            'total' => count($_SESSION['carrito'] ?? []),
         ]);
         exit;
     }

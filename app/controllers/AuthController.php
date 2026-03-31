@@ -31,6 +31,7 @@ class AuthController
 
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['usuario_nombre'] = $user['nombre'];
+        $_SESSION['usuario_plan'] = $user['plan'];
 
         header("Location: " . BASE_URL . "/index.php?url=dashboard");
         exit;

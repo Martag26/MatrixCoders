@@ -47,12 +47,12 @@ $estaMatriculado = $usuarioId
     : false;
 
 // ── Comprobación de plan ──────────────────────────────────────────
-// Ajusta la lógica según tus planes (gratuito, basico, premium…)
 $precio = (float)($curso['precio'] ?? 0);
 $planPermiteAcceso = match (true) {
-    $precio <= 0               => true,  // Gratis: todos pueden
-    $usuarioPlan === 'premium' => true,  // Premium: acceso total
-    default                    => false, // TODO: añade más condiciones si tienes más planes
+    $precio <= 0                        => true,  // gratis: todos
+    $usuarioPlan === 'estudiantes'      => true,  // plan estudiantes: todos
+    $usuarioPlan === 'empresas'         => true,  // plan empresas: todos
+    default                             => false, // individual o sin plan: solo comprados
 };
 
 // ── Unidades con lecciones ────────────────────────────────────────
@@ -60,6 +60,19 @@ $unidades = $modeloCurso->getUnidadesConLecciones($id);
 
 // ── Tareas ────────────────────────────────────────────────────────
 $tareas = $modeloCurso->getTareasByCurso($id);
+
+// ── Lección activa (solo si está matriculado) ─────────────────────
+$leccionActiva = null;
+if ($estaMatriculado) {
+    $leccionId = isset($_GET['leccion']) ? (int)$_GET['leccion'] : 0;
+    if ($leccionId > 0) {
+        $leccionActiva = $modeloCurso->getLeccionById($leccionId);
+    }
+    // Si no se pidió ninguna, abre la primera
+    if (!$leccionActiva) {
+        $leccionActiva = $modeloCurso->getPrimeraLeccion($id);
+    }
+}
 
 // ── Título de página ──────────────────────────────────────────────
 $pageTitle = htmlspecialchars($curso['titulo'] ?? 'Detalle del curso');
