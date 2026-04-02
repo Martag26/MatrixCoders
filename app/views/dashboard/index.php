@@ -1,14 +1,12 @@
 <?php
 $monthNames = [1 => 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-$firstDayTs = strtotime(sprintf('%04d-%02d-01', $calYear, $calMonth));
+$firstDayTs  = strtotime(sprintf('%04d-%02d-01', $calYear, $calMonth));
 $daysInMonth = (int)date('t', $firstDayTs);
-
 $firstWeekday = (int)date('w', $firstDayTs);
 
-$prevTs = strtotime('-1 month', $firstDayTs);
-$nextTs = strtotime('+1 month', $firstDayTs);
-
+$prevTs   = strtotime('-1 month', $firstDayTs);
+$nextTs   = strtotime('+1 month', $firstDayTs);
 $prevYear = (int)date('Y', $prevTs);
 $prevMonth = (int)date('n', $prevTs);
 $nextYear = (int)date('Y', $nextTs);
@@ -27,7 +25,6 @@ $eventDays = array_flip($diasEventos ?? []);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><?= htmlspecialchars($pageTitle ?? 'Espacio de trabajo') ?></title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
@@ -40,13 +37,11 @@ $eventDays = array_flip($diasEventos ?? []);
 
     <main class="main-dashboard">
         <div class="mc-container">
-
             <div class="contenedor-dashboard">
 
-                <!-- Barra herramientas -->
+                <!-- ── SIDEBAR IZQUIERDA ── -->
                 <aside class="barra-herramientas">
                     <h3>BARRA DE HERRAMIENTAS</h3>
-
                     <ul class="menu-lateral">
                         <li>
                             <a href="<?= BASE_URL ?>/index.php?url=dashboard">
@@ -73,13 +68,13 @@ $eventDays = array_flip($diasEventos ?? []);
                             </a>
                         </li>
                     </ul>
-
                     <a class="cerrar-sesion" href="<?= BASE_URL ?>/index.php?url=logout">
                         <img src="<?= BASE_URL ?>/img/cerrar-sesion.png" alt="cerrar" class="icono-cerrar">
                         Cerrar sesión
                     </a>
                 </aside>
 
+                <!-- ── CONTENIDO CENTRAL ── -->
                 <section class="contenido-dashboard">
 
                     <div class="banner-dashboard">
@@ -96,43 +91,32 @@ $eventDays = array_flip($diasEventos ?? []);
                             <img src="<?= BASE_URL ?>/img/crear.png" alt="Nuevo Documento" class="icono-accion">
                             <span>Nuevo<br>Documento</span>
                         </button>
-
                         <button class="accion-btn" type="button">
                             <img src="<?= BASE_URL ?>/img/subir.png" alt="Subir Documento" class="icono-accion">
                             <span>Subir<br>Documento</span>
                         </button>
-
                         <button class="accion-btn" type="button">
-                            <img src="<?= BASE_URL ?>/img/compartir-archivo.png" alt="Compartir Documento" class="icono-accion">
+                            <img src="<?= BASE_URL ?>/img/compartir-archivo.png" alt="Compartir" class="icono-accion">
                             <span>Compartir<br>Documento</span>
                         </button>
-
                         <button class="accion-btn" type="button">
-                            <img src="<?= BASE_URL ?>/img/plantilla.png" alt="Usar Plantilla" class="icono-accion">
+                            <img src="<?= BASE_URL ?>/img/plantilla.png" alt="Plantilla" class="icono-accion">
                             <span>Usar<br>Plantilla</span>
                         </button>
                     </div>
 
-                    <!-- Documentos -->
+                    <!-- Carpetas -->
                     <div class="documentos">
                         <h2>Mis Carpetas</h2>
-
-                        <?php
-                        $carpetas = is_array($carpetas ?? null) ? $carpetas : [];
-                        ?>
-
+                        <?php $carpetas = is_array($carpetas ?? null) ? $carpetas : []; ?>
                         <?php if (count($carpetas) === 0): ?>
-                            <p class="text-muted">
-                                Aún no tienes carpetas creadas.
-                            </p>
+                            <p class="text-muted">Aún no tienes carpetas creadas.</p>
                         <?php else: ?>
                             <div class="documentos-container">
                                 <?php foreach ($carpetas as $c): ?>
                                     <div class="documento">
                                         <a href="<?= BASE_URL ?>/index.php?url=carpeta&id=<?= $c['id'] ?>">
-                                            <img src="<?= BASE_URL ?>/img/carpeta.png"
-                                                class="imagen-carpeta"
-                                                alt="Carpeta">
+                                            <img src="<?= BASE_URL ?>/index.php?url=curso&id=<?= $curso['id'] ?>" class="imagen-carpeta" alt="Carpeta">
                                         </a>
                                         <p><?= htmlspecialchars($c['nombre']) ?></p>
                                     </div>
@@ -141,55 +125,80 @@ $eventDays = array_flip($diasEventos ?? []);
                         <?php endif; ?>
                     </div>
 
-                    <!-- Seguir viendo -->
+                    <!-- ── SEGUIR VIENDO ── -->
                     <div class="seguimiento">
                         <div class="seguimiento-cabecera">
                             <h2>Seguir viendo</h2>
-                        </div>
-
-                        <div class="seguimiento-container">
-                            <?php if (!empty($seguirCurso)): ?>
-                                <article class="curso">
-                                    <img class="curso-imagen" src="<?= BASE_URL ?>/img/curso1.jpg" alt="Curso">
-
-                                    <div class="curso-cuerpo">
-                                        <h3><?= htmlspecialchars($seguirCurso['titulo']) ?></h3>
-
-                                        <div class="curso-autor">
-                                            <img class="avatar" src="<?= BASE_URL ?>/img/usuario.png" alt="perfil">
-                                            <div>
-                                                <p class="autor-nombre"><?= htmlspecialchars($_SESSION['usuario_nombre'] ?? 'Usuario') ?></p>
-                                                <p class="autor-rol">Alumno</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </article>
-                            <?php else: ?>
-                                <p class="text-muted">Aún no tienes cursos para continuar.</p>
+                            <?php $totalCursos = count($cursosEnProgreso ?? []); ?>
+                            <?php if ($totalCursos > 3): ?>
+                                <div class="sv-flechas">
+                                    <button class="sv-arrow" id="svPrev" aria-label="Anterior">&#8592;</button>
+                                    <button class="sv-arrow" id="svNext" aria-label="Siguiente">&#8594;</button>
+                                </div>
                             <?php endif; ?>
                         </div>
+
+                        <?php if (empty($cursosEnProgreso)): ?>
+                            <p class="text-muted" style="margin-top:.5rem;">Aún no tienes cursos para continuar.</p>
+                        <?php else: ?>
+                            <div class="sv-track-wrap">
+                                <div class="sv-track" id="svTrack">
+                                    <?php foreach ($cursosEnProgreso as $sc):
+                                        $progreso  = $sc['progreso'];
+                                        $leccionUrl = $sc['ultima_leccion_id']
+                                            ? BASE_URL . '/index.php?url=leccion&id=' . $sc['ultima_leccion_id']
+                                            : BASE_URL . '/index.php?url=detallecurso&id=' . $sc['id'];
+
+                                        /* Imagen: usa la columna 'imagen' del curso si existe, si no el placeholder */
+                                        $imgSrc = !empty($sc['imagen'])
+                                            ? BASE_URL . '/' . ltrim($sc['imagen'], '/')
+                                            : BASE_URL . '/img/curso1.jpg';
+                                    ?>
+                                        <a class="sv-card" href="<?= $leccionUrl ?>">
+                                            <div class="sv-thumb">
+                                                <img src="<?= htmlspecialchars($imgSrc) ?>"
+                                                    alt="<?= htmlspecialchars($sc['titulo']) ?>"
+                                                    onerror="this.src='<?= BASE_URL ?>/img/curso1.jpg'">
+                                                <span class="sv-badge"><?= $progreso ?>%</span>
+                                            </div>
+                                            <div class="sv-body">
+                                                <p class="sv-titulo"><?= htmlspecialchars($sc['titulo']) ?></p>
+                                                <div class="sv-progress-wrap">
+                                                    <div class="sv-progress-bar">
+                                                        <div class="sv-progress-fill" style="width:<?= $progreso ?>%"></div>
+                                                    </div>
+                                                    <span class="sv-progress-label">
+                                                        <?= $sc['lecciones_vistas'] ?>/<?= $sc['total_lecciones'] ?> lecciones
+                                                    </span>
+                                                </div>
+                                                <span class="sv-continuar">Continuar →</span>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                 </section>
 
-                <!-- Columna derecha -->
+                <!-- ── COLUMNA DERECHA ── -->
                 <aside class="calendario">
                     <button class="btn-calendario" type="button">Abrir Calendario</button>
 
                     <div class="tarjeta-calendario">
                         <div class="calendario-header">
                             <a class="btn-mini" href="<?= BASE_URL ?>/index.php?url=dashboard&y=<?= $prevYear ?>&m=<?= $prevMonth ?>">&lt;</a>
-
                             <div class="selector-mes">
                                 <span class="mes"><?= $monthNames[$calMonth] ?></span>
                                 <span class="anyo"><?= $calYear ?></span>
                             </div>
-
                             <a class="btn-mini" href="<?= BASE_URL ?>/index.php?url=dashboard&y=<?= $nextYear ?>&m=<?= $nextMonth ?>">&gt;</a>
                         </div>
 
                         <div class="calendario-semana">
-                            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span>
+                            <span>Th</span><span>Fr</span><span>Sa</span>
                         </div>
 
                         <div class="calendario-grid">
@@ -197,22 +206,16 @@ $eventDays = array_flip($diasEventos ?? []);
                             for ($i = 0; $i < $firstWeekday; $i++) {
                                 echo '<span class="dia apagado"></span>';
                             }
-
                             for ($d = 1; $d <= $daysInMonth; $d++) {
-                                $isToday = ($calYear === $todayY && $calMonth === $todayM && $d === $todayD);
+                                $isToday  = ($calYear === $todayY && $calMonth === $todayM && $d === $todayD);
                                 $hasEvent = isset($eventDays[$d]);
-
-                                $classes = 'dia';
-                                if ($isToday) $classes .= ' seleccionado';
-                                if ($hasEvent) $classes .= ' marcado';
-
+                                $classes  = 'dia' . ($isToday ? ' seleccionado' : '') . ($hasEvent ? ' marcado' : '');
                                 echo '<span class="' . $classes . '">' . $d . '</span>';
                             }
                             ?>
                         </div>
                     </div>
 
-                    <!-- Eventos desde BD -->
                     <div class="lista-eventos">
                         <?php if (!empty($eventos)): ?>
                             <?php foreach ($eventos as $e): ?>
@@ -245,6 +248,41 @@ $eventDays = array_flip($diasEventos ?? []);
     <?php require __DIR__ . '/../layout/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function() {
+            const track = document.getElementById('svTrack');
+            const btnPrev = document.getElementById('svPrev');
+            const btnNext = document.getElementById('svNext');
+            if (!track || !btnPrev || !btnNext) return;
+
+            let page = 0;
+            const PER_PAGE = 3;
+
+            function cardWidth() {
+                const card = track.querySelector('.sv-card');
+                if (!card) return 0;
+                const style = getComputedStyle(track);
+                const gap = parseFloat(style.gap) || 16;
+                return card.offsetWidth + gap;
+            }
+
+            function totalPages() {
+                return Math.ceil(track.children.length / PER_PAGE);
+            }
+
+            function goTo(p) {
+                page = Math.max(0, Math.min(p, totalPages() - 1));
+                const offset = page * PER_PAGE * cardWidth();
+                track.style.transform = `translateX(-${offset}px)`;
+                btnPrev.disabled = page === 0;
+                btnNext.disabled = page >= totalPages() - 1;
+            }
+
+            btnPrev.addEventListener('click', () => goTo(page - 1));
+            btnNext.addEventListener('click', () => goTo(page + 1));
+            goTo(0);
+        })();
+    </script>
 </body>
 
 </html>

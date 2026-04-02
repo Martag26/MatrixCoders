@@ -142,7 +142,7 @@ class Curso
     {
         $stmt = $this->db->prepare("
         SELECT COUNT(*) FROM matricula
-        WHERE usuario_id = ? AND curso_id = ? AND estado = 'activo'
+        WHERE usuario_id = ? AND curso_id = ? AND estado = 'activa'
     ");
         $stmt->execute([$usuarioId, $cursoId]);
         return (int)$stmt->fetchColumn() > 0;
@@ -159,7 +159,7 @@ class Curso
         }
         $stmt = $this->db->prepare("
         INSERT INTO matricula (usuario_id, curso_id, fecha, estado)
-        VALUES (?, ?, NOW(), 'activo')
+        VALUES (?, ?, NOW(), 'activa')
     ");
         return $stmt->execute([$usuarioId, $cursoId]);
     }
@@ -263,5 +263,37 @@ class Curso
         ");
         $stmt->execute([$usuarioId, $leccionId]);
         return (string)($stmt->fetchColumn() ?: '');
+    }
+
+    /**
+     * Marca una lección como vista por el usuario.
+     * Usa INSERT IGNORE para no duplicar si ya estaba marcada.
+     */
+    public function marcarVista(int $usuarioId, int $leccionId): void
+    {
+        $stmt = $this->db->prepare("
+            INSERT IGNORE INTO leccion_vista (usuario_id, leccion_id, visto_at)
+            VALUES (?, ?, NOW())
+        ");
+        $stmt->execute([$usuarioId, $leccionId]);
+    }
+
+    /**
+     * Devuelve un array indexado de leccion_id que el usuario ya ha visto
+     * dentro de un curso concreto.
+     */
+    public function getLeccionesVistas(int $usuarioId, int $cursoId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT lv.leccion_id
+            FROM leccion_vista lv
+            JOIN leccion l  ON l.id  = lv.leccion_id
+            JOIN unidad  u  ON u.id  = l.unidad_id
+            WHERE lv.usuario_id = ?
+              AND u.curso_id    = ?
+        ");
+        $stmt->execute([$usuarioId, $cursoId]);
+        // Devuelve un Set: [leccion_id => true, ...]
+        return array_flip($stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 }

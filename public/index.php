@@ -85,6 +85,10 @@ switch ($url) {
         require_once "../app/controllers/detallecursocontroller.php";
         break;
 
+    case 'leccion':
+        require_once "../app/controllers/LeccionController.php";
+        break;
+
     default:
         require_once "../app/controllers/CursoController.php";
         $controller = new CursoController();

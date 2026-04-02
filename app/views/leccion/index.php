@@ -28,7 +28,6 @@ $ytId = ytId($videoUrl);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
     <style>
         :root {
             --mc-green: #6B8F71;
@@ -39,15 +38,23 @@ $ytId = ytId($videoUrl);
             --mc-soft: #f8fafc;
             --mc-text: #374151;
             --mc-muted: #6b7280;
+            --header-h: 73px;
+            /* 40px logo + 16px*2 padding + 1px border */
         }
 
-        * {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
+        /* Evita el scroll de página — cada columna scrollea por su cuenta */
+        html,
         body {
+            height: 100%;
+            overflow: hidden;
             font-family: 'Saira', sans-serif;
             background: #fff;
             color: var(--mc-dark);
@@ -57,7 +64,8 @@ $ytId = ytId($videoUrl);
         .leccion-wrap {
             display: grid;
             grid-template-columns: 1fr 300px;
-            min-height: calc(100vh - 62px);
+            height: calc(100vh - var(--header-h));
+            overflow: hidden;
         }
 
         @media(max-width: 900px) {
@@ -73,17 +81,33 @@ $ytId = ytId($videoUrl);
         /* ── COLUMNA IZQUIERDA ── */
         .leccion-main {
             overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
+            min-width: 0;
         }
 
-        /* Video */
+        /* ── VIDEO (más estrecho, centrado) ── */
+        .video-wrapper {
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 1rem 1.5rem;
+            flex-shrink: 0;
+        }
+
         .video-container {
             background: #000;
-            position: relative;
             width: 100%;
+            max-width: 720px;
+            /* nunca más ancho que 720px */
             aspect-ratio: 16/9;
-            max-height: 65vh;
+            max-height: 45vh;
+            /* nunca más alto que 45% del viewport */
+            overflow: hidden;
+            position: relative;
+            border-radius: 6px;
         }
 
         .video-container iframe {
@@ -92,6 +116,7 @@ $ytId = ytId($videoUrl);
             width: 100%;
             height: 100%;
             border: none;
+            display: block;
         }
 
         .video-placeholder {
@@ -124,15 +149,16 @@ $ytId = ytId($videoUrl);
             color: #6b7280;
         }
 
-        /* Barra de navegación entre lecciones */
+        /* ── BARRA NAVEGACIÓN ── */
         .leccion-nav {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: .85rem 1.5rem;
+            padding: .75rem 1.5rem;
             background: var(--mc-soft);
             border-bottom: 1px solid var(--mc-border);
             gap: 1rem;
+            flex-shrink: 0;
         }
 
         .leccion-nav .titulo-wrap {
@@ -201,6 +227,7 @@ $ytId = ytId($videoUrl);
         .leccion-tabs-wrap {
             padding: 0 1.5rem;
             border-bottom: 1px solid var(--mc-border);
+            flex-shrink: 0;
         }
 
         .leccion-tabs .nav-link {
@@ -262,35 +289,6 @@ $ytId = ytId($videoUrl);
             color: var(--mc-text);
         }
 
-        .certificado-box {
-            margin-top: 1.5rem;
-            background: linear-gradient(135deg, #d1fae5, #ecfdf5);
-            border: 1px solid #6ee7b7;
-            border-radius: 12px;
-            padding: 1.1rem 1.3rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .certificado-box .cert-icon {
-            font-size: 2rem;
-            flex-shrink: 0;
-        }
-
-        .certificado-box h6 {
-            font-weight: 700;
-            color: #065f46;
-            margin-bottom: .25rem;
-        }
-
-        .certificado-box p {
-            font-size: .84rem;
-            color: #047857;
-            margin: 0;
-            line-height: 1.55;
-        }
-
         /* ── NOTAS TAB ── */
         .notas-header {
             display: flex;
@@ -338,7 +336,6 @@ $ytId = ytId($videoUrl);
             resize: vertical;
             color: var(--mc-dark);
             line-height: 1.6;
-            transition: outline .15s;
         }
 
         .notas-area:focus {
@@ -434,12 +431,12 @@ $ytId = ytId($videoUrl);
 
         /* ── SIDEBAR TEMARIO ── */
         .temario-sidebar {
-            background: #f8fafc;
+            background: var(--mc-soft);
             border-left: 1px solid var(--mc-border);
             overflow-y: auto;
-            max-height: calc(100vh - 62px);
-            position: sticky;
-            top: 62px;
+            overflow-x: hidden;
+            min-width: 0;
+            height: 100%;
         }
 
         .temario-head {
@@ -462,7 +459,12 @@ $ytId = ytId($videoUrl);
             font-size: .75rem;
         }
 
-        .t-unidad-titulo {
+        /* ── UNIDAD COLAPSABLE ── */
+        .t-unidad-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: .6rem 1rem;
             font-size: .75rem;
             font-weight: 700;
@@ -470,9 +472,38 @@ $ytId = ytId($videoUrl);
             text-transform: uppercase;
             letter-spacing: .5px;
             background: #eef2f7;
+            border: none;
             border-top: 1px solid var(--mc-border);
+            cursor: pointer;
+            text-align: left;
+            transition: background .15s;
+            font-family: 'Saira', sans-serif;
         }
 
+        .t-unidad-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .t-unidad-btn .u-chevron {
+            font-size: .7rem;
+            transition: transform .2s;
+            flex-shrink: 0;
+        }
+
+        .t-unidad-btn.collapsed .u-chevron {
+            transform: rotate(-90deg);
+        }
+
+        .t-lecciones-list {
+            overflow: hidden;
+            transition: max-height .25s ease;
+        }
+
+        .t-lecciones-list.cerrado {
+            max-height: 0 !important;
+        }
+
+        /* ── LECCIÓN ITEM ── */
         .t-leccion {
             display: flex;
             align-items: flex-start;
@@ -483,7 +514,6 @@ $ytId = ytId($videoUrl);
             color: var(--mc-text);
             font-size: .83rem;
             transition: background .15s;
-            cursor: pointer;
         }
 
         .t-leccion:hover {
@@ -499,10 +529,11 @@ $ytId = ytId($videoUrl);
             padding-left: calc(1.3rem - 3px);
         }
 
-        .t-leccion .tl-dot {
+        /* Checkbox del sidebar */
+        .tl-check {
             width: 16px;
             height: 16px;
-            border-radius: 50%;
+            border-radius: 4px;
             border: 2px solid var(--mc-border);
             background: #fff;
             flex-shrink: 0;
@@ -510,18 +541,30 @@ $ytId = ytId($videoUrl);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 10px;
+            transition: background .15s, border-color .15s;
         }
 
-        .t-leccion.activa .tl-dot {
+        /* Lección activa */
+        .t-leccion.activa .tl-check {
             background: var(--mc-green);
             border-color: var(--mc-green);
+            color: #fff;
         }
 
-        .tl-dot-inner {
-            width: 6px;
-            height: 6px;
-            background: #fff;
-            border-radius: 50%;
+        /* Lección ya vista (pero no activa) */
+        .t-leccion.vista .tl-check {
+            background: #d1fae5;
+            border-color: #6ee7b7;
+            color: var(--mc-green-d);
+        }
+
+        .t-leccion.vista>span {
+            opacity: .45;
+        }
+
+        .t-leccion.vista {
+            color: var(--mc-muted);
         }
 
         /* Volver al curso */
@@ -546,27 +589,29 @@ $ytId = ytId($videoUrl);
 
 <body>
 
-    <?php require __DIR__ . '/../../layout/header.php'; ?>
+    <?php require __DIR__ . '/../layout/header.php'; ?>
 
     <div class="leccion-wrap">
 
         <!-- ── COLUMNA PRINCIPAL ── -->
         <div class="leccion-main">
 
-            <!-- VIDEO -->
-            <div class="video-container">
-                <?php if ($ytId): ?>
-                    <iframe
-                        src="https://www.youtube.com/embed/<?= htmlspecialchars($ytId) ?>?rel=0&modestbranding=1&color=white"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen>
-                    </iframe>
-                <?php else: ?>
-                    <div class="video-placeholder">
-                        <div class="play-circle">▶</div>
-                        <p>Sin vídeo disponible para esta lección</p>
-                    </div>
-                <?php endif; ?>
+            <!-- VIDEO (un solo div, centrado, más estrecho) -->
+            <div class="video-wrapper">
+                <div class="video-container">
+                    <?php if ($ytId): ?>
+                        <iframe
+                            src="https://www.youtube.com/embed/<?= htmlspecialchars($ytId) ?>?rel=0&modestbranding=1&color=white"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    <?php else: ?>
+                        <div class="video-placeholder">
+                            <div class="play-circle">▶</div>
+                            <p>Sin vídeo disponible para esta lección</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <!-- BARRA NAVEGACIÓN -->
@@ -647,20 +692,6 @@ $ytId = ytId($videoUrl);
                             <span class="info-tag">🔢 Lección <?= $leccion['orden'] ?></span>
                         <?php endif; ?>
                     </div>
-
-                    <!-- Certificado -->
-                    <div class="certificado-box">
-                        <div class="cert-icon">🏆</div>
-                        <div>
-                            <h6>Certificado de finalización</h6>
-                            <p>
-                                Al completar todas las lecciones del curso obtendrás un certificado oficial de
-                                <strong>MatrixCoders</strong>. Este certificado acredita tus conocimientos y puede
-                                añadirse a tu perfil de LinkedIn o portfolio profesional. Válido como formación
-                                complementaria ante empleadores del sector tecnológico.
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- NOTAS -->
@@ -673,7 +704,7 @@ $ytId = ytId($videoUrl);
                     </div>
 
                     <textarea class="notas-area" id="notasArea"
-                        placeholder="Escribe aquí tus apuntes para esta lección... Puedes anotar ideas, dudas, conceptos clave o cualquier cosa que quieras recordar."><?= htmlspecialchars($nota) ?></textarea>
+                        placeholder="Escribe aquí tus apuntes para esta lección..."><?= htmlspecialchars($nota) ?></textarea>
 
                     <div class="notas-footer">
                         <button class="btn-guardar" onclick="guardarNota()">Guardar notas</button>
@@ -687,8 +718,7 @@ $ytId = ytId($videoUrl);
                         <span>💡</span>
                         <span>
                             Las notas rápidas se guardan aquí lección por lección.
-                            Para notas más elaboradas, organización por temas y trabajo en profundidad
-                            usa <strong>NotebookLM</strong> desde el botón de arriba.
+                            Para notas más elaboradas usa <strong>NotebookLM</strong> desde el botón de arriba.
                         </span>
                     </div>
                 </div>
@@ -742,35 +772,90 @@ $ytId = ytId($videoUrl);
                 ← Volver al curso
             </a>
 
-            <?php foreach ($unidades as $u): ?>
-                <div class="t-unidad-titulo">
-                    <?= htmlspecialchars($u['titulo'] ?? 'Unidad') ?>
+            <?php foreach ($unidades as $uIdx => $u):
+                /* La unidad que contiene la lección activa empieza abierta; el resto, cerradas */
+                $tieneActiva = false;
+                foreach (($u['lecciones'] ?? []) as $lec) {
+                    if ($lec['id'] == $leccion['id']) {
+                        $tieneActiva = true;
+                        break;
+                    }
+                }
+                $unidadId = 'unidad-' . $uIdx;
+            ?>
+                <!-- Cabecera colapsable -->
+                <button
+                    class="t-unidad-btn <?= $tieneActiva ? '' : 'collapsed' ?>"
+                    data-target="<?= $unidadId ?>"
+                    aria-expanded="<?= $tieneActiva ? 'true' : 'false' ?>">
+                    <span><?= htmlspecialchars($u['titulo'] ?? 'Unidad') ?></span>
+                    <span class="u-chevron">▼</span>
+                </button>
+
+                <!-- Lista de lecciones -->
+                <div class="t-lecciones-list <?= $tieneActiva ? '' : 'cerrado' ?>" id="<?= $unidadId ?>">
+                    <?php foreach (($u['lecciones'] ?? []) as $lec):
+                        $esActiva = $lec['id'] == $leccion['id'];
+                    ?>
+                        <a href="<?= BASE_URL ?>/index.php?url=leccion&id=<?= $lec['id'] ?>"
+                            class="t-leccion <?= $esActiva ? 'activa' : '' ?>">
+                            <div class="tl-dot">
+                                <?php if ($esActiva): ?>
+                                    <div class="tl-dot-inner"></div>
+                                <?php endif; ?>
+                            </div>
+                            <span><?= htmlspecialchars($lec['titulo'] ?? 'Lección') ?></span>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
-                <?php foreach (($u['lecciones'] ?? []) as $lec):
-                    $esActiva = $lec['id'] == $leccion['id'];
-                ?>
-                    <a href="<?= BASE_URL ?>/index.php?url=leccion&id=<?= $lec['id'] ?>"
-                        class="t-leccion <?= $esActiva ? 'activa' : '' ?>">
-                        <div class="tl-dot">
-                            <?php if ($esActiva): ?>
-                                <div class="tl-dot-inner"></div>
-                            <?php endif; ?>
-                        </div>
-                        <span><?= htmlspecialchars($lec['titulo'] ?? 'Lección') ?></span>
-                    </a>
-                <?php endforeach; ?>
+
             <?php endforeach; ?>
         </aside>
 
     </div><!-- /leccion-wrap -->
 
-    <?php require __DIR__ . '/../../layout/footer.php'; ?>
+    <!-- SIN FOOTER — la vista de lección ocupa todo el viewport -->
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const BASE_URL = '<?= BASE_URL ?>';
         const LECCION_ID = <?= (int)$leccion['id'] ?>;
 
-        // ── Contador de caracteres ──
+        /* ── Acordeón del sidebar ── */
+        document.querySelectorAll('.t-unidad-btn').forEach(btn => {
+            const lista = document.getElementById(btn.dataset.target);
+
+            /* Inicializa la altura real para la transición */
+            if (!lista.classList.contains('cerrado')) {
+                lista.style.maxHeight = lista.scrollHeight + 'px';
+            }
+
+            btn.addEventListener('click', () => {
+                const abierto = !lista.classList.contains('cerrado');
+                if (abierto) {
+                    lista.style.maxHeight = lista.scrollHeight + 'px';
+                    requestAnimationFrame(() => {
+                        lista.style.maxHeight = '0';
+                        lista.classList.add('cerrado');
+                        btn.classList.add('collapsed');
+                        btn.setAttribute('aria-expanded', 'false');
+                    });
+                } else {
+                    lista.classList.remove('cerrado');
+                    lista.style.maxHeight = lista.scrollHeight + 'px';
+                    btn.classList.remove('collapsed');
+                    btn.setAttribute('aria-expanded', 'true');
+                    /* Limpia la altura fija una vez terminada la animación */
+                    lista.addEventListener('transitionend', () => {
+                        lista.style.maxHeight = 'none';
+                    }, {
+                        once: true
+                    });
+                }
+            });
+        });
+
+        /* ── Contador de caracteres ── */
         const notasArea = document.getElementById('notasArea');
         const notasChars = document.getElementById('notasChars');
         if (notasArea) {
@@ -779,19 +864,17 @@ $ytId = ytId($videoUrl);
             });
         }
 
-        // ── Guardar nota via AJAX ──
+        /* ── Guardar nota via AJAX ── */
         let saveTimer = null;
 
         function guardarNota(manual = true) {
             if (!notasArea) return;
-            const contenido = notasArea.value;
-
             fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: 'nota=' + encodeURIComponent(contenido)
+                    body: 'nota=' + encodeURIComponent(notasArea.value)
                 })
                 .then(r => r.json())
                 .then(data => {
@@ -803,7 +886,6 @@ $ytId = ytId($videoUrl);
                 });
         }
 
-        // Autoguardado cada 30 segundos si hay cambios
         if (notasArea) {
             notasArea.addEventListener('input', () => {
                 clearTimeout(saveTimer);

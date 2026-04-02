@@ -497,3 +497,169 @@ body {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* =======================
+   SEGUIR VIENDO — nuevo
+======================= */
+.seguimiento-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.seguimiento-cabecera h2 {
+    margin: 0;
+}
+
+/* Flechas de navegación */
+.sv-flechas {
+    display: flex;
+    gap: 6px;
+}
+
+.sv-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--mc-border);
+    background: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background .15s, color .15s;
+    color: var(--mc-dark);
+}
+
+.sv-arrow:hover:not(:disabled) {
+    background: var(--mc-green);
+    color: #fff;
+    border-color: var(--mc-green);
+}
+
+.sv-arrow:disabled {
+    opacity: .35;
+    cursor: default;
+}
+
+/* Contenedor con overflow oculto */
+.sv-track-wrap {
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Track deslizante */
+.sv-track {
+    display: flex;
+    gap: 16px;
+    transition: transform .35s ease;
+    will-change: transform;
+}
+
+/* ── Mini tarjeta ── */
+.sv-card {
+    flex: 0 0 calc((100% - 32px) / 3);
+    /* exactamente 1/3 con 2 gaps */
+    min-width: 0;
+    background: var(--mc-card);
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .07);
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--mc-dark);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .2s, transform .2s;
+}
+
+.sv-card:hover {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .13);
+    transform: translateY(-2px);
+    color: var(--mc-dark);
+}
+
+/* Thumbnail */
+.sv-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: #e5e7eb;
+}
+
+.sv-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Badge de porcentaje sobre la imagen */
+.sv-badge {
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    background: rgba(0, 0, 0, .65);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    backdrop-filter: blur(2px);
+}
+
+/* Cuerpo */
+.sv-body {
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    flex: 1;
+}
+
+.sv-titulo {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mc-dark);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Barra de progreso */
+.sv-progress-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sv-progress-bar {
+    height: 5px;
+    background: #e5e7eb;
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.sv-progress-fill {
+    height: 100%;
+    background: var(--mc-green);
+    border-radius: 99px;
+    transition: width .4s ease;
+}
+
+.sv-progress-label {
+    font-size: 10px;
+    color: var(--mc-muted);
+}
+
+/* Enlace continuar */
+.sv-continuar {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mc-green);
+    margin-top: auto;
+}

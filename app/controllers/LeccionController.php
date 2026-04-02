@@ -24,9 +24,9 @@ if (!$leccion) {
 }
 
 // Unidad y curso al que pertenece
-$unidad = $modeloCurso->getUnidadById($leccion['unidad_id']);
+$unidad  = $modeloCurso->getUnidadById($leccion['unidad_id']);
 $cursoId = $unidad['curso_id'] ?? 0;
-$curso = $modeloCurso->getById($cursoId);
+$curso   = $modeloCurso->getById($cursoId);
 
 // Comprobar que el usuario está matriculado
 $estaMatriculado = $usuarioId
@@ -38,17 +38,26 @@ if (!$estaMatriculado) {
     exit;
 }
 
-// Todas las unidades + lecciones (para el sidebar de navegación)
+// ── Marcar esta lección como vista ──────────────────────────────
+if ($usuarioId) {
+    $modeloCurso->marcarVista($usuarioId, $leccionId);
+}
+
+// ── Lecciones ya vistas en este curso (para el sidebar) ─────────
+$leccionesVistas = $usuarioId
+    ? $modeloCurso->getLeccionesVistas($usuarioId, $cursoId)
+    : [];
+
+// Todas las unidades + lecciones (para el sidebar)
 $unidades = $modeloCurso->getUnidadesConLecciones($cursoId);
 
 // Lección anterior y siguiente
-$leccionAnterior = $modeloCurso->getLeccionAnterior($leccionId, $cursoId);
+$leccionAnterior  = $modeloCurso->getLeccionAnterior($leccionId, $cursoId);
 $leccionSiguiente = $modeloCurso->getLeccionSiguiente($leccionId, $cursoId);
 
 // Nota del usuario para esta lección
 $nota = '';
 if ($usuarioId) {
-    // Guardar nota si viene por POST
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nota'])) {
         header('Content-Type: application/json');
         $contenido = trim($_POST['nota']);
