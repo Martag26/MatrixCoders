@@ -1,22 +1,20 @@
 <?php
 $monthNames = [1 => 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-$firstDayTs  = strtotime(sprintf('%04d-%02d-01', $calYear, $calMonth));
-$daysInMonth = (int)date('t', $firstDayTs);
+$firstDayTs   = strtotime(sprintf('%04d-%02d-01', $calYear, $calMonth));
+$daysInMonth  = (int)date('t', $firstDayTs);
 $firstWeekday = (int)date('w', $firstDayTs);
 
-$prevTs   = strtotime('-1 month', $firstDayTs);
-$nextTs   = strtotime('+1 month', $firstDayTs);
-$prevYear = (int)date('Y', $prevTs);
+$prevTs    = strtotime('-1 month', $firstDayTs);
+$nextTs    = strtotime('+1 month', $firstDayTs);
+$prevYear  = (int)date('Y', $prevTs);
 $prevMonth = (int)date('n', $prevTs);
-$nextYear = (int)date('Y', $nextTs);
+$nextYear  = (int)date('Y', $nextTs);
 $nextMonth = (int)date('n', $nextTs);
 
 $todayY = (int)date('Y');
 $todayM = (int)date('n');
 $todayD = (int)date('j');
-
-$eventDays = array_flip($diasEventos ?? []);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -39,40 +37,8 @@ $eventDays = array_flip($diasEventos ?? []);
         <div class="mc-container">
             <div class="contenedor-dashboard">
 
-                <!-- ── SIDEBAR IZQUIERDA ── -->
-                <aside class="barra-herramientas">
-                    <h3>BARRA DE HERRAMIENTAS</h3>
-                    <ul class="menu-lateral">
-                        <li>
-                            <a href="<?= BASE_URL ?>/index.php?url=dashboard">
-                                <img src="<?= BASE_URL ?>/img/hogar.png" alt="icono" class="icono-menu">
-                                Mi espacio de trabajo
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?= BASE_URL ?>/index.php?url=buzon">
-                                <img src="<?= BASE_URL ?>/img/bandeja-de-entrada.png" alt="icono" class="icono-menu">
-                                Buzón de entrada
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?= BASE_URL ?>/index.php?url=lecciones">
-                                <img src="<?= BASE_URL ?>/img/leccion.png" alt="icono" class="icono-menu">
-                                Lecciones
-                            </a>
-                        </li>
-                        <li>
-                            <a href="<?= BASE_URL ?>/index.php?url=tareas">
-                                <img src="<?= BASE_URL ?>/img/portapapeles.png" alt="icono" class="icono-menu">
-                                Tareas
-                            </a>
-                        </li>
-                    </ul>
-                    <a class="cerrar-sesion" href="<?= BASE_URL ?>/index.php?url=logout">
-                        <img src="<?= BASE_URL ?>/img/cerrar-sesion.png" alt="cerrar" class="icono-cerrar">
-                        Cerrar sesión
-                    </a>
-                </aside>
+                <!-- ── SIDEBAR ── -->
+                <?php require __DIR__ . '/../layout/sidebar.php'; ?>
 
                 <!-- ── CONTENIDO CENTRAL ── -->
                 <section class="contenido-dashboard">
@@ -85,27 +51,27 @@ $eventDays = array_flip($diasEventos ?? []);
                         <a class="btn-abrir" href="<?= BASE_URL ?>/index.php?url=app">Abrir ahora</a>
                     </div>
 
-                    <!-- Acciones -->
+                    <!-- Acciones rápidas -->
                     <div class="acciones">
-                        <button class="accion-btn" type="button">
-                            <img src="<?= BASE_URL ?>/img/crear.png" alt="Nuevo Documento" class="icono-accion">
-                            <span>Nuevo<br>Documento</span>
-                        </button>
-                        <button class="accion-btn" type="button">
-                            <img src="<?= BASE_URL ?>/img/subir.png" alt="Subir Documento" class="icono-accion">
-                            <span>Subir<br>Documento</span>
-                        </button>
-                        <button class="accion-btn" type="button">
-                            <img src="<?= BASE_URL ?>/img/compartir-archivo.png" alt="Compartir" class="icono-accion">
-                            <span>Compartir<br>Documento</span>
-                        </button>
-                        <button class="accion-btn" type="button">
-                            <img src="<?= BASE_URL ?>/img/plantilla.png" alt="Plantilla" class="icono-accion">
-                            <span>Usar<br>Plantilla</span>
-                        </button>
+                        <a class="accion-btn" href="<?= BASE_URL ?>/index.php?url=lecciones">
+                            <img src="<?= BASE_URL ?>/img/leccion.png" alt="" class="icono-accion">
+                            <span>Mis<br>Lecciones</span>
+                        </a>
+                        <a class="accion-btn" href="<?= BASE_URL ?>/index.php?url=calendario">
+                            <img src="<?= BASE_URL ?>/img/portapapeles.png" alt="" class="icono-accion">
+                            <span>Mi<br>Calendario</span>
+                        </a>
+                        <a class="accion-btn" href="<?= BASE_URL ?>/index.php?url=buscar">
+                            <img src="<?= BASE_URL ?>/img/lupa.png" alt="" class="icono-accion">
+                            <span>Buscar<br>Cursos</span>
+                        </a>
+                        <a class="accion-btn" href="<?= BASE_URL ?>/index.php?url=buzon">
+                            <img src="<?= BASE_URL ?>/img/bandeja-de-entrada.png" alt="" class="icono-accion">
+                            <span>Buzón de<br>Entrada</span>
+                        </a>
                     </div>
 
-                    <!-- Carpetas -->
+                    <!-- Mis Carpetas -->
                     <div class="documentos">
                         <h2>Mis Carpetas</h2>
                         <?php $carpetas = is_array($carpetas ?? null) ? $carpetas : []; ?>
@@ -116,7 +82,7 @@ $eventDays = array_flip($diasEventos ?? []);
                                 <?php foreach ($carpetas as $c): ?>
                                     <div class="documento">
                                         <a href="<?= BASE_URL ?>/index.php?url=carpeta&id=<?= $c['id'] ?>">
-                                            <img src="<?= BASE_URL ?>/index.php?url=curso&id=<?= $curso['id'] ?>" class="imagen-carpeta" alt="Carpeta">
+                                            <img src="<?= BASE_URL ?>/img/carpeta.png" class="imagen-carpeta" alt="Carpeta">
                                         </a>
                                         <p><?= htmlspecialchars($c['nombre']) ?></p>
                                     </div>
@@ -129,36 +95,36 @@ $eventDays = array_flip($diasEventos ?? []);
                     <div class="seguimiento">
                         <div class="seguimiento-cabecera">
                             <h2>Seguir viendo</h2>
-                            <?php $totalCursos = count($cursosEnProgreso ?? []); ?>
-                            <?php if ($totalCursos > 3): ?>
+                            <?php if (count($cursosEnProgreso ?? []) > 3): ?>
                                 <div class="sv-flechas">
-                                    <button class="sv-arrow" id="svPrev" aria-label="Anterior">&#8592;</button>
-                                    <button class="sv-arrow" id="svNext" aria-label="Siguiente">&#8594;</button>
+                                    <button class="sv-arrow" id="svPrev">&#8592;</button>
+                                    <button class="sv-arrow" id="svNext">&#8594;</button>
                                 </div>
                             <?php endif; ?>
                         </div>
 
                         <?php if (empty($cursosEnProgreso)): ?>
-                            <p class="text-muted" style="margin-top:.5rem;">Aún no tienes cursos para continuar.</p>
+                            <p class="text-muted" style="margin-top:.5rem;">
+                                Aún no tienes cursos.
+                                <a href="<?= BASE_URL ?>/index.php" style="color:var(--mc-green);font-weight:700;">Explorar cursos →</a>
+                            </p>
                         <?php else: ?>
                             <div class="sv-track-wrap">
                                 <div class="sv-track" id="svTrack">
                                     <?php foreach ($cursosEnProgreso as $sc):
-                                        $progreso  = $sc['progreso'];
+                                        $progreso   = $sc['progreso'];
                                         $leccionUrl = $sc['ultima_leccion_id']
                                             ? BASE_URL . '/index.php?url=leccion&id=' . $sc['ultima_leccion_id']
                                             : BASE_URL . '/index.php?url=detallecurso&id=' . $sc['id'];
-
-                                        /* Imagen: usa la columna 'imagen' del curso si existe, si no el placeholder */
                                         $imgSrc = !empty($sc['imagen'])
-                                            ? BASE_URL . '/' . ltrim($sc['imagen'], '/')
-                                            : BASE_URL . '/img/curso1.jpg';
+                                            ? BASE_URL . '/img/cursos/' . $sc['imagen']
+                                            : BASE_URL . '/img/aprendiendo.png';
                                     ?>
                                         <a class="sv-card" href="<?= $leccionUrl ?>">
                                             <div class="sv-thumb">
                                                 <img src="<?= htmlspecialchars($imgSrc) ?>"
                                                     alt="<?= htmlspecialchars($sc['titulo']) ?>"
-                                                    onerror="this.src='<?= BASE_URL ?>/img/curso1.jpg'">
+                                                    onerror="this.src='<?= BASE_URL ?>/img/aprendiendo.png'">
                                                 <span class="sv-badge"><?= $progreso ?>%</span>
                                             </div>
                                             <div class="sv-body">
@@ -182,9 +148,11 @@ $eventDays = array_flip($diasEventos ?? []);
 
                 </section>
 
-                <!-- ── COLUMNA DERECHA ── -->
+                <!-- ── MINI CALENDARIO (solo visual, sin eventos) ── -->
                 <aside class="calendario">
-                    <button class="btn-calendario" type="button">Abrir Calendario</button>
+                    <a class="btn-calendario" href="<?= BASE_URL ?>/index.php?url=calendario">
+                        📅 Abrir Calendario
+                    </a>
 
                     <div class="tarjeta-calendario">
                         <div class="calendario-header">
@@ -207,38 +175,33 @@ $eventDays = array_flip($diasEventos ?? []);
                                 echo '<span class="dia apagado"></span>';
                             }
                             for ($d = 1; $d <= $daysInMonth; $d++) {
-                                $isToday  = ($calYear === $todayY && $calMonth === $todayM && $d === $todayD);
-                                $hasEvent = isset($eventDays[$d]);
-                                $classes  = 'dia' . ($isToday ? ' seleccionado' : '') . ($hasEvent ? ' marcado' : '');
+                                $isToday = ($calYear === $todayY && $calMonth === $todayM && $d === $todayD);
+                                $classes = 'dia' . ($isToday ? ' seleccionado' : '');
                                 echo '<span class="' . $classes . '">' . $d . '</span>';
                             }
                             ?>
                         </div>
                     </div>
 
-                    <div class="lista-eventos">
-                        <?php if (!empty($eventos)): ?>
-                            <?php foreach ($eventos as $e): ?>
+                    <!-- Progreso cursos en lugar de eventos -->
+                    <?php if (!empty($cursosEnProgreso)): ?>
+                        <div class="lista-eventos">
+                            <?php foreach (array_slice($cursosEnProgreso, 0, 4) as $sc): ?>
                                 <div class="evento">
-                                    <span class="punto punto-azul"></span>
+                                    <span class="punto" style="background:var(--mc-green);width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>
                                     <div class="evento-texto">
-                                        <p class="evento-titulo"><?= htmlspecialchars($e['titulo']) ?></p>
-                                        <p class="evento-sub">
-                                            <?= htmlspecialchars($e['curso']) ?> · <?= htmlspecialchars(date('d/m/Y', strtotime($e['fecha_limite']))) ?>
+                                        <p class="evento-titulo" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                            <?= htmlspecialchars($sc['titulo']) ?>
                                         </p>
+                                        <div style="height:4px;background:#e5e7eb;border-radius:99px;margin-top:4px;overflow:hidden;">
+                                            <div style="height:100%;width:<?= $sc['progreso'] ?>%;background:var(--mc-green);border-radius:99px;"></div>
+                                        </div>
                                     </div>
-                                    <span class="evento-flecha">&gt;</span>
+                                    <span style="font-size:.7rem;font-weight:700;color:var(--mc-green);flex-shrink:0;"><?= $sc['progreso'] ?>%</span>
                                 </div>
                             <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="evento">
-                                <div class="evento-texto">
-                                    <p class="evento-titulo">Sin eventos</p>
-                                    <p class="evento-sub">No hay tareas con fecha límite</p>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                        </div>
+                    <?php endif; ?>
                 </aside>
 
             </div>
@@ -246,7 +209,6 @@ $eventDays = array_flip($diasEventos ?? []);
     </main>
 
     <?php require __DIR__ . '/../layout/footer.php'; ?>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         (function() {
@@ -261,9 +223,7 @@ $eventDays = array_flip($diasEventos ?? []);
             function cardWidth() {
                 const card = track.querySelector('.sv-card');
                 if (!card) return 0;
-                const style = getComputedStyle(track);
-                const gap = parseFloat(style.gap) || 16;
-                return card.offsetWidth + gap;
+                return card.offsetWidth + (parseFloat(getComputedStyle(track).gap) || 16);
             }
 
             function totalPages() {
@@ -272,8 +232,7 @@ $eventDays = array_flip($diasEventos ?? []);
 
             function goTo(p) {
                 page = Math.max(0, Math.min(p, totalPages() - 1));
-                const offset = page * PER_PAGE * cardWidth();
-                track.style.transform = `translateX(-${offset}px)`;
+                track.style.transform = `translateX(-${page * PER_PAGE * cardWidth()}px)`;
                 btnPrev.disabled = page === 0;
                 btnNext.disabled = page >= totalPages() - 1;
             }
