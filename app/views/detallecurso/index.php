@@ -5,6 +5,8 @@ $precio   = (float)($curso['precio'] ?? 0);
 $imagen   = !empty($curso['imagen']) ? BASE_URL . '/img/' . $curso['imagen'] : null;
 $duracion = isset($curso['duracion_min']) ? (int)$curso['duracion_min'] : null;
 $alumnos  = (int)($curso['total_matriculas'] ?? 0);
+$tieneAccesoCurso = $estaMatriculado || ($usuarioId && $planPermiteAcceso);
+$mostrarSidebarCompra = !$tieneAccesoCurso;
 
 function fmtDur(?int $min): string
 {
@@ -123,6 +125,11 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             padding-right: 18px;
         }
 
+        .curso-body.sin-sidebar {
+            grid-template-columns: minmax(0, 1fr);
+            max-width: 980px;
+        }
+
         @media(max-width: 900px) {
             .curso-body {
                 grid-template-columns: 1fr;
@@ -130,6 +137,11 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
 
             .sidebar-sticky {
                 position: static !important;
+            }
+
+            .curso-acceso {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
 
@@ -145,6 +157,40 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             display: flex;
             align-items: center;
             gap: .6rem;
+        }
+
+        .curso-acceso {
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 1rem 1.15rem;
+            color: #166534;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .curso-acceso-copy {
+            display: grid;
+            gap: .2rem;
+        }
+
+        .curso-acceso-copy strong {
+            font-size: .95rem;
+        }
+
+        .curso-acceso-copy span {
+            font-size: .82rem;
+            color: #15803d;
+        }
+
+        .curso-acceso .btn-mc,
+        .curso-acceso form {
+            margin: 0;
+            width: auto;
+            flex-shrink: 0;
         }
 
         /* ── TABS ── */
@@ -532,7 +578,7 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
     </section>
 
     <!-- BODY -->
-    <div class="curso-body">
+    <div class="curso-body<?= $mostrarSidebarCompra ? '' : ' sin-sidebar' ?>">
 
         <!-- COLUMNA PRINCIPAL -->
         <div>
@@ -546,6 +592,31 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                         : BASE_URL . '/index.php?url=detallecurso&id=' . $curso['id'];
                     ?>
                     <a href="<?= $urlCurso ?>" class="btn-mc">▶ Ir al curso</a>
+                </div>
+            <?php elseif ($estaMatriculado): ?>
+                <?php
+                $primeraLeccion = $modeloCurso->getPrimeraLeccion($curso['id']);
+                $urlCurso = $primeraLeccion
+                    ? BASE_URL . '/index.php?url=leccion&id=' . $primeraLeccion['id']
+                    : BASE_URL . '/index.php?url=detallecurso&id=' . $curso['id'];
+                ?>
+                <div class="curso-acceso">
+                    <div class="curso-acceso-copy">
+                        <strong>Ya tienes acceso a este curso</strong>
+                        <span>Puedes entrar directamente y seguir con tus lecciones.</span>
+                    </div>
+                    <a href="<?= $urlCurso ?>" class="btn-mc">▶ Ir al curso</a>
+                </div>
+            <?php elseif ($usuarioId && $planPermiteAcceso): ?>
+                <div class="curso-acceso">
+                    <div class="curso-acceso-copy">
+                        <strong>Este curso está incluido en tu plan</strong>
+                        <span>Activa el acceso y añádelo a tu espacio de aprendizaje.</span>
+                    </div>
+                    <form method="POST" action="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>">
+                        <input type="hidden" name="accion" value="matricular">
+                        <button type="submit" class="btn-mc">Activar acceso</button>
+                    </form>
                 </div>
             <?php endif; ?>
 
@@ -675,61 +746,51 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             </div><!-- /tab-content -->
         </div><!-- /columna principal -->
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar-sticky">
-            <div class="sidebar-card">
-                <div class="sidebar-body">
-                    <div class="sidebar-price <?= $precio <= 0 ? 'gratis' : '' ?>">
-                        <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
-                    </div>
-
-                    <?php if ($mensajeMatricula === 'exito' || $estaMatriculado): ?>
-                        <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>" class="btn-mc">
-                            ▶ Ir al curso
-                        </a>
-
-                    <?php elseif ($precio <= 0): ?>
-                        <form method="POST" action="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>">
-                            <input type="hidden" name="accion" value="matricular">
-                            <?php if (!$usuarioId): ?>
-                                <a href="<?= BASE_URL ?>/index.php?url=login" class="btn-mc">Matricularme gratis</a>
-                            <?php else: ?>
-                                <button type="submit" class="btn-mc">Matricularme gratis</button>
-                            <?php endif; ?>
-                        </form>
-
-                    <?php elseif ($planPermiteAcceso): ?>
-                        <div class="plan-badge">✔ Incluido en tu plan</div>
-                        <form method="POST" action="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>">
-                            <input type="hidden" name="accion" value="matricular">
-                            <button type="submit" class="btn-mc">Matricularme</button>
-                        </form>
-
-                    <?php else: ?>
-                        <?php if (!$usuarioId): ?>
-                            <a href="<?= BASE_URL ?>/index.php?url=login" class="btn-mc">Iniciar sesión</a>
-                        <?php else: ?>
-                            <button class="btn-mc"
-                                onclick="abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
-                                🛒 Añadir al carrito
-                            </button>
-                        <?php endif; ?>
-                        <a href="<?= BASE_URL ?>/index.php?url=suscripciones" class="btn-mc-outline">Ver planes</a>
-                        <div class="plan-aviso">
-                            Con el <strong>Plan Estudiantes</strong> tienes acceso a todos los cursos.
+        <?php if ($mostrarSidebarCompra): ?>
+            <!-- SIDEBAR -->
+            <aside class="sidebar-sticky">
+                <div class="sidebar-card">
+                    <div class="sidebar-body">
+                        <div class="sidebar-price <?= $precio <= 0 ? 'gratis' : '' ?>">
+                            <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
                         </div>
-                    <?php endif; ?>
 
-                    <ul class="sidebar-meta">
-                        <?php if ($duracion): ?><li>⏱ <?= fmtDur($duracion) ?> de contenido</li><?php endif; ?>
-                        <?php if ($totalLecciones): ?><li>📖 <?= $totalLecciones ?> lecciones</li><?php endif; ?>
-                        <?php if (!empty($tareas)): ?><li>📋 <?= count($tareas) ?> tareas</li><?php endif; ?>
-                        <li>📱 Acceso en todos los dispositivos</li>
-                        <li>🏆 Certificado de finalización</li>
-                    </ul>
+                        <?php if ($precio <= 0): ?>
+                            <form method="POST" action="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>">
+                                <input type="hidden" name="accion" value="matricular">
+                                <?php if (!$usuarioId): ?>
+                                    <a href="<?= BASE_URL ?>/index.php?url=login" class="btn-mc">Matricularme gratis</a>
+                                <?php else: ?>
+                                    <button type="submit" class="btn-mc">Matricularme gratis</button>
+                                <?php endif; ?>
+                            </form>
+
+                        <?php else: ?>
+                            <?php if (!$usuarioId): ?>
+                                <a href="<?= BASE_URL ?>/index.php?url=login" class="btn-mc">Iniciar sesión</a>
+                            <?php else: ?>
+                                <button class="btn-mc"
+                                    onclick="abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
+                                    🛒 Añadir al carrito
+                                </button>
+                            <?php endif; ?>
+                            <a href="<?= BASE_URL ?>/index.php?url=suscripciones" class="btn-mc-outline">Ver planes</a>
+                            <div class="plan-aviso">
+                                Con el <strong>Plan Estudiantes</strong> tienes acceso a todos los cursos.
+                            </div>
+                        <?php endif; ?>
+
+                        <ul class="sidebar-meta">
+                            <?php if ($duracion): ?><li>⏱ <?= fmtDur($duracion) ?> de contenido</li><?php endif; ?>
+                            <?php if ($totalLecciones): ?><li>📖 <?= $totalLecciones ?> lecciones</li><?php endif; ?>
+                            <?php if (!empty($tareas)): ?><li>📋 <?= count($tareas) ?> tareas</li><?php endif; ?>
+                            <li>📱 Acceso en todos los dispositivos</li>
+                            <li>🏆 Certificado de finalización</li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </aside>
+            </aside>
+        <?php endif; ?>
 
     </div><!-- /curso-body -->
 

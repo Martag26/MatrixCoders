@@ -38,8 +38,7 @@ $ytId = ytId($videoUrl);
             --mc-soft: #f8fafc;
             --mc-text: #374151;
             --mc-muted: #6b7280;
-            --header-h: 73px;
-            /* 40px logo + 16px*2 padding + 1px border */
+            --header-h: 66px;
         }
 
         *,
@@ -56,16 +55,19 @@ $ytId = ytId($videoUrl);
             height: 100%;
             overflow: hidden;
             font-family: 'Saira', sans-serif;
-            background: #fff;
+            background: #f6f6f6;
             color: var(--mc-dark);
         }
 
         /* ── LAYOUT PRINCIPAL ── */
         .leccion-wrap {
             display: grid;
-            grid-template-columns: 1fr 300px;
+            grid-template-columns: minmax(0, 1fr) 320px;
             height: calc(100vh - var(--header-h));
+            max-width: 1280px;
+            margin: 0 auto;
             overflow: hidden;
+            background: #fff;
         }
 
         @media(max-width: 900px) {
@@ -85,29 +87,29 @@ $ytId = ytId($videoUrl);
             display: flex;
             flex-direction: column;
             min-width: 0;
+            background: #fff;
         }
 
         /* ── VIDEO (más estrecho, centrado) ── */
         .video-wrapper {
-            background: #111;
+            background: linear-gradient(180deg, #111827 0%, #10151f 100%);
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 1rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             flex-shrink: 0;
         }
 
         .video-container {
             background: #000;
             width: 100%;
-            max-width: 720px;
-            /* nunca más ancho que 720px */
+            max-width: 900px;
             aspect-ratio: 16/9;
-            max-height: 45vh;
-            /* nunca más alto que 45% del viewport */
+            max-height: 52vh;
             overflow: hidden;
             position: relative;
-            border-radius: 6px;
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .28);
         }
 
         .video-container iframe {
@@ -154,7 +156,7 @@ $ytId = ytId($videoUrl);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: .75rem 1.5rem;
+            padding: .9rem 1.5rem;
             background: var(--mc-soft);
             border-bottom: 1px solid var(--mc-border);
             gap: 1rem;
@@ -228,6 +230,7 @@ $ytId = ytId($videoUrl);
             padding: 0 1.5rem;
             border-bottom: 1px solid var(--mc-border);
             flex-shrink: 0;
+            background: #fff;
         }
 
         .leccion-tabs .nav-link {
@@ -249,8 +252,11 @@ $ytId = ytId($videoUrl);
         }
 
         .tab-body {
-            padding: 1.5rem;
+            padding: 1.6rem 1.5rem 2rem;
             flex: 1;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
         }
 
         /* ── INFO TAB ── */
@@ -437,6 +443,7 @@ $ytId = ytId($videoUrl);
             overflow-x: hidden;
             min-width: 0;
             height: 100%;
+            box-shadow: inset 1px 0 0 rgba(15, 23, 42, .03);
         }
 
         .temario-head {
@@ -484,6 +491,28 @@ $ytId = ytId($videoUrl);
             background: #e2e8f0;
         }
 
+        .u-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            min-width: 0;
+        }
+
+        .u-progress {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 38px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(107, 143, 113, .12);
+            color: var(--mc-green-d);
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
         .t-unidad-btn .u-chevron {
             font-size: .7rem;
             transition: transform .2s;
@@ -514,6 +543,7 @@ $ytId = ytId($videoUrl);
             color: var(--mc-text);
             font-size: .83rem;
             transition: background .15s;
+            position: relative;
         }
 
         .t-leccion:hover {
@@ -560,11 +590,23 @@ $ytId = ytId($videoUrl);
         }
 
         .t-leccion.vista>span {
-            opacity: .45;
+            opacity: .82;
         }
 
         .t-leccion.vista {
-            color: var(--mc-muted);
+            color: var(--mc-text);
+        }
+
+        .t-leccion.activa>span {
+            opacity: 1;
+        }
+
+        .t-leccion span:last-child {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.35;
         }
 
         /* Volver al curso */
@@ -583,6 +625,17 @@ $ytId = ytId($videoUrl);
         .volver-curso:hover {
             background: #eef2f7;
             color: var(--mc-dark);
+        }
+
+        @media(max-width: 1200px) {
+            .leccion-wrap {
+                max-width: 1180px;
+                grid-template-columns: minmax(0, 1fr) 296px;
+            }
+
+            .video-container {
+                max-width: 820px;
+            }
         }
     </style>
 </head>
@@ -775,13 +828,17 @@ $ytId = ytId($videoUrl);
             <?php foreach ($unidades as $uIdx => $u):
                 /* La unidad que contiene la lección activa empieza abierta; el resto, cerradas */
                 $tieneActiva = false;
+                $vistasUnidad = 0;
                 foreach (($u['lecciones'] ?? []) as $lec) {
+                    if (isset($leccionesVistas[$lec['id']])) {
+                        $vistasUnidad++;
+                    }
                     if ($lec['id'] == $leccion['id']) {
                         $tieneActiva = true;
-                        break;
                     }
                 }
                 $unidadId = 'unidad-' . $uIdx;
+                $totalUnidad = count($u['lecciones'] ?? []);
             ?>
                 <!-- Cabecera colapsable -->
                 <button
@@ -789,21 +846,21 @@ $ytId = ytId($videoUrl);
                     data-target="<?= $unidadId ?>"
                     aria-expanded="<?= $tieneActiva ? 'true' : 'false' ?>">
                     <span><?= htmlspecialchars($u['titulo'] ?? 'Unidad') ?></span>
-                    <span class="u-chevron">▼</span>
+                    <span class="u-meta">
+                        <span class="u-progress"><?= $vistasUnidad ?>/<?= $totalUnidad ?></span>
+                        <span class="u-chevron">▼</span>
+                    </span>
                 </button>
 
                 <!-- Lista de lecciones -->
                 <div class="t-lecciones-list <?= $tieneActiva ? '' : 'cerrado' ?>" id="<?= $unidadId ?>">
                     <?php foreach (($u['lecciones'] ?? []) as $lec):
                         $esActiva = $lec['id'] == $leccion['id'];
+                        $esVista = isset($leccionesVistas[$lec['id']]);
                     ?>
                         <a href="<?= BASE_URL ?>/index.php?url=leccion&id=<?= $lec['id'] ?>"
-                            class="t-leccion <?= $esActiva ? 'activa' : '' ?>">
-                            <div class="tl-dot">
-                                <?php if ($esActiva): ?>
-                                    <div class="tl-dot-inner"></div>
-                                <?php endif; ?>
-                            </div>
+                            class="t-leccion <?= $esActiva ? 'activa' : '' ?> <?= $esVista ? 'vista' : '' ?>">
+                            <div class="tl-check"><?= ($esActiva || $esVista) ? '✓' : '' ?></div>
                             <span><?= htmlspecialchars($lec['titulo'] ?? 'Lección') ?></span>
                         </a>
                     <?php endforeach; ?>
