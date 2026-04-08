@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../helpers/curso_imagen.php';
 
 // Helpers
 $q             = $q             ?? '';
@@ -638,7 +639,7 @@ function buildUrl(array $overrides = []): string
                 <!-- Grid de cursos -->
                 <div class="row g-3">
                     <?php foreach ($cursos as $curso):
-                        $img      = !empty($curso['imagen']) ? BASE_URL . '/img/cursos/' . $curso['imagen'] : null;
+                        $img      = matrixcoders_curso_image($curso['imagen'] ?? '', $curso['titulo'] ?? '');
                         $precio   = (float)($curso['precio'] ?? 0);
                         $titulo   = $curso['titulo'] ?? '';
                         $desc     = $curso['descripcion'] ?? '';
@@ -651,13 +652,9 @@ function buildUrl(array $overrides = []): string
                             <div class="course-card"
                                 onclick="window.location.href='<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>'">
 
-                                <?php if ($img): ?>
-                                    <img src="<?= htmlspecialchars($img) ?>" class="course-thumb"
-                                        alt="<?= htmlspecialchars($titulo) ?>"
-                                        onerror="this.style.display='none'">
-                                <?php else: ?>
-                                    <div class="course-thumb-empty">📚</div>
-                                <?php endif; ?>
+                                <img src="<?= htmlspecialchars($img) ?>" class="course-thumb"
+                                    alt="<?= htmlspecialchars($titulo) ?>"
+                                    onerror="this.src='<?= BASE_URL ?>/img/aprendiendo.png'">
 
                                 <div class="card-body-inner">
                                     <!-- Tags -->

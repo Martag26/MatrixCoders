@@ -11,6 +11,42 @@ switch ($url) {
         $controller->index();
         break;
 
+    case 'plantillas-documento':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->plantilla();
+        break;
+
+    case 'nuevo-documento':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->nuevoDocumento();
+        break;
+
+    case 'documento-compartido':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->documentoCompartido();
+        break;
+
+    case 'mis-documentos':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->documentos();
+        break;
+
+    case 'nube':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->documentos();
+        break;
+
+    case 'documento':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->verDocumento();
+        break;
+
     case 'login':
         require_once "../app/controllers/AuthController.php";
         $controller = new AuthController();
@@ -106,6 +142,10 @@ switch ($url) {
         break;
 
     case 'calendario':
+        require_once "../app/controllers/CalendarioController.php";
+        break;
+
+    case 'tareas':
         require_once "../app/controllers/CalendarioController.php";
         break;
 

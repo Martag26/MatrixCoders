@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../helpers/curso_imagen.php';
 $pageTitle      = 'Mi carrito';
 $usuario_id     = $_SESSION['usuario_id']  ?? null;
 $cursos_carrito = $cursos_carrito          ?? [];
@@ -336,9 +337,7 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
                         <h2>Cursos en tu carrito</h2>
 
                         <?php foreach ($cursos_carrito as $curso):
-                            $img = !empty($curso['imagen'])
-                                ? BASE_URL . '/img/cursos/' . $curso['imagen']
-                                : BASE_URL . '/img/aprendiendo.png';
+                            $img = matrixcoders_curso_image($curso['imagen'] ?? '', $curso['titulo'] ?? '');
                             $precio  = (float)$curso['precio'];
                             $nivel   = $curso['nivel'] ?? '';
                             $cat     = $curso['categoria'] ?? '';

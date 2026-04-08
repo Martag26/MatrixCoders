@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 
+<?php require_once __DIR__ . '/../../helpers/curso_imagen.php'; ?>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -383,9 +385,7 @@
 
                 <?php foreach ($misCursos as $idx => $curso):
                     $completado = $curso['progreso'] >= 100;
-                    $imgSrc = !empty($curso['imagen'])
-                        ? BASE_URL . '/img/cursos/' . $curso['imagen']
-                        : BASE_URL . '/img/aprendiendo.png';
+                    $imgSrc = matrixcoders_curso_image($curso['imagen'] ?? '', $curso['titulo'] ?? '');
                     $leccionUrl = $curso['ultima_leccion_id']
                         ? BASE_URL . '/index.php?url=leccion&id=' . $curso['ultima_leccion_id']
                         : BASE_URL . '/index.php?url=detallecurso&id=' . $curso['id'];

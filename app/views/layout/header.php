@@ -4,7 +4,13 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $logged = !empty($_SESSION['usuario_id']);
-$nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
+$nombre = trim((string)($_SESSION['usuario_nombre'] ?? 'Usuario'));
+if ($nombre === '') {
+    $nombre = 'Usuario';
+}
+$nombreMenu = function_exists('mb_convert_case')
+    ? mb_convert_case($nombre, MB_CASE_TITLE, 'UTF-8')
+    : ucwords(strtolower($nombre));
 ?>
 
 <header>
@@ -55,17 +61,31 @@ $nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
                 </a>
             <?php else: ?>
                 <!-- LOGUEADO -->
-                <div class="d-none d-md-flex align-items-center gap-2">
-                    <span style="font-weight:600;"><?= htmlspecialchars($nombre) ?></span>
-
-                    <a href="<?= BASE_URL ?>/index.php?url=perfil" aria-label="perfil">
-                        <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
-                    </a>
+                <div class="dropdown d-none d-md-block user-menu">
+                    <button class="user-menu-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="user-menu-meta">
+                            <span class="user-menu-label">Mi cuenta</span>
+                            <span class="user-menu-name"><?= htmlspecialchars($nombreMenu) ?></span>
+                        </span>
+                        <span class="user-menu-avatar">
+                            <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a></li>
+                    </ul>
                 </div>
 
-                <a class="d-md-none" href="<?= BASE_URL ?>/index.php?url=perfil" aria-label="perfil">
-                    <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
-                </a>
+                <div class="dropdown d-md-none">
+                    <button class="user-menu-trigger user-menu-trigger-mobile" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a></li>
+                    </ul>
+                </div>
             <?php endif; ?>
 
             <!-- Menú móvil -->
@@ -96,6 +116,9 @@ $nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
             <hr>
             <a href="<?= BASE_URL ?>/index.php?url=login">Iniciar sesión</a>
             <a href="<?= BASE_URL ?>/index.php?url=register">Registrarse</a>
+        <?php else: ?>
+            <hr>
+            <a href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a>
         <?php endif; ?>
     </div>
 </div>
