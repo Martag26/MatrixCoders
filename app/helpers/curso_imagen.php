@@ -3,7 +3,6 @@
 if (!function_exists('matrixcoders_curso_image')) {
     function matrixcoders_curso_image(?string $imageName, string $title = ''): string
     {
-        $baseFallback = BASE_URL . '/img/aprendiendo.png';
         $dir = dirname(__DIR__, 2) . '/public/img/cursos';
 
         static $availableFiles = null;
@@ -13,6 +12,10 @@ if (!function_exists('matrixcoders_curso_image')) {
                 $availableFiles[strtolower(basename($file))] = basename($file);
             }
         }
+
+        $baseFallback = isset($availableFiles['nodejs.jpg'])
+            ? BASE_URL . '/img/cursos/' . $availableFiles['nodejs.jpg']
+            : BASE_URL . '/img/aprendiendo.png';
 
         $candidate = trim((string)$imageName);
         if ($candidate !== '') {

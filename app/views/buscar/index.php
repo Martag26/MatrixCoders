@@ -13,9 +13,9 @@ $hayFiltros    = $hayFiltros    ?? false;
 function nivelLabel(string $nivel): array
 {
     return match ($nivel) {
-        'principiante'  => ['🟢 Principiante',  '#16a34a', '#dcfce7'],
-        'estudiante'    => ['🔵 Estudiante',     '#2563eb', '#dbeafe'],
-        'profesional'   => ['🟣 Profesional',    '#7c3aed', '#ede9fe'],
+        'principiante'  => ['Principiante',  '#16a34a', '#dcfce7'],
+        'estudiante'    => ['Estudiante',    '#2563eb', '#dbeafe'],
+        'profesional'   => ['Trabajador',    '#7c3aed', '#ede9fe'],
         default         => ['', '', ''],
     };
 }
@@ -178,13 +178,15 @@ function buildUrl(array $overrides = []): string
             gap: 10px;
             background: #fff;
             border: 2px solid var(--mc-border);
-            border-radius: 12px;
-            padding: 10px 16px;
-            transition: border-color .15s;
+            border-radius: 18px;
+            padding: 12px 16px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+            transition: border-color .15s, box-shadow .15s, transform .15s;
         }
 
         .hero-search:focus-within {
             border-color: var(--mc-green);
+            box-shadow: 0 14px 28px rgba(107, 143, 113, .12);
         }
 
         .hero-search .icon {
@@ -208,8 +210,8 @@ function buildUrl(array $overrides = []): string
             background: var(--mc-green);
             color: #fff;
             border: none;
-            border-radius: 8px;
-            padding: 6px 14px;
+            border-radius: 999px;
+            padding: 8px 16px;
             font-family: 'Saira', sans-serif;
             font-weight: 700;
             font-size: .82rem;
@@ -322,6 +324,10 @@ function buildUrl(array $overrides = []): string
             display: block;
         }
 
+        .course-thumb-wrap {
+            position: relative;
+        }
+
         .course-thumb-empty {
             width: 100%;
             height: 160px;
@@ -355,6 +361,37 @@ function buildUrl(array $overrides = []): string
             border-radius: 20px;
             padding: 2px 8px;
             border: 1px solid transparent;
+        }
+
+        .course-badges-corner {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: grid;
+            gap: 6px;
+            justify-items: end;
+        }
+
+        .course-badge-corner {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 28px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background: rgba(255, 255, 255, .94);
+            backdrop-filter: blur(8px);
+            font-size: .67rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .12);
+        }
+
+        .course-badge-free {
+            color: #047857;
+            background: rgba(209, 250, 229, .96);
+            border-color: #6ee7b7;
         }
 
         .course-title {
@@ -404,21 +441,33 @@ function buildUrl(array $overrides = []): string
         }
 
         .btn-carrito {
-            background: none;
-            border: 1px solid var(--mc-border);
-            border-radius: 8px;
-            width: 32px;
-            height: 32px;
-            display: grid;
-            place-items: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #d8e1da;
+            background: #fff;
+            color: var(--mc-dark);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: .78rem;
+            font-weight: 700;
+            line-height: 1;
             cursor: pointer;
-            transition: all .15s;
-            font-size: .9rem;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
         }
 
         .btn-carrito:hover {
-            background: var(--mc-green);
-            border-color: var(--mc-green);
+            background: #f7faf8;
+            border-color: rgba(107, 143, 113, .4);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, .08);
+            transform: translateY(-1px);
+        }
+
+        .btn-carrito img {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+            opacity: .85;
         }
 
         /* Empty state */
@@ -640,6 +689,7 @@ function buildUrl(array $overrides = []): string
                 <div class="row g-3">
                     <?php foreach ($cursos as $curso):
                         $img      = matrixcoders_curso_image($curso['imagen'] ?? '', $curso['titulo'] ?? '');
+                        $imgFallback = matrixcoders_curso_image('', '');
                         $precio   = (float)($curso['precio'] ?? 0);
                         $titulo   = $curso['titulo'] ?? '';
                         $desc     = $curso['descripcion'] ?? '';
@@ -652,27 +702,33 @@ function buildUrl(array $overrides = []): string
                             <div class="course-card"
                                 onclick="window.location.href='<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>'">
 
-                                <img src="<?= htmlspecialchars($img) ?>" class="course-thumb"
-                                    alt="<?= htmlspecialchars($titulo) ?>"
-                                    onerror="this.src='<?= BASE_URL ?>/img/aprendiendo.png'">
+                                <div class="course-thumb-wrap">
+                                    <img src="<?= htmlspecialchars($img) ?>" class="course-thumb"
+                                        alt="<?= htmlspecialchars($titulo) ?>"
+                                        onerror="this.src='<?= htmlspecialchars($imgFallback) ?>'">
+
+                                    <?php if ($nivelTxt !== '' || $precio <= 0): ?>
+                                        <div class="course-badges-corner">
+                                            <?php if ($nivelTxt !== ''): ?>
+                                                <span class="course-badge-corner" style="color:<?= $nivelColor ?>;background:<?= $nivelBg ?>;border-color:<?= $nivelColor ?>22">
+                                                    <?= htmlspecialchars($nivelTxt) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if ($precio <= 0): ?>
+                                                <span class="course-badge-corner course-badge-free">Gratis</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
 
                                 <div class="card-body-inner">
-                                    <!-- Tags -->
-                                    <div class="tags-row">
-                                        <?php if ($nivelTxt !== ''): ?>
-                                            <span class="tag" style="color:<?= $nivelColor ?>;background:<?= $nivelBg ?>;border-color:<?= $nivelColor ?>22">
-                                                <?= $nivelTxt ?>
-                                            </span>
-                                        <?php endif; ?>
-                                        <?php if ($cat !== ''): ?>
+                                    <?php if ($cat !== ''): ?>
+                                        <div class="tags-row">
                                             <span class="tag" style="color:var(--mc-muted);background:var(--mc-soft);border-color:var(--mc-border)">
-                                                📂 <?= htmlspecialchars($cat) ?>
+                                                <?= htmlspecialchars($cat) ?>
                                             </span>
-                                        <?php endif; ?>
-                                        <?php if ($precio <= 0): ?>
-                                            <span class="tag" style="color:#059669;background:#d1fae5;border-color:#6ee7b7">Gratis</span>
-                                        <?php endif; ?>
-                                    </div>
+                                        </div>
+                                    <?php endif; ?>
 
                                     <div class="course-title"><?= htmlspecialchars($titulo) ?></div>
 
@@ -696,7 +752,8 @@ function buildUrl(array $overrides = []): string
                                         </span>
                                         <button class="btn-carrito" title="Añadir al carrito"
                                             onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
-                                            🛒
+                                            <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="">
+                                            <span>Añadir</span>
                                         </button>
                                     </div>
                                 </div>
