@@ -1,10 +1,29 @@
 <?php
 
+/**
+ * Modelo de Curso.
+ *
+ * Representa la entidad "curso" de la plataforma y encapsula
+ * todas las operaciones de acceso a datos relacionadas con los cursos.
+ */
+
 class Curso
 {
-
+    /**
+     * Instancia de la conexión a la base de datos.
+     *
+     * @var PDO
+     */
     private $db;
 
+    /**
+     * Constructor del modelo.
+     *
+     * Recibe e inyecta la conexión a la base de datos para
+     * que pueda ser utilizada en los métodos de la clase.
+     *
+     * @param PDO $db Conexión activa a la base de datos.
+     */
     public function __construct($db)
     {
         $this->db = $db;

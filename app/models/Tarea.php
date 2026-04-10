@@ -38,19 +38,24 @@ class Tarea
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Devuelve los días del mes que tienen tareas para marcar en el calendario
+    // Devuelve los días del mes que tienen tareas para marcar en el calendario.
+    // Usa strftime() en lugar de YEAR()/MONTH()/DAY() para compatibilidad con SQLite.
     public function obtenerDiasConEventos(int $usuario_id, int $anyo, int $mes): array
     {
         $stmt = $this->db->prepare("
-            SELECT DISTINCT DAY(t.fecha_limite) AS dia
+            SELECT DISTINCT CAST(strftime('%d', t.fecha_limite) AS INTEGER) AS dia
             FROM matricula m
             JOIN tarea t ON t.curso_id = m.curso_id
             WHERE m.usuario_id = ?
               AND t.fecha_limite IS NOT NULL
-              AND YEAR(t.fecha_limite) = ?
-              AND MONTH(t.fecha_limite) = ?
+              AND strftime('%Y', t.fecha_limite) = ?
+              AND strftime('%m', t.fecha_limite) = ?
         ");
-        $stmt->execute([$usuario_id, $anyo, $mes]);
+        $stmt->execute([
+            $usuario_id,
+            sprintf('%04d', $anyo),  // '2026'
+            sprintf('%02d', $mes),   // '03'
+        ]);
         return array_map(fn($r) => (int)$r['dia'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 }

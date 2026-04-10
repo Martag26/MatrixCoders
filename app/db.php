@@ -1,21 +1,45 @@
 <?php
 
+/**
+ * Clase de conexión a la base de datos.
+ *
+ * Gestiona la conexión PDO con SQLite (base de datos embebida dentro
+ * del propio proyecto en app/data/database.sqlite).
+ *
+ * Si el archivo todavía no existe, lo crea y ejecuta app/data/init.sql
+ * para inicializar el esquema y los datos de ejemplo automáticamente.
+ */
 class Database
 {
+    /** Ruta al archivo SQLite de la aplicación */
+    private static string $dbPath  = __DIR__ . '/data/database.sqlite';
 
-    public function connect()
+    /** Ruta al script SQL de inicialización */
+    private static string $initSql = __DIR__ . '/data/init.sql';
+
+    /**
+     * Crea y devuelve una conexión PDO a la base de datos SQLite.
+     *
+     * @return PDO Instancia de la conexión activa.
+     * @throws PDOException Si la conexión o la inicialización falla.
+     */
+    public function connect(): PDO
     {
+        $isNew = !file_exists(self::$dbPath);
 
-        try {
-            $conexion = new PDO(
-                "mysql:host=localhost;dbname=matrixcoders_bd", "root",""
-            );
+        $conexion = new PDO('sqlite:' . self::$dbPath);
+        $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-            $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        // Activar claves foráneas (SQLite las ignora por defecto)
+        $conexion->exec('PRAGMA foreign_keys = ON');
+        // WAL mejora el rendimiento en lecturas/escrituras concurrentes
+        $conexion->exec('PRAGMA journal_mode = WAL');
 
-            return $conexion;
-        } catch (PDOException $e) {
-            die("Error de conexión: " . $e->getMessage());
+        if ($isNew) {
+            $sql = file_get_contents(self::$initSql);
+            $conexion->exec($sql);
         }
+
+        return $conexion;
     }
 }

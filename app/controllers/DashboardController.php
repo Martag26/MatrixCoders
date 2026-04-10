@@ -1,4 +1,13 @@
 <?php
+
+/**
+ * Controlador del panel principal (Dashboard).
+ *
+ * Carga y prepara toda la información necesaria para el espacio
+ * de trabajo del usuario: calendario con eventos, carpetas,
+ * documentos, último curso visto y próximas tareas.
+ */
+
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../models/Carpeta.php';
@@ -7,6 +16,16 @@ require_once __DIR__ . '/../models/Tarea.php';
 
 class DashboardController
 {
+    /**
+     * Muestra el panel principal del usuario autenticado.
+     *
+     * Comprueba que hay una sesión activa antes de cargar los datos.
+     * Recupera de la base de datos el calendario de tareas del mes,
+     * las carpetas y documentos del usuario, el último curso en el que
+     * estuvo matriculado y los próximos 5 eventos con fecha límite.
+     *
+     * @return void
+     */
     public function index()
     {
         // Si el usuario no ha iniciado sesión, lo redirigimos al login
@@ -15,8 +34,10 @@ class DashboardController
             exit;
         }
 
+        // Obtener el ID del usuario de la sesión y forzar tipo entero
         $usuario_id = (int)$_SESSION['usuario_id'];
 
+        // Conectar a la base de datos
         $database = new Database();
         $conexion = $database->connect();
 
@@ -58,9 +79,11 @@ class DashboardController
         $stmt->execute([$usuario_id]);
         $seguirCurso = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        // Definir el título de la página y la hoja de estilos específica del dashboard
         $pageTitle = "Espacio de trabajo";
         $pageCss   = BASE_URL . "/css/dashboard.css";
 
+        // Cargar la vista del panel principal con todas las variables preparadas
         require __DIR__ . '/../views/dashboard/index.php';
     }
 }
