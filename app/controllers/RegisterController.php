@@ -46,10 +46,11 @@ class RegisterController
             exit;
         }
 
-        // Insertar usuario (sin hash porque vuestro login compara en plano)
-        // OJO: la columna en vuestra BD parece ser 'contraseña'
+        // Guardar la contraseña cifrada con password_hash
+        $passHash = password_hash($pass, PASSWORD_DEFAULT);
+
         $stmt = $conexion->prepare("INSERT INTO usuario (nombre, email, contraseña) VALUES (?, ?, ?)");
-        $ok = $stmt->execute([$nombre, $email, $pass]);
+        $ok = $stmt->execute([$nombre, $email, $passHash]);
 
         if (!$ok) {
             $_SESSION['register_error'] = "No se pudo registrar. Inténtalo de nuevo.";

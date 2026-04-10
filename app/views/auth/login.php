@@ -42,11 +42,15 @@
                     <?php endif; ?>
 
                     <form method="POST" action="<?= BASE_URL ?>/index.php?url=doLogin" class="auth-form">
-                        <label class="label-mc">Correo electrónico</label>
-                        <input class="form-control input-mc" type="email" name="email">
+                        <div class="mb-3">
+                            <label class="label-mc">Correo electrónico</label>
+                            <input class="form-control input-mc <?= $error ? 'is-invalid' : '' ?>" type="email" name="email">
+                        </div>
 
-                        <label class="label-mc mt-2">Contraseña</label>
-                        <input class="form-control input-mc" type="password" name="password">
+                        <div class="mb-3">
+                            <label class="label-mc">Contraseña</label>
+                            <input class="form-control input-mc <?= $error ? 'is-invalid' : '' ?>" type="password" name="password">
+                        </div>
 
                         <div class="login-row">
                             <label class="remember">

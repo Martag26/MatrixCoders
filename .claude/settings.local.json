@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -r \"echo password_hash\\('@w@w@', PASSWORD_DEFAULT\\);\")",
+      "Bash(\"C:/xampp/php/php.exe\" -r \"echo password_hash\\('@w@w@', PASSWORD_DEFAULT\\);\")",
+      "Bash(C:/xampp/php/php.exe -r ':*)"
+    ]
+  }
+}

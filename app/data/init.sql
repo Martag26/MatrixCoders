@@ -182,12 +182,12 @@ CREATE TABLE IF NOT EXISTS pago (
 -- =============================================================================
 
 INSERT INTO usuario (id, nombre, email, contraseña, creado_en, rol) VALUES
-(16, 'marta_admin',    'marta_admin@g.educaand.es',    '@w@w@',    '2026-02-24 08:00:50', 'ADMINISTRADOR'),
-(17, 'isidoro_editor', 'isidoro_editor@g.educaand.es', '@w@w@',    '2026-02-24 08:00:50', 'EDITOR'),
-(18, 'usuario',        'usuario@usuario.es',            'usuario',  '2026-02-24 08:00:50', 'USUARIO'),
-(19, 'usuario2',       'usuario2@usuario2.es',          'usuario2', '2026-02-24 08:11:30', 'USUARIO'),
-(20, 'usuario3',       'usuario3@usuario3.es',          'usuario3', '2026-02-24 08:11:30', 'USUARIO'),
-(21, 'Pablo',          'Pablo@pablo.pablo',             'pablo',    '2026-03-13 12:03:47', 'USUARIO');
+(16, 'marta_admin',    'marta_admin@g.educaand.es',    '$2y$10$dJWtStpQeNL03tkMv5vFyuWlfLhdW2XBcqdPHkkaCIxQBUdVEaa16', '2026-02-24 08:00:50', 'ADMINISTRADOR'),
+(17, 'isidoro_editor', 'isidoro_editor@g.educaand.es', '$2y$10$dJWtStpQeNL03tkMv5vFyuWlfLhdW2XBcqdPHkkaCIxQBUdVEaa16', '2026-02-24 08:00:50', 'EDITOR'),
+(18, 'usuario',        'usuario@usuario.es',            '$2y$10$6kT86LNkfuL/QmCAUtoh5.nKYdQU9XgjtHR24OAZfD9WhEeBuacIa', '2026-02-24 08:00:50', 'USUARIO'),
+(19, 'usuario2',       'usuario2@usuario2.es',          '$2y$10$LgSFVonOoulaVNRKHR.37OlYyeyEzdrkl2BIjqi05JlkBYak4YqKu', '2026-02-24 08:11:30', 'USUARIO'),
+(20, 'usuario3',       'usuario3@usuario3.es',          '$2y$10$Qc6p1h1Dz2vo4aHURADw2uKGnDR1TP8PfHSqix22UcwAtSNAzeB1.', '2026-02-24 08:11:30', 'USUARIO'),
+(21, 'Pablo',          'Pablo@pablo.pablo',             '$2y$10$Prxu9Lw8qv2Ro07zI7p7Leo28/pIK0yYf4o6QvGKpJKH/c6TA0tYS', '2026-03-13 12:03:47', 'USUARIO');
 
 -- imagen y duracion_min / estudiantes añadidos respecto al SQL original
 INSERT INTO curso (id, titulo, descripcion, precio, imagen, duracion_min, estudiantes) VALUES

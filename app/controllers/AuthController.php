@@ -53,7 +53,7 @@ class AuthController
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         // Verificar que el usuario existe y que la contraseña coincide
-        if (!$user || $user['contraseña'] !== $pass) {
+        if (!$user || !password_verify($pass, $user['contraseña'])) {
             // Guardar mensaje de error en sesión y redirigir al login
             $_SESSION['login_error'] = "Email o contraseña incorrectos";
             header("Location: " . BASE_URL . "/index.php?url=login");
