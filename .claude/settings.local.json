@@ -3,7 +3,9 @@
     "allow": [
       "Bash(php -r \"echo password_hash\\('@w@w@', PASSWORD_DEFAULT\\);\")",
       "Bash(\"C:/xampp/php/php.exe\" -r \"echo password_hash\\('@w@w@', PASSWORD_DEFAULT\\);\")",
-      "Bash(C:/xampp/php/php.exe -r ':*)"
+      "Bash(C:/xampp/php/php.exe -r ':*)",
+      "Bash(grep -l \"usuario_id\" C:/xampp/htdocs/matrixcoders/app/controllers/*.php)",
+      "Bash(grep -L \"usuario_id\" C:/xampp/htdocs/matrixcoders/app/controllers/*.php)"
     ]
   }
 }

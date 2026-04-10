@@ -80,6 +80,9 @@ class AuthController
      */
     public function logout()
     {
+        // Iniciar sesión si no está activa para poder destruirla
+        if (session_status() === PHP_SESSION_NONE) session_start();
+
         // Eliminar todos los datos almacenados en la sesión
         session_destroy();
 

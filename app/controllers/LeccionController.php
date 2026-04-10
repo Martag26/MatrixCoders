@@ -5,7 +5,13 @@ require_once __DIR__ . '/../models/Curso.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-$usuarioId = $_SESSION['usuario_id'] ?? null;
+// Ruta privada: requiere sesión activa
+if (empty($_SESSION['usuario_id'])) {
+    header('Location: ' . BASE_URL . '/index.php?url=login');
+    exit;
+}
+
+$usuarioId = (int)$_SESSION['usuario_id'];
 
 $leccionId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($leccionId <= 0) {
