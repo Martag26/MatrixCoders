@@ -178,7 +178,7 @@ class Curso
         }
         $stmt = $this->db->prepare("
         INSERT INTO matricula (usuario_id, curso_id, fecha, estado)
-        VALUES (?, ?, NOW(), 'activa')
+        VALUES (?, ?, datetime('now'), 'activa')
     ");
         return $stmt->execute([$usuarioId, $cursoId]);
     }
@@ -266,8 +266,8 @@ class Curso
     {
         $stmt = $this->db->prepare("
             INSERT INTO nota (usuario_id, leccion_id, contenido, updated_at)
-            VALUES (?, ?, ?, NOW())
-            ON DUPLICATE KEY UPDATE contenido = VALUES(contenido), updated_at = NOW()
+            VALUES (?, ?, ?, datetime('now'))
+            ON CONFLICT(usuario_id, leccion_id) DO UPDATE SET contenido = excluded.contenido, updated_at = datetime('now')
         ");
         return $stmt->execute([$usuarioId, $leccionId, $contenido]);
     }
@@ -291,8 +291,8 @@ class Curso
     public function marcarVista(int $usuarioId, int $leccionId): void
     {
         $stmt = $this->db->prepare("
-            INSERT IGNORE INTO leccion_vista (usuario_id, leccion_id, visto_at)
-            VALUES (?, ?, NOW())
+            INSERT OR IGNORE INTO leccion_vista (usuario_id, leccion_id, visto_at)
+            VALUES (?, ?, datetime('now'))
         ");
         $stmt->execute([$usuarioId, $leccionId]);
     }

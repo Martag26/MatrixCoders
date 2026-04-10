@@ -20,16 +20,7 @@ class CarritoController
 
         if (!empty($carrito)) {
             $ids  = implode(',', array_map('intval', array_keys($carrito)));
-            $stmt = $db->query("
-                SELECT c.*, COUNT(m.id) AS total_matriculas
-                FROM curso c
-                LEFT JOIN matricula m ON m.curso_id = c.id
-                GROUP BY c.id
-                HAVING c.id IN ($ids)
-                ORDER BY FIELD(c.id, $ids)
-            ");
-            // Fallback si HAVING+IN no funciona en tu versión
-            $stmt = $db->query("SELECT * FROM curso WHERE id IN ($ids) ORDER BY FIELD(id, $ids)");
+            $stmt = $db->query("SELECT * FROM curso WHERE id IN ($ids) ORDER BY id");
             $cursos_carrito = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Detectar cursos en los que el usuario ya está matriculado

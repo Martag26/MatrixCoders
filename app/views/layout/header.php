@@ -50,15 +50,7 @@ $nombreMenu = function_exists('mb_convert_case')
                 <a href="<?= BASE_URL ?>/index.php?url=notificaciones" aria-label="notificaciones">
                     <img src="<?= BASE_URL ?>/img/campana.png" alt="campana">
                 </a>
-<<<<<<< HEAD
-<<<<<<< HEAD
-                <?php $totalCarrito = $_SESSION['carrito'] ? array_sum($_SESSION['carrito']) : 0; ?>
-=======
                 <?php $totalCarrito = !empty($_SESSION['carrito']) ? array_sum($_SESSION['carrito']) : 0; ?>
->>>>>>> origin
-=======
-                <?php $totalCarrito = !empty($_SESSION['carrito']) ? array_sum($_SESSION['carrito']) : 0; ?>
->>>>>>> df03e22b54e01b111bc2b6ff3dab7064f089d6a9
                 <a href="<?= BASE_URL ?>/index.php?url=carrito" aria-label="carrito" style="position:relative;">
                     <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="cesta">
                     <?php if ($totalCarrito > 0): ?>
@@ -79,21 +71,6 @@ $nombreMenu = function_exists('mb_convert_case')
                     <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
                 </a>
             <?php else: ?>
-<<<<<<< HEAD
-                <!-- Usuario AUTENTICADO: mostrar nombre y enlace al perfil (escritorio) -->
-                <div class="d-none d-md-flex align-items-center gap-2">
-                    <span style="font-weight:600;"><?= htmlspecialchars($nombre) ?></span>
-
-                    <a href="<?= BASE_URL ?>/index.php?url=perfil" aria-label="perfil">
-                        <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
-                    </a>
-                </div>
-
-                <!-- Icono de perfil en móvil para usuario autenticado -->
-                <a class="d-md-none" href="<?= BASE_URL ?>/index.php?url=perfil" aria-label="perfil">
-                    <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
-                </a>
-=======
                 <!-- LOGUEADO -->
                 <div class="dropdown d-none d-md-block user-menu">
                     <button class="user-menu-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -120,7 +97,6 @@ $nombreMenu = function_exists('mb_convert_case')
                         <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a></li>
                     </ul>
                 </div>
->>>>>>> df03e22b54e01b111bc2b6ff3dab7064f089d6a9
             <?php endif; ?>
 
             <!-- Botón que abre el menú lateral (offcanvas) en dispositivos móviles -->
