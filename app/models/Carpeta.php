@@ -21,6 +21,21 @@ class Carpeta
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Devuelve las carpetas del usuario con el total de documentos por carpeta
+    public function obtenerConTotalesPorUsuario(int $usuario_id): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT c.*, COUNT(d.id) AS total_documentos
+             FROM carpeta c
+             LEFT JOIN documento d ON d.carpeta_id = c.id
+             WHERE c.usuario_id = ? AND c.padre_id IS NULL
+             GROUP BY c.id, c.usuario_id, c.padre_id, c.nombre
+             ORDER BY c.nombre ASC"
+        );
+        $stmt->execute([$usuario_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Devuelve las subcarpetas de una carpeta concreta
     public function obtenerSubcarpetas(int $padre_id): array
     {

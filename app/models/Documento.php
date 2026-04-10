@@ -21,6 +21,40 @@ class Documento
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    // Devuelve los documentos más recientes de un usuario, con el nombre de su carpeta
+    public function obtenerRecientesPorUsuario(int $usuario_id, ?int $limite = null): array
+    {
+        $sql = "
+            SELECT d.*, c.nombre AS carpeta_nombre
+            FROM documento d
+            LEFT JOIN carpeta c ON c.id = d.carpeta_id
+            WHERE d.usuario_id = ?
+            ORDER BY d.id DESC
+        ";
+
+        if ($limite !== null) {
+            $sql .= " LIMIT " . max(1, (int)$limite);
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$usuario_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Devuelve el listado completo de documentos con su carpeta
+    public function obtenerConCarpetaPorUsuario(int $usuario_id): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT d.*, c.nombre AS carpeta_nombre
+             FROM documento d
+             LEFT JOIN carpeta c ON c.id = d.carpeta_id
+             WHERE d.usuario_id = ?
+             ORDER BY d.id DESC"
+        );
+        $stmt->execute([$usuario_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Devuelve los documentos de una carpeta concreta
     public function obtenerPorCarpeta(int $carpeta_id): array
     {
@@ -36,6 +70,19 @@ class Documento
     {
         $stmt = $this->db->prepare("SELECT * FROM documento WHERE id = ?");
         $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Devuelve un documento concreto del usuario autenticado
+    public function obtenerPorIdYUsuario(int $id, int $usuario_id): array|false
+    {
+        $stmt = $this->db->prepare(
+            "SELECT d.*, c.nombre AS carpeta_nombre
+             FROM documento d
+             LEFT JOIN carpeta c ON c.id = d.carpeta_id
+             WHERE d.id = ? AND d.usuario_id = ?"
+        );
+        $stmt->execute([$id, $usuario_id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 

@@ -14,7 +14,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Determinar si el usuario ha iniciado sesión y obtener su nombre
 $logged = !empty($_SESSION['usuario_id']);
-$nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
+$nombre = trim((string)($_SESSION['usuario_nombre'] ?? 'Usuario'));
+if ($nombre === '') {
+    $nombre = 'Usuario';
+}
+$nombreMenu = function_exists('mb_convert_case')
+    ? mb_convert_case($nombre, MB_CASE_TITLE, 'UTF-8')
+    : ucwords(strtolower($nombre));
 ?>
 
 <header>
@@ -45,10 +51,14 @@ $nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
                     <img src="<?= BASE_URL ?>/img/campana.png" alt="campana">
                 </a>
 <<<<<<< HEAD
+<<<<<<< HEAD
                 <?php $totalCarrito = $_SESSION['carrito'] ? array_sum($_SESSION['carrito']) : 0; ?>
 =======
                 <?php $totalCarrito = !empty($_SESSION['carrito']) ? array_sum($_SESSION['carrito']) : 0; ?>
 >>>>>>> origin
+=======
+                <?php $totalCarrito = !empty($_SESSION['carrito']) ? array_sum($_SESSION['carrito']) : 0; ?>
+>>>>>>> df03e22b54e01b111bc2b6ff3dab7064f089d6a9
                 <a href="<?= BASE_URL ?>/index.php?url=carrito" aria-label="carrito" style="position:relative;">
                     <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="cesta">
                     <?php if ($totalCarrito > 0): ?>
@@ -69,6 +79,7 @@ $nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
                     <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
                 </a>
             <?php else: ?>
+<<<<<<< HEAD
                 <!-- Usuario AUTENTICADO: mostrar nombre y enlace al perfil (escritorio) -->
                 <div class="d-none d-md-flex align-items-center gap-2">
                     <span style="font-weight:600;"><?= htmlspecialchars($nombre) ?></span>
@@ -82,6 +93,34 @@ $nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
                 <a class="d-md-none" href="<?= BASE_URL ?>/index.php?url=perfil" aria-label="perfil">
                     <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
                 </a>
+=======
+                <!-- LOGUEADO -->
+                <div class="dropdown d-none d-md-block user-menu">
+                    <button class="user-menu-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="user-menu-meta">
+                            <span class="user-menu-label">Mi cuenta</span>
+                            <span class="user-menu-name"><?= htmlspecialchars($nombreMenu) ?></span>
+                        </span>
+                        <span class="user-menu-avatar">
+                            <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a></li>
+                    </ul>
+                </div>
+
+                <div class="dropdown d-md-none">
+                    <button class="user-menu-trigger user-menu-trigger-mobile" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">Mi perfil</a></li>
+                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a></li>
+                    </ul>
+                </div>
+>>>>>>> df03e22b54e01b111bc2b6ff3dab7064f089d6a9
             <?php endif; ?>
 
             <!-- Botón que abre el menú lateral (offcanvas) en dispositivos móviles -->
@@ -113,6 +152,9 @@ $nombre = $_SESSION['usuario_nombre'] ?? 'Usuario';
             <hr>
             <a href="<?= BASE_URL ?>/index.php?url=login">Iniciar sesión</a>
             <a href="<?= BASE_URL ?>/index.php?url=register">Registrarse</a>
+        <?php else: ?>
+            <hr>
+            <a href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a>
         <?php endif; ?>
     </div>
 </div>

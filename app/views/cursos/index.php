@@ -19,6 +19,7 @@
     // Variables de página que el header puede necesitar
     $pageTitle = 'Inicio';
     $pageCss   = '/css/inicio.css';
+    require_once __DIR__ . '/../../helpers/curso_imagen.php';
 
     require __DIR__ . '/../layout/header.php';
 
@@ -50,18 +51,19 @@
         return $n > 0 ? $n : 157;
     }
 
-    /**
-     * Devuelve la ruta de la imagen del curso.
-     * Si no hay imagen guardada en BD, devuelve una imagen de ejemplo por defecto.
-     *
-     * @param string|null $img Nombre del archivo de imagen almacenado en BD.
-     * @return string Ruta relativa a la imagen del curso.
-     */
-    function imageFallback(?string $img): string
+    function imageFallback(?string $img, string $title = ''): string
     {
-        return $img
-            ? BASE_URL . '/img/' . $img
-            : BASE_URL . '/img/curso1.jpg';
+        return matrixcoders_curso_image($img, $title);
+    }
+
+    function nivelLabelHome(string $nivel): array
+    {
+        return match ($nivel) {
+            'principiante' => ['Principiante', '#166534', '#dcfce7'],
+            'estudiante'   => ['Estudiante', '#1d4ed8', '#dbeafe'],
+            'profesional'  => ['Trabajador', '#7c3aed', '#ede9fe'],
+            default        => ['', '', ''],
+        };
     }
 
     // Si $cursos no está definido (llamada directa a la vista), inicializarlo como array vacío
@@ -82,30 +84,33 @@
                 Aprende, <span>crece</span> y avanza
             </h1>
 
-            <!-- Buscador -->
-            <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php">
-                <input type="hidden" name="url" value="buscar">
-                <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
-                <input
-                    class="form-control w-100"
-                    type="text"
-                    name="q"
-                    placeholder="Busca el curso que desees">
-            </form>
-            <ul id="sugerencias" style="
-                display: none;
-                background: #fff;
-                border: 1px solid #e5e7eb;
-                border-radius: 12px;
-                list-style: none;
-                margin: -20px auto 0;
-                padding: 4px 0;
-                max-width: 560px;
-                width: 100%;
-                box-shadow: 0 8px 24px rgba(0,0,0,.08);
-                position: relative;
-                z-index: 999;
-            "></ul>
+            <div style="position: relative; max-width: 560px; margin: 0 auto;">
+                <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php"
+                    style="margin-bottom: 0 !important;">
+                    <input type="hidden" name="url" value="buscar">
+                    <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
+                    <input
+                        class="form-control w-100"
+                        type="text"
+                        name="q"
+                        placeholder="Busca el curso que desees">
+                </form>
+                <ul id="sugerencias" style="
+                    display: none;
+                    background: #fff;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 12px;
+                    list-style: none;
+                    padding: 4px 0;
+                    margin: 0;
+                    width: 100%;
+                    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+                    position: absolute !important;
+                    top: calc(100% + 4px);
+                    left: 0;
+                    z-index: 9999;
+                "></ul>
+            </div>
 
             <!-- BLOQUE DE CURSOS: listado dinámico cargado desde la base de datos -->
             <div class="mt-4">
@@ -120,12 +125,15 @@
                     <div class="row g-4 mt-1">
                         <?php foreach ($cursos as $curso): ?>
                             <?php
-                            $img = imageFallback($curso['imagen'] ?? null);
+                            $titulo = $curso['titulo'] ?? 'Programación avanzada en PHP y MySQL';
+                            $desc   = $curso['descripcion'] ?? '';
+                            $img = imageFallback($curso['imagen'] ?? null, $titulo);
                             $dur = formatDuracionFallback($curso['duracion_min'] ?? null);
                             $stu = (int)($curso['total_matriculas'] ?? 0);
                             $precio = isset($curso['precio']) ? (float)$curso['precio'] : 33.99;
-                            $titulo = $curso['titulo'] ?? 'Programación avanzada en PHP y MySQL';
-                            $desc   = $curso['descripcion'] ?? '';
+                            $nivel  = $curso['nivel'] ?? '';
+                            $cat    = $curso['categoria'] ?? '';
+                            [$nivelTxt, $nivelColor, $nivelBg] = nivelLabelHome($nivel);
                             ?>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <!-- Card clickable -->
@@ -133,16 +141,38 @@
                                     style="cursor:pointer;"
                                     onclick="window.location.href='<?= BASE_URL ?>/index.php?url=curso&id=<?= $curso['id'] ?>'">
 
-                                    <?php if ($img): ?>
-                                        <img src="<?= htmlspecialchars($img) ?>"
-                                            class="course-thumb w-100"
-                                            alt="<?= htmlspecialchars($titulo) ?>">
-                                    <?php else: ?>
-                                        <div class="course-thumb w-100"></div>
-                                    <?php endif; ?>
+                                    <div class="course-thumb-wrap">
+                                        <?php if ($img): ?>
+                                            <img src="<?= htmlspecialchars($img) ?>"
+                                                class="course-thumb w-100"
+                                                alt="<?= htmlspecialchars($titulo) ?>"
+                                                onerror="this.src='<?= matrixcoders_curso_image('', '') ?>'">
+                                        <?php else: ?>
+                                            <div class="course-thumb w-100"></div>
+                                        <?php endif; ?>
+
+                                        <?php if ($nivelTxt !== '' || $precio <= 0): ?>
+                                            <div class="course-badges-corner">
+                                                <?php if ($nivelTxt !== ''): ?>
+                                                    <span class="course-badge-corner" style="color:<?= $nivelColor ?>;background:<?= $nivelBg ?>;border-color:<?= $nivelColor ?>22">
+                                                        <?= htmlspecialchars($nivelTxt) ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php if ($precio <= 0): ?>
+                                                    <span class="course-badge-corner course-badge-free">Gratis</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
 
                                     <div class="p-3 d-flex flex-column gap-2">
-                                        <!-- Metadatos: número de estudiantes y duración -->
+                                        <?php if ($cat !== ''): ?>
+                                            <div class="tags-row">
+                                                <span class="tag tag-soft">
+                                                    <?= htmlspecialchars($cat) ?>
+                                                </span>
+                                            </div>
+                                        <?php endif; ?>
                                         <div class="course-meta">
                                             <span><?= $stu ?> <?= $stu === 1 ? 'estudiante' : 'estudiantes' ?></span>
                                         </div>
@@ -156,10 +186,11 @@
                                             </div>
                                             <!-- Botón cesta — stopPropagation para que no active el onclick de la card -->
                                             <button
-                                                class="btn btn-outline-secondary btn-sm"
+                                                class="btn-course-cart"
                                                 title="Añadir al carrito"
                                                 onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
-                                                🛒
+                                                <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="">
+                                                <span>Añadir</span>
                                             </button>
                                         </div>
                                     </div>

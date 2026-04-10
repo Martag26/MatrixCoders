@@ -10,17 +10,94 @@ class BuscarController
         $database = new Database();
         $db       = $database->connect();
 
-        $q       = trim($_GET['q'] ?? '');
-        $pagina  = max(1, (int)($_GET['p'] ?? 1));
+        $q         = trim($_GET['q'] ?? '');
+        $pagina    = max(1, (int)($_GET['p'] ?? 1));
         $porPagina = 9;
 
-        $cursoModel  = new Curso($db);
-        $cursos      = $q !== '' ? $cursoModel->buscar($q, $pagina, $porPagina) : [];
-        $total       = $q !== '' ? $cursoModel->contarBusqueda($q) : 0;
-        $totalPaginas = $total > 0 ? ceil($total / $porPagina) : 1;
+        // Filtros
+        $filtroPrecio    = $_GET['precio']    ?? '';
+        $filtroNivel     = $_GET['nivel']     ?? '';
+        $filtroCategoria = $_GET['categoria'] ?? '';
+
+        $cursoModel = new Curso($db);
+
+        // Categorías disponibles
+        $stmtCats = $db->query(
+            "SELECT DISTINCT categoria FROM curso WHERE categoria IS NOT NULL AND categoria <> '' ORDER BY categoria ASC"
+        );
+        $categorias = $stmtCats ? $stmtCats->fetchAll(PDO::FETCH_COLUMN) : [];
+
+        // Construir WHERE dinámico
+        $where  = [];
+        $params = [];
+
+        if ($q !== '') {
+            $where[]  = '(c.titulo LIKE ? OR c.descripcion LIKE ?)';
+            $params[] = "%$q%";
+            $params[] = "%$q%";
+        }
+        if ($filtroPrecio === 'gratis') {
+            $where[] = '(c.precio IS NULL OR c.precio = 0)';
+        } elseif ($filtroPrecio === 'pago') {
+            $where[] = 'c.precio > 0';
+        }
+        if ($filtroNivel !== '') {
+            $where[]  = 'c.nivel = ?';
+            $params[] = $filtroNivel;
+        }
+        if ($filtroCategoria !== '') {
+            $where[]  = 'c.categoria = ?';
+            $params[] = $filtroCategoria;
+        }
+
+        $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $hayFiltros = ($q !== '' || $filtroPrecio !== '' || $filtroNivel !== '' || $filtroCategoria !== '');
+
+        // Si no hay nada activo → mostrar destacados
+        if (!$hayFiltros) {
+            $cursos       = $cursoModel->obtenerDestacados(9);
+            $total        = count($cursos);
+            $totalPaginas = 1;
+
+            $pageTitle = "Buscar cursos";
+            require __DIR__ . '/../views/buscar/index.php';
+            return;
+        }
+
+        // Total con filtros
+        $stmtCount = $db->prepare(
+            "SELECT COUNT(*) FROM curso c LEFT JOIN matricula m ON m.curso_id = c.id $whereSQL"
+        );
+        $stmtCount->execute($params);
+        $total        = (int)$stmtCount->fetchColumn();
+        $totalPaginas = $total > 0 ? (int)ceil($total / $porPagina) : 1;
+        $offset       = ($pagina - 1) * $porPagina;
+
+        // Resultados paginados — LIMIT y OFFSET con PARAM_INT para MariaDB
+        $sql = "
+            SELECT c.*, COUNT(DISTINCT m.id) AS total_matriculas
+            FROM curso c
+            LEFT JOIN matricula m ON m.curso_id = c.id
+            $whereSQL
+            GROUP BY c.id
+            ORDER BY total_matriculas DESC, c.id DESC
+            LIMIT ? OFFSET ?
+        ";
+        $stmtCursos = $db->prepare($sql);
+
+        // Bindear params dinámicos
+        $bindPos = 1;
+        foreach ($params as $val) {
+            $stmtCursos->bindValue($bindPos++, $val);
+        }
+        // Bindear LIMIT y OFFSET explícitamente como enteros
+        $stmtCursos->bindValue($bindPos++, $porPagina, PDO::PARAM_INT);
+        $stmtCursos->bindValue($bindPos,   $offset,    PDO::PARAM_INT);
+        $stmtCursos->execute();
+        $cursos = $stmtCursos->fetchAll(PDO::FETCH_ASSOC);
 
         $pageTitle = "Buscar cursos";
-
         require __DIR__ . '/../views/buscar/index.php';
     }
 }
