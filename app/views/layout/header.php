@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Layout parcial: cabecera (header) de la aplicación.
  *
@@ -71,30 +72,105 @@ $nombreMenu = function_exists('mb_convert_case')
                     <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
                 </a>
             <?php else: ?>
-                <!-- LOGUEADO -->
+                <!-- LOGUEADO: desktop -->
                 <div class="dropdown d-none d-md-block user-menu">
-                    <button class="user-menu-trigger" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="user-menu-meta">
-                            <span class="user-menu-label">Mi cuenta</span>
-                            <span class="user-menu-name"><?= htmlspecialchars($nombreMenu) ?></span>
-                        </span>
+                    <button class="user-menu-trigger" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="user-menu-avatar">
-                            <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
+                            <?= mb_strtoupper(mb_substr($nombreMenu, 0, 1, 'UTF-8'), 'UTF-8') ?>
                         </span>
+                        <span class="user-menu-name"><?= htmlspecialchars($nombreMenu) ?></span>
+                        <span class="user-menu-chevron">▾</span>
                     </button>
+
                     <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
-                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">Mi perfil</a></li>
-                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a></li>
+                        <!-- Cabecera con nombre -->
+                        <li class="user-dropdown-header">
+                            <p class="udh-name"><?= htmlspecialchars($nombreMenu) ?></p>
+                            <span class="udh-label">Cuenta personal</span>
+                        </li>
+
+                        <!-- Mi perfil -->
+                        <li>
+                            <a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M5.121 17.804A8 8 0 0112 15a8 8 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Mi perfil
+                            </a>
+                        </li>
+
+                        <!-- Ajustes -->
+                        <li>
+                            <a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=ajustes">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Ajustes
+                            </a>
+                        </li>
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <!-- Cerrar sesión -->
+                        <li>
+                            <a class="dropdown-item item-danger" href="<?= BASE_URL ?>/index.php?url=logout">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+                                </svg>
+                                Cerrar sesión
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
+                <!-- LOGUEADO: móvil -->
                 <div class="dropdown d-md-none">
-                    <button class="user-menu-trigger user-menu-trigger-mobile" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="<?= BASE_URL ?>/img/usuario.png" alt="perfil usuario" width="26" height="26">
+                    <button class="user-menu-trigger" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="user-menu-avatar">
+                            <?= mb_strtoupper(mb_substr($nombreMenu, 0, 1, 'UTF-8'), 'UTF-8') ?>
+                        </span>
+                        <span class="user-menu-name"><?= htmlspecialchars($nombreMenu) ?></span>
+                        <span class="user-menu-chevron">▾</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu">
-                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">Mi perfil</a></li>
-                        <li><a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=logout">Cerrar sesión</a></li>
+                        <li class="user-dropdown-header">
+                            <p class="udh-name"><?= htmlspecialchars($nombreMenu) ?></p>
+                            <span class="udh-label">Cuenta personal</span>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="<?= BASE_URL ?>/index.php?url=perfil">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M5.121 17.804A8 8 0 0112 15a8 8 0 016.879 2.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Mi perfil
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <a class="dropdown-item item-danger" href="<?= BASE_URL ?>/index.php?url=logout">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+                                </svg>
+                                Cerrar sesión
+                            </a>
+                        </li>
                     </ul>
                 </div>
             <?php endif; ?>
