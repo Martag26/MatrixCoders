@@ -43,6 +43,14 @@ class DashboardController
         $documentoModel = new Documento($conexion);
         $tareaModel = new Tarea($conexion);
 
+        // Cargar el plan activo del usuario en sesión si no está ya cargado
+        if (empty($_SESSION['usuario_plan'])) {
+            $stmtPlan = $conexion->prepare("SELECT plan FROM suscripcion WHERE usuario_id = ? AND status = 'activa' LIMIT 1");
+            $stmtPlan->execute([$usuario_id]);
+            $filaPlan = $stmtPlan->fetch(PDO::FETCH_ASSOC);
+            $_SESSION['usuario_plan'] = $filaPlan['plan'] ?? null;
+        }
+
         $this->procesarAcciones($usuario_id, $carpetaModel, $documentoModel);
 
         $calYear  = isset($_GET['y']) ? (int)$_GET['y'] : (int)date('Y');

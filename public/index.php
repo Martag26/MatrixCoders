@@ -108,6 +108,12 @@ switch ($url) {
         $controller->index();
         break;
 
+    case 'doSuscripcion':
+        require_once "../app/controllers/SuscripcionController.php";
+        $controller = new SuscripcionController();
+        $controller->contratar();
+        break;
+
     case 'buscar':
         require_once "../app/controllers/BuscarController.php";
         $controller = new BuscarController();

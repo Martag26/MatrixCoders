@@ -34,14 +34,20 @@ $unidad  = $modeloCurso->getUnidadById($leccion['unidad_id']);
 $cursoId = $unidad['curso_id'] ?? 0;
 $curso   = $modeloCurso->getById($cursoId);
 
-// Comprobar que el usuario está matriculado
-$estaMatriculado = $usuarioId
-    ? $modeloCurso->estaMatriculado($usuarioId, $cursoId)
-    : false;
+// Comprobar acceso según plan del usuario
+$planUsuario = $_SESSION['usuario_plan'] ?? null;
+$planesAccesoTotal = ['plan_estudiantes', 'plan_empresas'];
 
-if (!$estaMatriculado) {
-    header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
-    exit;
+if (in_array($planUsuario, $planesAccesoTotal)) {
+    // Con estos planes puede ver cualquier lección sin necesidad de matrícula
+    $estaMatriculado = true;
+} else {
+    // Sin plan o con curso_individual: solo accede si está matriculado
+    $estaMatriculado = $modeloCurso->estaMatriculado($usuarioId, $cursoId);
+    if (!$estaMatriculado) {
+        header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
+        exit;
+    }
 }
 
 // ── Marcar esta lección como vista ──────────────────────────────

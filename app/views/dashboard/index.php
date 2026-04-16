@@ -242,6 +242,39 @@ $documentosCompartibles = is_array($documentosCompartibles ?? null) ? $documento
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <!-- Plan activo del usuario -->
+                    <?php
+                    $nombresPlan = [
+                        'curso_individual' => 'Curso Individual',
+                        'plan_estudiantes' => 'Plan estudiantes',
+                        'plan_empresas'    => 'Plan empresas',
+                    ];
+                    $planActivo = $_SESSION['usuario_plan'] ?? null;
+                    ?>
+                    <div class="lista-eventos">
+                        <div class="dashboard-section-head dashboard-section-head-inline">
+                            <h2>Tu suscripción</h2>
+                        </div>
+                        <?php if ($planActivo && isset($nombresPlan[$planActivo])): ?>
+                            <div class="evento">
+                                <span class="punto" style="background:var(--mc-green);width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>
+                                <div class="evento-texto">
+                                    <p class="evento-titulo"><?= htmlspecialchars($nombresPlan[$planActivo]) ?></p>
+                                    <p class="evento-sub">Plan activo</p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="evento evento-empty">
+                                <div class="evento-texto">
+                                    <p class="evento-titulo">Sin suscripción activa</p>
+                                    <p class="evento-sub">
+                                        <a href="<?= BASE_URL ?>/index.php?url=suscripciones" style="color:var(--mc-green);font-weight:700;">Ver planes →</a>
+                                    </p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </aside>
 
             </div>
