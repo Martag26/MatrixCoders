@@ -13,9 +13,9 @@ $hayFiltros    = $hayFiltros    ?? false;
 function nivelLabel(string $nivel): array
 {
     return match ($nivel) {
-        'principiante'  => ['Principiante',  '#16a34a', '#dcfce7'],
-        'estudiante'    => ['Estudiante',    '#2563eb', '#dbeafe'],
-        'profesional'   => ['Trabajador',    '#7c3aed', '#ede9fe'],
+        'principiante'  => ['Fundamentos', '#166534', '#dcfce7'],
+        'estudiante'    => ['Ruta academica', '#1d4ed8', '#dbeafe'],
+        'profesional'   => ['Perfil profesional', '#9a3412', '#ffedd5'],
         default         => ['', '', ''],
     };
 }
@@ -440,6 +440,17 @@ function buildUrl(array $overrides = []): string
             color: var(--mc-green);
         }
 
+        .course-price-wrap {
+            display: grid;
+            gap: 2px;
+        }
+
+        .course-price-note {
+            font-size: .68rem;
+            font-weight: 700;
+            color: #047857;
+        }
+
         .btn-carrito {
             display: inline-flex;
             align-items: center;
@@ -575,9 +586,8 @@ function buildUrl(array $overrides = []): string
 
             <div class="filtro-sep"></div>
 
-            <!-- Nivel / tipo de usuario -->
             <div class="filtro-grupo">
-                <h4>🎯 A quién va dirigido</h4>
+                <h4>🎯 Nivel</h4>
                 <a class="filtro-opcion <?= $filtroNivel === '' ? 'activo' : '' ?>"
                     href="<?= buildUrl(['nivel' => '', 'p' => 1]) ?>">
                     <span class="dot" style="background:#9ca3af"></span> Todos los niveles
@@ -592,13 +602,16 @@ function buildUrl(array $overrides = []): string
                 </a>
                 <a class="filtro-opcion <?= $filtroNivel === 'profesional' ? 'activo' : '' ?>"
                     href="<?= buildUrl(['nivel' => 'profesional', 'p' => 1]) ?>">
-                    <span class="dot" style="background:#7c3aed"></span> Trabajador / Profesional
+                    <span class="dot" style="background:#ea580c"></span> Trabajador / profesional
                 </a>
+                <p style="margin:10px 0 0;font-size:.72rem;color:var(--mc-muted);line-height:1.45;">
+                    Visible por ahora como filtro preparado. Lo conectaremos a la BD cuando implementes esos niveles.
+                </p>
             </div>
 
-            <?php if (!empty($categorias)): ?>
-                <div class="filtro-sep"></div>
+            <div class="filtro-sep"></div>
 
+            <?php if (!empty($categorias)): ?>
                 <!-- Categoría -->
                 <div class="filtro-grupo">
                     <h4>📂 Categoría</h4>
@@ -714,9 +727,6 @@ function buildUrl(array $overrides = []): string
                                                     <?= htmlspecialchars($nivelTxt) ?>
                                                 </span>
                                             <?php endif; ?>
-                                            <?php if ($precio <= 0): ?>
-                                                <span class="course-badge-corner course-badge-free">Gratis</span>
-                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -747,9 +757,14 @@ function buildUrl(array $overrides = []): string
                                     </div>
 
                                     <div class="card-footer-row">
-                                        <span class="course-price <?= $precio <= 0 ? 'gratis' : '' ?>">
-                                            <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
-                                        </span>
+                                        <div class="course-price-wrap">
+                                            <span class="course-price <?= $precio <= 0 ? 'gratis' : '' ?>">
+                                                <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
+                                            </span>
+                                            <?php if ($precio <= 0): ?>
+                                                <span class="course-price-note">Acceso sin coste</span>
+                                            <?php endif; ?>
+                                        </div>
                                         <button class="btn-carrito" title="Añadir al carrito"
                                             onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
                                             <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="">
@@ -934,7 +949,14 @@ function buildUrl(array $overrides = []): string
                         }
                         badge.textContent = data.total;
                         bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                        return;
                     }
+
+                    const label = data.mensaje || (data.estado === 'matriculado'
+                        ? 'Ya estas matriculado en este curso.'
+                        : 'Este curso ya esta en tu cesta.');
+                    document.getElementById('modal-precio').textContent = label;
+                    document.getElementById('modal-texto').textContent = 'No se ha añadido ningun curso';
                 });
         });
     </script>

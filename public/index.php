@@ -171,11 +171,9 @@ switch ($url) {
         break;
 
     case 'tareas':
-        require_once "../app/controllers/CalendarioController.php";
-        break;
-
-    case 'lecciones':
-        require_once "../app/controllers/LeccionesController.php";
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->tareas();
         break;
 
     default:

@@ -556,7 +556,7 @@
                             </div>
                         </div>
                     <?php endforeach; ?>
-                    <a class="ec-link" href="<?= BASE_URL ?>/index.php?url=lecciones">Ver todas mis lecciones →</a>
+                    <a class="ec-link" href="<?= BASE_URL ?>/index.php?url=dashboard">Ir a mis cursos →</a>
                 <?php endif; ?>
             </div>
 

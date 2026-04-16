@@ -210,6 +210,9 @@ $documentosCompartibles = is_array($documentosCompartibles ?? null) ? $documento
 
                     <?php if (!empty($tareasUsuario)): ?>
                         <div class="lista-eventos">
+                            <div class="dashboard-section-head dashboard-section-head-inline">
+                                <h2>Próximas tareas</h2>
+                            </div>
                             <?php foreach (array_slice($tareasUsuario, 0, 4) as $tarea): ?>
                                 <div class="evento">
                                     <span class="punto" style="background:var(--mc-green);width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>
@@ -228,6 +231,9 @@ $documentosCompartibles = is_array($documentosCompartibles ?? null) ? $documento
                         </div>
                     <?php else: ?>
                         <div class="lista-eventos">
+                            <div class="dashboard-section-head dashboard-section-head-inline">
+                                <h2>Tareas</h2>
+                            </div>
                             <div class="evento evento-empty">
                                 <div class="evento-texto">
                                     <p class="evento-titulo">No hay tareas pendientes</p>

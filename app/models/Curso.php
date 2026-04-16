@@ -146,9 +146,13 @@ class Curso
     public function getTareasByCurso(int $cursoId): array
     {
         $stmt = $this->db->prepare("
-            SELECT * FROM tarea
-            WHERE curso_id = ?
-            ORDER BY fecha_limite ASC
+            SELECT
+                t.*,
+                l.titulo AS leccion_titulo
+            FROM tarea t
+            LEFT JOIN leccion l ON l.id = t.leccion_id
+            WHERE t.curso_id = ?
+            ORDER BY t.fecha_limite ASC, t.id ASC
         ");
         $stmt->execute([$cursoId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

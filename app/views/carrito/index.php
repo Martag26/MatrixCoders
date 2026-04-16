@@ -7,6 +7,7 @@ $ya_matriculados = $ya_matriculados         ?? [];
 $subtotal       = $subtotal                ?? 0;
 $iva            = $iva                     ?? 0;
 $total          = $total                   ?? 0;
+$flash          = $flash                   ?? null;
 
 // Cursos válidos (no matriculados ya)
 $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados[$c['id']]));
@@ -37,7 +38,7 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
         }
 
         .nivel-principiante {
-            color: #16a34a;
+            color: #166534;
             background: #dcfce7;
             border-color: #86efac;
         }
@@ -49,9 +50,9 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
         }
 
         .nivel-profesional {
-            color: #7c3aed;
-            background: #ede9fe;
-            border-color: #c4b5fd;
+            color: #7c2d12;
+            background: #ffedd5;
+            border-color: #fdba74;
         }
 
         .nivel-default {
@@ -92,6 +93,18 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
             border-radius: 20px;
             padding: 2px 8px;
             margin-top: 4px;
+        }
+
+        .carrito-flash {
+            max-width: 760px;
+            margin: 0 auto 20px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            color: #9a3412;
+            font-size: .9rem;
+            font-weight: 700;
         }
 
         /* ── Empty state ── */
@@ -297,6 +310,13 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
             border-radius: 20px;
             padding: 3px 10px;
         }
+
+        .resumen-ayuda {
+            margin-top: 10px;
+            color: #6b7280;
+            font-size: .8rem;
+            line-height: 1.5;
+        }
     </style>
 </head>
 
@@ -312,6 +332,10 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
                     <span style="font-size:1rem;font-weight:500;color:#6b7280;">(<?= count($cursos_carrito) ?> curso<?= count($cursos_carrito) !== 1 ? 's' : '' ?>)</span>
                 <?php endif; ?>
             </h1>
+
+            <?php if (!empty($flash)): ?>
+                <div class="carrito-flash"><?= htmlspecialchars($flash) ?></div>
+            <?php endif; ?>
 
             <?php if (empty($cursos_carrito)): ?>
                 <!-- ── ESTADO VACÍO ── -->
@@ -348,11 +372,11 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
                                 'profesional'  => 'nivel-profesional',
                                 default        => ($nivel ? 'nivel-default' : ''),
                             };
-                            $nivelIcon = match ($nivel) {
-                                'principiante' => '🟢',
-                                'estudiante'   => '🔵',
-                                'profesional'  => '🟣',
-                                default        => '',
+                            $nivelLabel = match ($nivel) {
+                                'principiante' => 'Fundamentos',
+                                'estudiante'   => 'Ruta academica',
+                                'profesional'  => 'Perfil profesional',
+                                default        => ucfirst((string)$nivel),
                             };
                         ?>
                             <div class="carrito-item <?= $esDup ? 'item-duplicado' : '' ?>"
@@ -370,7 +394,7 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
                                     <div style="display:flex;flex-wrap:wrap;gap:5px;margin:4px 0;">
                                         <?php if ($nivelClass): ?>
                                             <span class="nivel-tag <?= $nivelClass ?>">
-                                                <?= $nivelIcon ?> <?= ucfirst($nivel) ?>
+                                                <?= htmlspecialchars($nivelLabel) ?>
                                             </span>
                                         <?php endif; ?>
                                         <?php if ($cat): ?>
@@ -435,6 +459,7 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
                                 <span class="resumen-total-label">Total</span>
                                 <span class="resumen-total-precio" id="resumen-total"><?= number_format($total, 2) ?>€</span>
                             </div>
+                            <p class="resumen-ayuda">El pago se tramita con Stripe. Los cursos ya matriculados se excluyen automáticamente del cobro.</p>
                         </div>
 
                         <!-- Botón Stripe -->
@@ -474,20 +499,46 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
 
     <!-- Modal confirmación eliminar -->
     <div class="modal fade" id="modalEliminar" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content" style="border-radius:16px;">
-                <div class="modal-body text-center py-4 px-4">
-                    <p style="font-size:1.5rem;margin:0 0 8px;">🗑️</p>
-                    <p style="font-weight:800;font-size:1rem;margin:0 0 6px;">¿Eliminar del carrito?</p>
-                    <p id="modal-titulo-curso" style="font-size:.88rem;color:#6b7280;margin:0 0 20px;"></p>
-                    <div class="d-flex gap-2 justify-content-center">
-                        <button class="btn-atras" data-bs-dismiss="modal">Cancelar</button>
-                        <button class="btn-pagar" id="btn-confirmar-eliminar"
-                            style="flex:unset;padding:11px 24px;background:#ef4444;">
-                            Eliminar
+        <div class="modal-dialog modal-dialog-centered" style="max-width:360px;">
+            <div class="modal-content" style="border-radius:18px;border:none;overflow:hidden;">
+
+                <!-- Franja superior de color -->
+                <div style="background:#fef2f2;padding:28px 24px 20px;text-align:center;border-bottom:1px solid #fee2e2;">
+                    <div style="width:48px;height:48px;border-radius:14px;background:#fee2e2;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none"
+                            viewBox="0 0 24 24" stroke="#ef4444" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3M3 7h18" />
+                        </svg>
+                    </div>
+                    <h5 style="font-weight:800;font-size:1rem;margin:0 0 6px;color:#1B2336;">
+                        Eliminar curso
+                    </h5>
+                    <p id="modal-titulo-curso"
+                        style="font-size:.85rem;color:#6b7280;margin:0;line-height:1.5;"></p>
+                </div>
+
+                <!-- Cuerpo -->
+                <div style="padding:18px 24px 22px;background:#fff;">
+                    <p style="font-size:.83rem;color:#6b7280;margin:0 0 18px;text-align:center;">
+                        ¿Seguro que quieres eliminarlo? Podrás volver a añadirlo cuando quieras.
+                    </p>
+                    <div style="display:flex;gap:10px;">
+                        <button data-bs-dismiss="modal"
+                            style="flex:1;padding:11px;border-radius:10px;border:1px solid #e5e7eb;
+                                   background:#fff;font-weight:600;font-size:.88rem;
+                                   font-family:'Saira',sans-serif;cursor:pointer;color:#1B2336;">
+                            Cancelar
+                        </button>
+                        <button id="btn-confirmar-eliminar"
+                            style="flex:1;padding:11px;border-radius:10px;border:none;
+                                   background:#ef4444;color:#fff;font-weight:700;
+                                   font-size:.88rem;font-family:'Saira',sans-serif;cursor:pointer;">
+                            Sí, eliminar
                         </button>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -542,12 +593,14 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
                     document.getElementById('resumen-subtotal').textContent = data.subtotal_fmt + '€';
                     document.getElementById('resumen-iva').textContent = data.iva_fmt + '€';
                     document.getElementById('resumen-total').textContent = data.total_fmt + '€';
+                    const numCursos = document.getElementById('num-cursos');
+                    if (numCursos) numCursos.textContent = data.cantidad_valida;
 
                     // Actualizar botón Stripe
                     const btnStripe = document.getElementById('btnStripe');
                     if (btnStripe) {
                         btnStripe.innerHTML = `<span class="stripe-logo">stripe</span> Pagar ${data.total_fmt}€ de forma segura`;
-                        btnStripe.disabled = data.cantidad === 0;
+                        btnStripe.disabled = data.cantidad_valida === 0;
                     }
 
                     // Badge del header
@@ -573,6 +626,7 @@ $cursosValidos = array_filter($cursos_carrito, fn($c) => !isset($ya_matriculados
             // TODO: fetch a /index.php?url=descuento con el código
             alert('Los códigos de descuento estarán disponibles próximamente.');
         }
+
     </script>
 </body>
 

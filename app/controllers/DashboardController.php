@@ -229,6 +229,40 @@ class DashboardController
         require __DIR__ . '/../views/dashboard/documentos.php';
     }
 
+    public function tareas()
+    {
+        if (empty($_SESSION['usuario_id'])) {
+            header("Location: " . BASE_URL . "/index.php?url=login");
+            exit;
+        }
+
+        $usuario_id = (int)$_SESSION['usuario_id'];
+        $database = new Database();
+        $conexion = $database->connect();
+        $tareaModel = new Tarea($conexion);
+
+        $tareas = $tareaModel->obtenerPanelUsuario($usuario_id);
+        $resumen = [
+            'total' => count($tareas),
+            'pendientes' => count(array_filter($tareas, fn($t) => ($t['estado_visual'] ?? '') === 'pendiente')),
+            'proximas' => count(array_filter($tareas, fn($t) => ($t['estado_visual'] ?? '') === 'proxima')),
+            'vencidas' => count(array_filter($tareas, fn($t) => ($t['estado_visual'] ?? '') === 'vencida')),
+            'entregadas' => count(array_filter($tareas, fn($t) => ($t['estado_visual'] ?? '') === 'entregada')),
+        ];
+
+        $tareasPorCurso = [];
+        foreach ($tareas as $tarea) {
+            $cursoKey = (string)($tarea['curso'] ?? 'Curso');
+            if (!isset($tareasPorCurso[$cursoKey])) {
+                $tareasPorCurso[$cursoKey] = [];
+            }
+            $tareasPorCurso[$cursoKey][] = $tarea;
+        }
+
+        $pageTitle = 'Tareas';
+        require __DIR__ . '/../views/dashboard/tareas.php';
+    }
+
     public function verDocumento()
     {
         if (empty($_SESSION['usuario_id'])) {

@@ -63,7 +63,7 @@ class AuthController
         // Almacenar datos del usuario en la sesión
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['usuario_nombre'] = $user['nombre'];
-        $_SESSION['usuario_plan'] = $user['plan'];
+        $_SESSION['usuario_plan'] = $user['plan'] ?? 'gratuito';
 
         // Redirigir al panel principal tras un login correcto
         header("Location: " . BASE_URL . "/index.php?url=dashboard");

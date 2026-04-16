@@ -125,18 +125,23 @@
 
 <body>
     <?php require __DIR__ . '/../layout/header.php'; ?>
+    <?php $esAltaGratis = !empty($_GET['gratis']); ?>
+    <?php $esPagoSimulado = !empty($_GET['simulado']); ?>
 
     <div class="ok-page">
         <div class="ok-card">
             <div class="ok-circle">✓</div>
-            <h1 class="ok-title">¡Pago completado!</h1>
+            <h1 class="ok-title"><?= $esPagoSimulado ? '¡Pago simulado completado!' : ($esAltaGratis ? '¡Acceso activado!' : '¡Pago completado!') ?></h1>
             <p class="ok-sub">
-                Ya tienes acceso a tus nuevos cursos.<br>
-                Están disponibles en tu espacio de aprendizaje.
+                <?= $esPagoSimulado
+                    ? 'Se ha registrado una compra de prueba y los cursos ya están disponibles en tu cuenta sin realizar ningún cobro real.'
+                    : ($esAltaGratis
+                    ? 'Tus cursos gratuitos ya están activos y listos para empezar.'
+                    : 'Ya tienes acceso a tus nuevos cursos.<br>Están disponibles en tu espacio de aprendizaje.') ?>
             </p>
             <div class="ok-actions">
-                <a class="btn-ok primary" href="<?= BASE_URL ?>/index.php?url=lecciones">
-                    📚 Ir a mis lecciones
+                <a class="btn-ok primary" href="<?= BASE_URL ?>/index.php?url=dashboard">
+                    📚 Ir a mis cursos
                 </a>
                 <a class="btn-ok secondary" href="<?= BASE_URL ?>/index.php?url=dashboard">
                     🏠 Volver al dashboard

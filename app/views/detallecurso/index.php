@@ -398,26 +398,26 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
 
         /* ── TAREAS ── */
         .tarea-item {
-            background: var(--mc-soft);
-            border-left: 3px solid var(--mc-green);
-            border-radius: 0 9px 9px 0;
-            padding: .8rem 1rem;
-            margin-bottom: .5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfd 100%);
+            border: 1px solid var(--mc-border);
+            border-radius: 16px;
+            padding: 1rem 1.1rem;
+            margin-bottom: .8rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             gap: 1rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
         }
 
         .tarea-titulo {
-            font-weight: 700;
-            font-size: .9rem;
+            font-weight: 800;
+            font-size: .98rem;
         }
 
         .tarea-desc {
-            font-size: .82rem;
+            font-size: .84rem;
             color: var(--mc-muted);
-            margin-top: 2px;
+            margin-top: 6px;
         }
 
         .tarea-fecha {
@@ -426,8 +426,8 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             white-space: nowrap;
             background: #fff;
             border: 1px solid var(--mc-border);
-            border-radius: 6px;
-            padding: 3px 9px;
+            border-radius: 999px;
+            padding: 6px 10px;
             color: var(--mc-green-d);
             flex-shrink: 0;
         }
@@ -436,6 +436,52 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             color: #dc2626;
             border-color: #fca5a5;
             background: #fff7f7;
+        }
+
+        .tarea-panel-top {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .55rem;
+            align-items: center;
+            margin-bottom: .55rem;
+        }
+
+        .tarea-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        .tarea-chip-soft {
+            background: #eef3f7;
+            color: var(--mc-dark);
+        }
+
+        .tarea-chip-accent {
+            background: rgba(107, 143, 113, .12);
+            color: var(--mc-green-d);
+        }
+
+        .tarea-body-meta {
+            display: grid;
+            gap: .45rem;
+        }
+
+        .tarea-lesson-ref {
+            font-size: .78rem;
+            color: var(--mc-muted);
+            font-weight: 700;
+        }
+
+        .tarea-empty {
+            padding: 1.2rem 1.3rem;
+            border-radius: 16px;
+            border: 1px solid var(--mc-border);
+            background: #f8fafc;
+            color: var(--mc-muted);
         }
 
         /* ── SIDEBAR ── */
@@ -725,12 +771,24 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                     <div class="tab-pane fade" id="tab-tareas">
                         <?php foreach ($tareas as $t):
                             $vencida = !empty($t['fecha_limite']) && strtotime($t['fecha_limite']) < time();
+                            $diasRestantes = !empty($t['fecha_limite'])
+                                ? (int)floor((strtotime(substr($t['fecha_limite'], 0, 10)) - strtotime(date('Y-m-d'))) / 86400)
+                                : null;
                         ?>
                             <div class="tarea-item">
-                                <div>
+                                <div class="tarea-body-meta">
+                                    <div class="tarea-panel-top">
+                                        <span class="tarea-chip tarea-chip-soft"><?= $vencida ? 'Vencida' : ($diasRestantes === 0 ? 'Entrega hoy' : 'Tarea del curso') ?></span>
+                                        <?php if (!empty($t['leccion_titulo'])): ?>
+                                            <span class="tarea-chip tarea-chip-accent"><?= htmlspecialchars($t['leccion_titulo']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="tarea-titulo"><?= htmlspecialchars($t['titulo'] ?? '') ?></div>
                                     <?php if (!empty($t['descripcion'])): ?>
                                         <div class="tarea-desc"><?= htmlspecialchars($t['descripcion']) ?></div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($t['leccion_titulo'])): ?>
+                                        <span class="tarea-lesson-ref">Asociada a la leccion: <?= htmlspecialchars($t['leccion_titulo']) ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if (!empty($t['fecha_limite'])): ?>
@@ -869,11 +927,15 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                 document.querySelector('a[aria-label="carrito"]').appendChild(badge);
                             }
                             badge.textContent = data.total;
-                        } else {
-                            if (badge) badge.remove();
+                        } else if (badge) {
+                            badge.remove();
                         }
                         bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                        return;
                     }
+
+                    document.getElementById('modal-texto').textContent = 'No se ha añadido ningun curso';
+                    document.getElementById('modal-precio').textContent = data.mensaje || 'Este curso ya esta en tu cesta.';
                 });
         });
     </script>

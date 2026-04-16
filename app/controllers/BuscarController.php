@@ -41,10 +41,8 @@ class BuscarController
         } elseif ($filtroPrecio === 'pago') {
             $where[] = 'c.precio > 0';
         }
-        if ($filtroNivel !== '') {
-            $where[]  = 'c.nivel = ?';
-            $params[] = $filtroNivel;
-        }
+        // Filtro reservado para futura implementación completa en BD.
+        // De momento mantenemos el estado en la UI sin aplicarlo a la consulta.
         if ($filtroCategoria !== '') {
             $where[]  = 'c.categoria = ?';
             $params[] = $filtroCategoria;

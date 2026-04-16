@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../models/Curso.php';
+require_once __DIR__ . '/../models/Tarea.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -71,6 +72,26 @@ class CalendarioController
         unset($cp);
 
         $pageTitle = "Calendario";
+        $tareaModel = new Tarea($conexion);
+        $tareasUsuario = $tareaModel->obtenerPanelUsuario($usuario_id);
+        $tareasPorDia = [];
+        foreach ($tareasUsuario as $tarea) {
+            if (empty($tarea['fecha_limite'])) {
+                continue;
+            }
+
+            $timestamp = strtotime($tarea['fecha_limite']);
+            if ((int)date('Y', $timestamp) !== $calYear || (int)date('n', $timestamp) !== $calMonth) {
+                continue;
+            }
+
+            $dia = (int)date('j', $timestamp);
+            if (!isset($tareasPorDia[$dia])) {
+                $tareasPorDia[$dia] = [];
+            }
+
+            $tareasPorDia[$dia][] = $tarea;
+        }
         require __DIR__ . '/../views/calendario/index.php';
     }
 }

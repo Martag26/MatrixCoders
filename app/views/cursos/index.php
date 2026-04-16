@@ -59,9 +59,9 @@
     function nivelLabelHome(string $nivel): array
     {
         return match ($nivel) {
-            'principiante' => ['Principiante', '#166534', '#dcfce7'],
-            'estudiante'   => ['Estudiante', '#1d4ed8', '#dbeafe'],
-            'profesional'  => ['Trabajador', '#7c3aed', '#ede9fe'],
+            'principiante' => ['Fundamentos', '#166534', '#dcfce7'],
+            'estudiante'   => ['Ruta academica', '#1d4ed8', '#dbeafe'],
+            'profesional'  => ['Perfil profesional', '#9a3412', '#ffedd5'],
             default        => ['', '', ''],
         };
     }
@@ -158,9 +158,6 @@
                                                         <?= htmlspecialchars($nivelTxt) ?>
                                                     </span>
                                                 <?php endif; ?>
-                                                <?php if ($precio <= 0): ?>
-                                                    <span class="course-badge-corner course-badge-free">Gratis</span>
-                                                <?php endif; ?>
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -183,6 +180,9 @@
                                         <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
                                             <div class="course-price">
                                                 <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
+                                                <?php if ($precio <= 0): ?>
+                                                    <div style="font-size:.72rem;font-weight:700;color:#047857;margin-top:2px;">Acceso sin coste</div>
+                                                <?php endif; ?>
                                             </div>
                                             <!-- Botón cesta — stopPropagation para que no active el onclick de la card -->
                                             <button
@@ -403,7 +403,6 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.ok) {
-                        // Actualiza el badge sin recargar la página
                         let badge = document.querySelector('.carrito-badge');
                         if (!badge) {
                             badge = document.createElement('span');
@@ -412,7 +411,11 @@
                         }
                         badge.textContent = data.total;
                         bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                        return;
                     }
+
+                    document.getElementById('modal-texto').textContent = 'No se ha añadido ningun curso';
+                    document.getElementById('modal-precio').textContent = data.mensaje || 'Este curso ya esta en tu cesta.';
                 });
         });
     </script>
