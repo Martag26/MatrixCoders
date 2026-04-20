@@ -182,6 +182,30 @@ switch ($url) {
         $controller->tareas();
         break;
 
+    case 'perfil':
+        require_once "../app/controllers/PerfilController.php";
+        $controller = new PerfilController();
+        $controller->index();
+        break;
+
+    case 'guardarPerfil':
+        require_once "../app/controllers/PerfilController.php";
+        $controller = new PerfilController();
+        $controller->guardar();
+        break;
+
+    case 'ajustes':
+        require_once "../app/controllers/AjustesController.php";
+        $controller = new AjustesController();
+        $controller->index();
+        break;
+
+    case 'guardarAjustes':
+        require_once "../app/controllers/AjustesController.php";
+        $controller = new AjustesController();
+        $controller->guardar();
+        break;
+
     default:
         require_once "../app/controllers/CursoController.php";
         $controller = new CursoController();
