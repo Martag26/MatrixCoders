@@ -206,6 +206,12 @@ switch ($url) {
         $controller->guardar();
         break;
 
+    case 'cambiarContrasena':
+        require_once "../app/controllers/AjustesController.php";
+        $controller = new AjustesController();
+        $controller->cambiarContrasena();
+        break;
+
     default:
         require_once "../app/controllers/CursoController.php";
         $controller = new CursoController();

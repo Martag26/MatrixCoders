@@ -336,6 +336,66 @@
     border: 1px solid rgba(239, 68, 68, .25);
 }
 
+/* ── Etiquetas de plan ─────────────────────────────────────────────────────── */
+.perfil-plan {
+    display: inline-block;
+    font-size: .78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.perfil-plan-activo {
+    background: rgba(95, 135, 102, .12);
+    color: var(--mc-green);
+    border: 1px solid rgba(95, 135, 102, .25);
+}
+
+.perfil-plan-libre {
+    background: rgba(107, 114, 128, .1);
+    color: var(--mc-muted);
+    border: 1px solid var(--mc-border);
+    transition: border-color .15s;
+}
+
+.perfil-plan-libre:hover {
+    border-color: var(--mc-green);
+    color: var(--mc-green);
+}
+
+/* ── Errores de campo inline ───────────────────────────────────────────────── */
+.perfil-field-error {
+    font-size: .78rem;
+    color: var(--mc-danger);
+    min-height: 1rem;
+}
+
+.perfil-form-group input[type="text"].campo-invalido,
+.perfil-form-group input[type="password"].campo-invalido,
+.perfil-form-group textarea.campo-invalido {
+    border-color: var(--mc-danger);
+}
+
+/* ── Inputs de contraseña ──────────────────────────────────────────────────── */
+.perfil-form-group input[type="password"] {
+    border: 1.5px solid var(--mc-border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: .9rem;
+    font-family: inherit;
+    color: var(--mc-dark);
+    background: #fff;
+    transition: border-color .2s;
+    width: 100%;
+}
+
+.perfil-form-group input[type="password"]:focus {
+    outline: none;
+    border-color: var(--mc-green);
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .perfil-avatar-section {

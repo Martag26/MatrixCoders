@@ -4,7 +4,7 @@
  * Controlador de ajustes de usuario.
  *
  * Gestiona la visualización y edición de las preferencias
- * del usuario autenticado (idioma, notificaciones, privacidad).
+ * del usuario autenticado (idioma, notificaciones, privacidad, contraseña).
  */
 
 require_once __DIR__ . '/../db.php';
@@ -112,6 +112,57 @@ class AjustesController
         $stmt->execute([$idioma, $notificaciones, $privacidad, $id]);
 
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Ajustes guardados correctamente.'];
+        header('Location: ' . BASE_URL . '/index.php?url=ajustes');
+        exit;
+    }
+
+    /**
+     * Procesa el cambio de contraseña del usuario.
+     */
+    public function cambiarContrasena(): void
+    {
+        if (empty($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL . '/index.php?url=login');
+            exit;
+        }
+
+        $id              = (int)$_SESSION['usuario_id'];
+        $actual          = $_POST['contrasena_actual']   ?? '';
+        $nueva           = $_POST['contrasena_nueva']    ?? '';
+        $confirmacion    = $_POST['contrasena_confirmar'] ?? '';
+        $errors          = [];
+
+        // Validaciones
+        if ($actual === '') {
+            $errors[] = 'Introduce tu contraseña actual.';
+        }
+
+        if (mb_strlen($nueva) < 6) {
+            $errors[] = 'La nueva contraseña debe tener al menos 6 caracteres.';
+        }
+
+        if ($nueva !== $confirmacion) {
+            $errors[] = 'Las contraseñas nuevas no coinciden.';
+        }
+
+        if (!$errors) {
+            $usuario = $this->obtenerUsuario($id);
+            if (!$usuario || !password_verify($actual, $usuario['contraseña'])) {
+                $errors[] = 'La contraseña actual no es correcta.';
+            }
+        }
+
+        if ($errors) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => implode(' ', $errors)];
+            header('Location: ' . BASE_URL . '/index.php?url=ajustes');
+            exit;
+        }
+
+        $hash = password_hash($nueva, PASSWORD_BCRYPT);
+        $stmt = $this->db->prepare("UPDATE usuario SET contraseña = ? WHERE id = ?");
+        $stmt->execute([$hash, $id]);
+
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Contraseña actualizada correctamente.'];
         header('Location: ' . BASE_URL . '/index.php?url=ajustes');
         exit;
     }
