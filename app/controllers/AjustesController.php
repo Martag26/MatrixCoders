@@ -74,9 +74,15 @@ class AjustesController
 
     /**
      * Procesa el formulario de ajustes (idioma, notificaciones, privacidad).
+     * Solo acepta peticiones POST.
      */
     public function guardar(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/index.php?url=ajustes');
+            exit;
+        }
+
         if (empty($_SESSION['usuario_id'])) {
             header('Location: ' . BASE_URL . '/index.php?url=login');
             exit;
@@ -118,9 +124,15 @@ class AjustesController
 
     /**
      * Procesa el cambio de contraseña del usuario.
+     * Solo acepta peticiones POST.
      */
     public function cambiarContrasena(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/index.php?url=ajustes');
+            exit;
+        }
+
         if (empty($_SESSION['usuario_id'])) {
             header('Location: ' . BASE_URL . '/index.php?url=login');
             exit;

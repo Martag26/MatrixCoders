@@ -75,9 +75,15 @@ class PerfilController
 
     /**
      * Procesa el formulario de edición del perfil.
+     * Solo acepta peticiones POST.
      */
     public function guardar(): void
     {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/index.php?url=perfil');
+            exit;
+        }
+
         if (empty($_SESSION['usuario_id'])) {
             header('Location: ' . BASE_URL . '/index.php?url=login');
             exit;
