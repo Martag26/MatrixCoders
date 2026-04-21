@@ -44,9 +44,12 @@ if (!$estaMatriculado) {
     exit;
 }
 
-// ── Marcar esta lección como vista ──────────────────────────────
-if ($usuarioId) {
+// ── AJAX: marcar lección como vista (trigger desde el frontend al terminar el vídeo) ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'marcar_vista') {
+    header('Content-Type: application/json');
     $modeloCurso->marcarVista($usuarioId, $leccionId);
+    echo json_encode(['ok' => true]);
+    exit;
 }
 
 // ── Lecciones ya vistas en este curso (para el sidebar) ─────────
@@ -74,6 +77,19 @@ if ($usuarioId) {
     $nota = $modeloCurso->getNota($usuarioId, $leccionId);
 }
 
+// URL del notebook de NotebookLM asociado a esta lección (generado por el instructor con IA)
+$stmtNb = $db->prepare("SELECT notebook_url FROM leccion_notebook WHERE leccion_id = ?");
+$stmtNb->execute([$leccionId]);
+$notebookUrl = $stmtNb->fetchColumn() ?: null;
+
 $pageTitle = htmlspecialchars($leccion['titulo'] ?? 'Lección');
+
+// Si es la última lección, comprobar si el curso tiene examen
+$tieneExamen = false;
+if (!$leccionSiguiente) {
+    $stmtEx = $db->prepare("SELECT COUNT(*) FROM examen WHERE curso_id = ?");
+    $stmtEx->execute([$cursoId]);
+    $tieneExamen = (int)$stmtEx->fetchColumn() > 0;
+}
 
 require __DIR__ . '/../views/leccion/index.php';

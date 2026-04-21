@@ -1,0 +1,212 @@
+/* =====================================================
+   MatrixCoders — Sidebar
+   Estilo coherente con el sistema de diseño de la web
+   ===================================================== */
+
+:root {
+    --sb-w:   210px;
+    --sb-w-c:  52px;
+    --sb-ease: .2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── CONTENEDOR ── */
+.sidebar {
+    width: var(--sb-w);
+    min-width: var(--sb-w);
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    padding: 12px 10px 14px;
+    position: sticky;
+    top: 18px;
+    max-height: calc(100vh - 36px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: width var(--sb-ease), min-width var(--sb-ease);
+}
+
+/* ── COLLAPSED ── */
+.sidebar.sidebar--collapsed {
+    width: var(--sb-w-c);
+    min-width: var(--sb-w-c);
+}
+
+.sidebar.sidebar--collapsed .sidebar__label {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.sidebar.sidebar--collapsed .sidebar__link {
+    justify-content: center;
+    padding: 10px 0;
+    gap: 0;
+}
+
+.sidebar.sidebar--collapsed .sidebar__toggle {
+    justify-content: center;
+    padding: 6px 0 10px;
+}
+
+/* Grid ajuste */
+.contenedor-dashboard.sidebar--collapsed {
+    grid-template-columns: var(--sb-w-c) minmax(0,1fr) minmax(0,188px);
+}
+.contenedor-dashboard-content.sidebar--collapsed {
+    grid-template-columns: var(--sb-w-c) minmax(0,1fr);
+}
+
+/* ── TOGGLE ── */
+.sidebar__toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 4px 2px 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    border-radius: 8px;
+    transition: background var(--sb-ease);
+}
+
+.sidebar__toggle-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    transition: background var(--sb-ease), color var(--sb-ease);
+}
+
+.sidebar__toggle:hover .sidebar__toggle-icon {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* ── SEPARADOR CON ETIQUETA ── */
+.sidebar__sep {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px 4px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.sidebar__sep-line {
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+.sidebar__sep-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: #9ca3af;
+    white-space: nowrap;
+    transition: opacity var(--sb-ease);
+}
+
+.sidebar.sidebar--collapsed .sidebar__sep-label,
+.sidebar.sidebar--collapsed .sidebar__sep-line:last-child {
+    display: none;
+}
+.sidebar.sidebar--collapsed .sidebar__sep {
+    padding: 4px 0;
+}
+.sidebar.sidebar--collapsed .sidebar__sep-line:first-child {
+    display: none;
+}
+
+/* ── LISTA ── */
+.sidebar__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+/* ── ENLACE ── */
+.sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    color: #111827;
+    font-family: 'Saira', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background var(--sb-ease), color var(--sb-ease);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar__link svg {
+    flex-shrink: 0;
+    color: #6b7280;
+    transition: color var(--sb-ease);
+}
+
+.sidebar__link:hover {
+    background: #f3f4f6;
+    color: #111827;
+}
+.sidebar__link:hover svg { color: #374151; }
+
+.sidebar__link.active {
+    background: #f0f5f1;
+    color: #3a6140;
+    font-weight: 700;
+}
+.sidebar__link.active svg { color: #5f8766; }
+
+.sidebar__link--disabled {
+    opacity: .45;
+    pointer-events: none;
+    cursor: default;
+}
+
+/* ── LABEL (texto) ── */
+.sidebar__label {
+    transition: opacity var(--sb-ease), width var(--sb-ease);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* ── BADGE "PRONTO" ── */
+.sidebar__soon {
+    display: inline-flex;
+    align-items: center;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    padding: 1px 6px;
+    border-radius: 20px;
+    background: #f0f5f1;
+    color: #5f8766;
+    border: 1px solid #d1e4d4;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+}

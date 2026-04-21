@@ -36,18 +36,6 @@ switch ($url) {
         $controller->index();
         break;
 
-    case 'plantillas-documento':
-        require_once "../app/controllers/DashboardController.php";
-        $controller = new DashboardController();
-        $controller->plantilla();
-        break;
-
-    case 'nuevo-documento':
-        require_once "../app/controllers/DashboardController.php";
-        $controller = new DashboardController();
-        $controller->nuevoDocumento();
-        break;
-
     case 'documento-compartido':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();
@@ -147,6 +135,17 @@ switch ($url) {
         require_once "../app/controllers/LeccionController.php";
         break;
 
+    case 'examen':
+        require_once "../app/controllers/ExamenController.php";
+        break;
+
+    case 'apuntes-ia':
+        require_once "../app/controllers/ApuntesIaController.php";
+        break;
+
+    case 'vincular-google':
+        require_once "../app/controllers/VincularGoogleController.php";
+        break;
 
     case 'pagar':
         require_once "../app/controllers/CarritoController.php";
@@ -168,6 +167,18 @@ switch ($url) {
 
     case 'calendario':
         require_once "../app/controllers/CalendarioController.php";
+        break;
+
+    case 'api-notificaciones':
+        require_once "../app/controllers/NotificacionController.php";
+        break;
+
+    case 'api-eventos-usuario':
+        require_once "../app/controllers/EventoUsuarioController.php";
+        break;
+
+    case 'api-perfil':
+        require_once "../app/controllers/PerfilController.php";
         break;
 
     case 'tareas':

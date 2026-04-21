@@ -28,6 +28,7 @@ $ytId = ytId($videoUrl);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --mc-green: #6B8F71;
@@ -294,6 +295,61 @@ $ytId = ytId($videoUrl);
             padding: 4px 12px;
             color: var(--mc-text);
         }
+
+        /* ── NOTEBOOK (Apuntes IA) ── */
+        .nb-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .nb-title {
+            font-weight: 700;
+            font-size: .95rem;
+            margin: 0 0 3px;
+        }
+        .nb-sub {
+            font-size: .8rem;
+            color: var(--mc-muted);
+            margin: 0;
+        }
+        .nb-embed-wrap {
+            border: 1px solid var(--mc-border);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f8fafc;
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+        .nb-iframe {
+            width: 100%;
+            height: 420px;
+            border: none;
+            display: block;
+        }
+        .nb-placeholder {
+            background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+            border: 1.5px dashed #c7d2fe;
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+        .nb-ph-icon { font-size: 2.4rem; margin-bottom: .75rem; }
+        .nb-placeholder h6 { font-size: .93rem; font-weight: 700; margin: 0 0 .5rem; color: var(--mc-dark); }
+        .nb-placeholder p  { font-size: .83rem; color: var(--mc-muted); line-height: 1.6; margin: 0; max-width: 420px; margin: 0 auto; }
+        .nb-save-section {
+            background: var(--mc-soft);
+            border: 1px solid var(--mc-border);
+            border-radius: 12px;
+            padding: 1rem 1.1rem;
+        }
+        .nb-save-header { margin-bottom: .75rem; }
+        .nb-save-title { font-size: .88rem; font-weight: 700; display: block; margin-bottom: 3px; }
+        .nb-save-hint  { font-size: .78rem; color: var(--mc-muted); line-height: 1.5; }
+        .nb-save-section .notas-area { background: #fff; }
 
         /* ── NOTAS TAB ── */
         .notas-header {
@@ -654,7 +710,8 @@ $ytId = ytId($videoUrl);
                 <div class="video-container">
                     <?php if ($ytId): ?>
                         <iframe
-                            src="https://www.youtube.com/embed/<?= htmlspecialchars($ytId) ?>?rel=0&modestbranding=1&color=white"
+                            id="ytPlayer"
+                            src="https://www.youtube.com/embed/<?= htmlspecialchars($ytId) ?>?rel=0&modestbranding=1&color=white&enablejsapi=1"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen>
                         </iframe>
@@ -689,10 +746,17 @@ $ytId = ytId($videoUrl);
                         Siguiente →
                     </a>
                 <?php else: ?>
-                    <a class="nav-btn nav-btn-primary"
-                        href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>">
-                        Finalizar ✓
-                    </a>
+                    <?php if ($tieneExamen): ?>
+                        <a class="nav-btn nav-btn-primary"
+                            href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>">
+                            Ir al Examen →
+                        </a>
+                    <?php else: ?>
+                        <a class="nav-btn nav-btn-primary"
+                            href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>">
+                            Finalizar ✓
+                        </a>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
 
@@ -705,18 +769,15 @@ $ytId = ytId($videoUrl);
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-notas">
-                            📝 Notas
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-apuntes">
+                            ✏️ Apuntes
                         </button>
                     </li>
-                    <?php if (!empty($tareas)): ?>
-                        <li class="nav-item">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tareas">
-                                Tareas
-                                <span class="badge ms-1" style="background:var(--mc-green);font-size:.68rem;"><?= count($tareas) ?></span>
-                            </button>
-                        </li>
-                    <?php endif; ?>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-recursos">
+                            📥 Recursos
+                        </button>
+                    </li>
                 </ul>
             </div>
 
@@ -732,8 +793,8 @@ $ytId = ytId($videoUrl);
                             : 'En esta lección aprenderás los conceptos fundamentales de este tema. Sigue el vídeo y toma notas de los puntos más importantes para consolidar tu aprendizaje.' ?>
                     </p>
                     <p class="info-texto" style="margin-top:.85rem;">
-                        Recuerda que puedes pausar el vídeo en cualquier momento, tomar notas en la pestaña correspondiente
-                        y retomar la lección cuando quieras. Tu progreso se guarda automáticamente.
+                        Recuerda que puedes pausar el vídeo en cualquier momento, tomar apuntes en la pestaña correspondiente
+                        y retomar la lección cuando quieras. Tu progreso se registra al finalizar el vídeo.
                     </p>
 
                     <div class="info-meta">
@@ -745,66 +806,107 @@ $ytId = ytId($videoUrl);
                             <span class="info-tag">🔢 Lección <?= $leccion['orden'] ?></span>
                         <?php endif; ?>
                     </div>
+
+                    <?php if ($ytId): ?>
+                    <div id="video-progress-bar" style="margin-top:1.2rem;padding:.75rem 1rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:#166534;">
+                        <span id="vp-icon">⏳</span>
+                        <span id="vp-msg">Mira el vídeo hasta el final para marcar la lección como completada.</span>
+                        <button id="btn-marcar-manual" onclick="marcarVistaManual()" style="margin-left:auto;padding:.3rem .8rem;border:1px solid #86efac;border-radius:6px;background:#fff;color:#166534;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Saira',sans-serif;">Marcar manualmente</button>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
-                <!-- NOTAS -->
-                <div class="tab-pane fade" id="tab-notas">
-                    <div class="notas-header">
-                        <h6>Mis notas</h6>
-                        <a href="<?= BASE_URL ?>/index.php?url=dashboard" class="btn-notebook" target="_blank">
+                <!-- APUNTES (NotebookLM) -->
+                <div class="tab-pane fade" id="tab-apuntes">
+
+                    <!-- Cabecera -->
+                    <div class="nb-header">
+                        <div>
+                            <h6 class="nb-title">🤖 Apuntes generados por IA</h6>
+                            <p class="nb-sub">NotebookLM analiza el vídeo y genera automáticamente los apuntes de esta lección.</p>
+                        </div>
+                        <a href="https://notebooklm.google.com" target="_blank" rel="noopener" class="btn-notebook">
                             📓 Abrir NotebookLM
                         </a>
                     </div>
 
-                    <textarea class="notas-area" id="notasArea"
-                        placeholder="Escribe aquí tus apuntes para esta lección..."><?= htmlspecialchars($nota) ?></textarea>
+                    <?php if ($notebookUrl): ?>
+                        <!-- Notebook embebido -->
+                        <div class="nb-embed-wrap">
+                            <iframe
+                                class="nb-iframe"
+                                src="<?= htmlspecialchars($notebookUrl) ?>"
+                                title="Apuntes NotebookLM — <?= $tituloLeccion ?>"
+                                loading="lazy"
+                                allow="clipboard-read; clipboard-write"
+                                sandbox="allow-scripts allow-same-origin allow-popups allow-forms">
+                            </iframe>
+                        </div>
+                    <?php else: ?>
+                        <!-- Placeholder cuando aún no hay notebook configurado -->
+                        <div class="nb-placeholder">
+                            <div class="nb-ph-icon">🤖</div>
+                            <h6>Apuntes de IA no disponibles para esta lección</h6>
+                            <p>El instructor aún no ha vinculado un notebook de NotebookLM a este vídeo. Puedes acceder a NotebookLM, añadir el vídeo como fuente y generar tus propios apuntes inteligentes.</p>
+                            <a href="https://notebooklm.google.com" target="_blank" rel="noopener" class="btn-notebook" style="display:inline-flex;margin-top:.5rem;">
+                                Ir a NotebookLM y generar apuntes →
+                            </a>
+                        </div>
+                    <?php endif; ?>
 
-                    <div class="notas-footer">
-                        <button class="btn-guardar" onclick="guardarNota()">Guardar notas</button>
-                        <span class="notas-saved" id="notasSaved">✔ Guardado</span>
-                        <span style="font-size:.78rem;color:var(--mc-muted);margin-left:auto;" id="notasChars">
-                            <?= strlen($nota) ?> caracteres
-                        </span>
-                    </div>
-
-                    <div class="notas-hint">
-                        <span>💡</span>
-                        <span>
-                            Las notas rápidas se guardan aquí lección por lección.
-                            Para notas más elaboradas usa <strong>NotebookLM</strong> desde el botón de arriba.
-                        </span>
+                    <!-- Guardar resumen en perfil -->
+                    <div class="nb-save-section">
+                        <div class="nb-save-header">
+                            <span class="nb-save-title">💾 Guardar resumen en tu perfil</span>
+                            <span class="nb-save-hint">Pega aquí los puntos clave del notebook. Es el único elemento que se guarda y puedes exportar desde <strong>Recursos</strong>.</span>
+                        </div>
+                        <textarea class="notas-area" id="notasArea"
+                            placeholder="Pega o escribe aquí los puntos clave del apunte para guardarlos en tu perfil..."><?= htmlspecialchars($nota) ?></textarea>
+                        <div class="notas-footer">
+                            <button class="btn-guardar" onclick="guardarNota()">Guardar en mi perfil</button>
+                            <span class="notas-saved" id="notasSaved">✔ Guardado</span>
+                            <span style="font-size:.78rem;color:var(--mc-muted);margin-left:auto;" id="notasChars">
+                                <?= strlen($nota) ?> caracteres
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAREAS -->
-                <?php if (!empty($tareas)): ?>
-                    <div class="tab-pane fade" id="tab-tareas">
-                        <p style="font-size:.88rem;color:var(--mc-muted);margin-bottom:1rem;">
-                            Completa estas tareas para reforzar lo aprendido en el curso.
-                        </p>
-                        <?php foreach ($tareas as $t):
-                            $vencida = !empty($t['fecha_limite']) && strtotime($t['fecha_limite']) < time();
-                        ?>
-                            <div class="tarea-card">
-                                <div>
-                                    <div class="tt"><?= htmlspecialchars($t['titulo'] ?? '') ?></div>
-                                    <?php if (!empty($t['descripcion'])): ?>
-                                        <div class="td"><?= htmlspecialchars($t['descripcion']) ?></div>
-                                    <?php endif; ?>
-                                </div>
-                                <?php if (!empty($t['fecha_limite'])): ?>
-                                    <span class="tfecha <?= $vencida ? 'vencida' : '' ?>">
-                                        <?= $vencida ? '⚠ ' : '📅 ' ?>
-                                        <?php
-                                        $d = DateTime::createFromFormat('Y-m-d', substr($t['fecha_limite'], 0, 10));
-                                        echo $d ? $d->format('d/m/Y') : $t['fecha_limite'];
-                                        ?>
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                        <?php endforeach; ?>
+                <!-- RECURSOS -->
+                <div class="tab-pane fade" id="tab-recursos">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;flex-wrap:wrap;gap:.75rem;">
+                        <div>
+                            <h6 style="font-weight:700;font-size:.95rem;margin:0;">Descarga de apuntes</h6>
+                            <p style="font-size:.8rem;color:var(--mc-muted);margin:.25rem 0 0;">Exporta los apuntes guardados de esta lección.</p>
+                        </div>
+                        <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+                            <button onclick="descargarTxt()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border:1px solid var(--mc-border);border-radius:8px;background:#fff;color:var(--mc-text);font-size:.82rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">
+                                📄 Descargar .txt
+                            </button>
+                            <button onclick="imprimirPDF()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border:none;border-radius:8px;background:var(--mc-navy);color:#fff;font-size:.82rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">
+                                🖨️ Guardar como PDF
+                            </button>
+                        </div>
                     </div>
-                <?php endif; ?>
+
+                    <div id="recursos-preview" style="min-height:140px;background:#f8fafc;border:1px solid var(--mc-border);border-radius:10px;padding:1rem 1.1rem;font-size:.9rem;color:var(--mc-text);line-height:1.7;white-space:pre-wrap;">
+                        <?php echo $nota ? htmlspecialchars($nota) : '<span style="color:#9ca3af;font-style:italic;">Aún no tienes apuntes guardados para esta lección. Ve a la pestaña Apuntes y escribe tus notas.</span>'; ?>
+                    </div>
+
+                    <!-- Contenido de impresión PDF (oculto en pantalla) -->
+                    <div id="pdf-print-area" style="display:none;">
+                        <div style="font-family:'Georgia',serif;max-width:700px;margin:0 auto;padding:40px;">
+                            <div style="border-bottom:3px solid #6B8F71;padding-bottom:16px;margin-bottom:24px;">
+                                <h1 style="font-size:1.4rem;color:#1B2336;margin:0 0 6px;"><?= htmlspecialchars($tituloCurso) ?></h1>
+                                <p style="font-size:.9rem;color:#6b7280;margin:0;">Apuntes — <?= htmlspecialchars($tituloLeccion) ?></p>
+                            </div>
+                            <div id="pdf-contenido" style="font-size:.95rem;line-height:1.8;color:#374151;white-space:pre-wrap;"></div>
+                            <div style="margin-top:32px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:.75rem;color:#9ca3af;">
+                                MatrixCoders · <?= date('d/m/Y') ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </div><!-- /tab-content -->
         </div><!-- /leccion-main -->
@@ -874,19 +976,20 @@ $ytId = ytId($videoUrl);
     <!-- SIN FOOTER — la vista de lección ocupa todo el viewport -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <?php if ($ytId): ?>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <?php endif; ?>
     <script>
         const BASE_URL = '<?= BASE_URL ?>';
         const LECCION_ID = <?= (int)$leccion['id'] ?>;
+        const TIENE_VIDEO = <?= $ytId ? 'true' : 'false' ?>;
 
         /* ── Acordeón del sidebar ── */
         document.querySelectorAll('.t-unidad-btn').forEach(btn => {
             const lista = document.getElementById(btn.dataset.target);
-
-            /* Inicializa la altura real para la transición */
             if (!lista.classList.contains('cerrado')) {
                 lista.style.maxHeight = lista.scrollHeight + 'px';
             }
-
             btn.addEventListener('click', () => {
                 const abierto = !lista.classList.contains('cerrado');
                 if (abierto) {
@@ -902,12 +1005,9 @@ $ytId = ytId($videoUrl);
                     lista.style.maxHeight = lista.scrollHeight + 'px';
                     btn.classList.remove('collapsed');
                     btn.setAttribute('aria-expanded', 'true');
-                    /* Limpia la altura fija una vez terminada la animación */
                     lista.addEventListener('transitionend', () => {
                         lista.style.maxHeight = 'none';
-                    }, {
-                        once: true
-                    });
+                    }, { once: true });
                 }
             });
         });
@@ -918,38 +1018,109 @@ $ytId = ytId($videoUrl);
         if (notasArea) {
             notasArea.addEventListener('input', () => {
                 notasChars.textContent = notasArea.value.length + ' caracteres';
+                const preview = document.getElementById('recursos-preview');
+                if (preview) preview.textContent = notasArea.value || '';
             });
         }
 
-        /* ── Guardar nota via AJAX ── */
+        /* ── Guardar apuntes via AJAX ── */
         let saveTimer = null;
-
         function guardarNota(manual = true) {
             if (!notasArea) return;
             fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: 'nota=' + encodeURIComponent(notasArea.value)
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.ok && manual) {
-                        const ok = document.getElementById('notasSaved');
-                        ok.style.display = 'inline';
-                        setTimeout(() => ok.style.display = 'none', 2500);
-                    }
-                });
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'nota=' + encodeURIComponent(notasArea.value)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok && manual) {
+                    const ok = document.getElementById('notasSaved');
+                    ok.style.display = 'inline';
+                    setTimeout(() => ok.style.display = 'none', 2500);
+                }
+                const preview = document.getElementById('recursos-preview');
+                if (preview && notasArea.value) preview.textContent = notasArea.value;
+            });
         }
-
         if (notasArea) {
             notasArea.addEventListener('input', () => {
                 clearTimeout(saveTimer);
                 saveTimer = setTimeout(() => guardarNota(false), 30000);
             });
         }
+
+        /* ── YouTube IFrame API: marcar vista al terminar el vídeo ── */
+        let leccionMarcada = false;
+        function marcarVista() {
+            if (leccionMarcada) return;
+            leccionMarcada = true;
+            fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'accion=marcar_vista'
+            })
+            .then(r => r.json())
+            .then(() => {
+                const bar = document.getElementById('video-progress-bar');
+                const icon = document.getElementById('vp-icon');
+                const msg = document.getElementById('vp-msg');
+                const btn = document.getElementById('btn-marcar-manual');
+                if (bar) { bar.style.background = '#dcfce7'; bar.style.borderColor = '#86efac'; }
+                if (icon) icon.textContent = '✅';
+                if (msg) msg.textContent = '¡Lección completada! El progreso se ha registrado.';
+                if (btn) btn.style.display = 'none';
+                document.querySelectorAll('.t-leccion.activa .tl-check').forEach(el => {
+                    el.textContent = '✓';
+                });
+            });
+        }
+        function marcarVistaManual() { marcarVista(); }
+
+        <?php if ($ytId): ?>
+        var ytPlayer;
+        function onYouTubeIframeAPIReady() {
+            ytPlayer = new YT.Player('ytPlayer', {
+                events: { 'onStateChange': onYTStateChange }
+            });
+        }
+        function onYTStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                marcarVista();
+            }
+        }
+        <?php endif; ?>
+
+        /* ── Recursos: descargar .txt ── */
+        function descargarTxt() {
+            const contenido = notasArea ? notasArea.value : '';
+            if (!contenido.trim()) { alert('No tienes apuntes guardados para esta lección.'); return; }
+            const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'apuntes-<?= preg_replace('/[^a-z0-9]/i', '-', $tituloLeccion) ?>.txt';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        /* ── Recursos: imprimir como PDF ── */
+        function imprimirPDF() {
+            const contenido = notasArea ? notasArea.value : '';
+            if (!contenido.trim()) { alert('No tienes apuntes guardados para esta lección.'); return; }
+            const pdfArea = document.getElementById('pdf-print-area');
+            const pdfContenido = document.getElementById('pdf-contenido');
+            if (pdfContenido) pdfContenido.textContent = contenido;
+            if (pdfArea) pdfArea.style.display = 'block';
+            window.print();
+            if (pdfArea) pdfArea.style.display = 'none';
+        }
     </script>
+    <style>
+        @media print {
+            body > *:not(#pdf-print-area) { display: none !important; }
+            #pdf-print-area { display: block !important; }
+        }
+    </style>
 </body>
 
 </html>
