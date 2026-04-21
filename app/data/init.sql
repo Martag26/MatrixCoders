@@ -10,13 +10,19 @@ PRAGMA journal_mode = WAL;
 -- usuario
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS usuario (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre     TEXT    NOT NULL,
-    email      TEXT    NOT NULL UNIQUE,
-    contraseña TEXT    NOT NULL,
-    creado_en  TEXT    NOT NULL DEFAULT (datetime('now')),
-    rol        TEXT    NOT NULL DEFAULT 'USUARIO'
-               CHECK (rol IN ('USUARIO','EDITOR','ADMINISTRADOR'))
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre          TEXT    NOT NULL,
+    email           TEXT    NOT NULL UNIQUE,
+    contraseña      TEXT    NOT NULL,
+    creado_en       TEXT    NOT NULL DEFAULT (datetime('now')),
+    rol             TEXT    NOT NULL DEFAULT 'USUARIO'
+                    CHECK (rol IN ('USUARIO','EDITOR','ADMINISTRADOR')),
+    foto            TEXT    DEFAULT NULL,
+    bio             TEXT    DEFAULT NULL,
+    idioma          TEXT    NOT NULL DEFAULT 'es',
+    notificaciones  INTEGER NOT NULL DEFAULT 1,
+    privacidad      TEXT    NOT NULL DEFAULT 'publico'
+                    CHECK (privacidad IN ('publico','privado'))
 );
 
 -- -----------------------------------------------------------------------------

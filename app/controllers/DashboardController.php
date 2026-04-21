@@ -41,6 +41,14 @@ class DashboardController
         $documentoModel = new Documento($conexion);
         $tareaModel = new Tarea($conexion);
 
+        // Cargar el plan activo del usuario en sesión si no está ya cargado
+        if (empty($_SESSION['usuario_plan'])) {
+            $stmtPlan = $conexion->prepare("SELECT plan FROM suscripcion WHERE usuario_id = ? AND status = 'activa' LIMIT 1");
+            $stmtPlan->execute([$usuario_id]);
+            $filaPlan = $stmtPlan->fetch(PDO::FETCH_ASSOC);
+            $_SESSION['usuario_plan'] = $filaPlan['plan'] ?? null;
+        }
+
         $calYear  = isset($_GET['y']) ? (int)$_GET['y'] : (int)date('Y');
         $calMonth = isset($_GET['m']) ? (int)$_GET['m'] : (int)date('n');
         if ($calMonth < 1)   $calMonth = 1;
@@ -229,6 +237,11 @@ class DashboardController
 
         $pageTitle = $documentoValido ? ($documento['titulo'] ?? 'Documento') : 'Documento no disponible';
         require __DIR__ . '/../views/dashboard/documento_compartido.php';
+    }
+
+    private function buildShareToken(array $documento): string
+    {
+        return hash('sha256', $documento['id'] . '|' . ($documento['usuario_id'] ?? '') . '|mc_share_secret');
     }
 
     private function setFlash(string $type, string $message): void

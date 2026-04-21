@@ -96,6 +96,12 @@ switch ($url) {
         $controller->index();
         break;
 
+    case 'doSuscripcion':
+        require_once "../app/controllers/SuscripcionController.php";
+        $controller = new SuscripcionController();
+        $controller->contratar();
+        break;
+
     case 'buscar':
         require_once "../app/controllers/BuscarController.php";
         $controller = new BuscarController();
@@ -185,6 +191,36 @@ switch ($url) {
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();
         $controller->tareas();
+        break;
+
+    case 'perfil':
+        require_once "../app/controllers/PerfilController.php";
+        $controller = new PerfilController();
+        $controller->index();
+        break;
+
+    case 'guardarPerfil':
+        require_once "../app/controllers/PerfilController.php";
+        $controller = new PerfilController();
+        $controller->guardar();
+        break;
+
+    case 'ajustes':
+        require_once "../app/controllers/AjustesController.php";
+        $controller = new AjustesController();
+        $controller->index();
+        break;
+
+    case 'guardarAjustes':
+        require_once "../app/controllers/AjustesController.php";
+        $controller = new AjustesController();
+        $controller->guardar();
+        break;
+
+    case 'cambiarContrasena':
+        require_once "../app/controllers/AjustesController.php";
+        $controller = new AjustesController();
+        $controller->cambiarContrasena();
         break;
 
     default:

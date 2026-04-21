@@ -1,10 +1,11 @@
 <?php
 // Shared sidebar — incluido en todas las vistas del área privada
 if (session_status() === PHP_SESSION_NONE) session_start();
-$currentUrl    = $_GET['url'] ?? 'dashboard';
+$currentUrl     = $_GET['url'] ?? 'dashboard';
 $isWorkspace   = in_array($currentUrl, ['dashboard'], true);
-$isNube        = in_array($currentUrl, ['nube', 'mis-documentos', 'documento'], true);
+$isNube             = in_array($currentUrl, ['nube', 'mis-documentos', 'documento'], true);
 $isCalendario  = in_array($currentUrl, ['calendario'], true);
+$isCuenta    = in_array($currentUrl, ['perfil', 'ajustes'], true);
 ?>
 <aside class="sidebar" id="mainSidebar">
 

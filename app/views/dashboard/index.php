@@ -143,6 +143,35 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                         <?php endif; ?>
                     </div>
 
+                    <!-- ── MI CUENTA ── -->
+                    <div class="documentos" style="margin-top: 24px;">
+                        <div class="dashboard-section-head">
+                            <h2>Mi cuenta</h2>
+                        </div>
+                        <div class="dashboard-cuenta-grid">
+                            <a class="dashboard-cuenta-item" href="<?= BASE_URL ?>/index.php?url=perfil">
+                                <div class="dashboard-cuenta-icono">
+                                    <img src="<?= BASE_URL ?>/img/usuario.png" alt="">
+                                </div>
+                                <div class="dashboard-cuenta-body">
+                                    <strong>Mi perfil</strong>
+                                    <span>Nombre, foto y biografía</span>
+                                </div>
+                                <span class="dashboard-cuenta-flecha">→</span>
+                            </a>
+                            <a class="dashboard-cuenta-item" href="<?= BASE_URL ?>/index.php?url=ajustes">
+                                <div class="dashboard-cuenta-icono">
+                                    <img src="<?= BASE_URL ?>/img/engranaje.png" alt="">
+                                </div>
+                                <div class="dashboard-cuenta-body">
+                                    <strong>Ajustes</strong>
+                                    <span>Idioma, notificaciones y privacidad</span>
+                                </div>
+                                <span class="dashboard-cuenta-flecha">→</span>
+                            </a>
+                        </div>
+                    </div>
+
                 </section>
 
                 <!-- ── MINI CALENDARIO (solo visual, sin eventos) ── -->
@@ -217,6 +246,39 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                             </div>
                         </div>
                     <?php endif; ?>
+
+                    <!-- Plan activo del usuario -->
+                    <?php
+                    $nombresPlan = [
+                        'curso_individual' => 'Curso Individual',
+                        'plan_estudiantes' => 'Plan estudiantes',
+                        'plan_empresas'    => 'Plan empresas',
+                    ];
+                    $planActivo = $_SESSION['usuario_plan'] ?? null;
+                    ?>
+                    <div class="lista-eventos">
+                        <div class="dashboard-section-head dashboard-section-head-inline">
+                            <h2>Tu suscripción</h2>
+                        </div>
+                        <?php if ($planActivo && isset($nombresPlan[$planActivo])): ?>
+                            <div class="evento">
+                                <span class="punto" style="background:var(--mc-green);width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>
+                                <div class="evento-texto">
+                                    <p class="evento-titulo"><?= htmlspecialchars($nombresPlan[$planActivo]) ?></p>
+                                    <p class="evento-sub">Plan activo</p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="evento evento-empty">
+                                <div class="evento-texto">
+                                    <p class="evento-titulo">Sin suscripción activa</p>
+                                    <p class="evento-sub">
+                                        <a href="<?= BASE_URL ?>/index.php?url=suscripciones" style="color:var(--mc-green);font-weight:700;">Ver planes →</a>
+                                    </p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </aside>
 
             </div>

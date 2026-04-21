@@ -105,6 +105,10 @@
     color: #fff;
 }
 
+.plan-activo {
+    border: 2px solid var(--mc-green);
+}
+
 @media (max-width: 992px) {
     .plans-grid {
         grid-template-columns: 1fr;
