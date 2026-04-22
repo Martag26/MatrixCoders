@@ -158,6 +158,22 @@ CREATE TABLE IF NOT EXISTS notificacion (
     FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE
 );
 
+-- =============================================================================
+-- Migración v3: Nivel y categoría de cursos
+-- =============================================================================
+
+UPDATE curso SET nivel = 'principiante', categoria = 'Frontend'      WHERE id = 4  AND nivel IS NULL;
+UPDATE curso SET nivel = 'principiante', categoria = 'Frontend'      WHERE id = 5  AND nivel IS NULL;
+UPDATE curso SET nivel = 'principiante', categoria = 'Herramientas'  WHERE id = 10 AND nivel IS NULL;
+UPDATE curso SET nivel = 'principiante', categoria = 'Bases de datos' WHERE id = 11 AND nivel IS NULL;
+UPDATE curso SET nivel = 'estudiante',   categoria = 'Backend'       WHERE id = 6  AND nivel IS NULL;
+UPDATE curso SET nivel = 'estudiante',   categoria = 'Programación'  WHERE id = 7  AND nivel IS NULL;
+UPDATE curso SET nivel = 'estudiante',   categoria = 'Frontend'      WHERE id = 8  AND nivel IS NULL;
+UPDATE curso SET nivel = 'estudiante',   categoria = 'Backend'       WHERE id = 9  AND nivel IS NULL;
+UPDATE curso SET nivel = 'estudiante',   categoria = 'Full Stack'    WHERE id = 1  AND nivel IS NULL;
+UPDATE curso SET nivel = 'profesional',  categoria = 'Frontend'      WHERE id = 2  AND nivel IS NULL;
+UPDATE curso SET nivel = 'profesional',  categoria = 'Backend'       WHERE id = 3  AND nivel IS NULL;
+
 -- Módulo CRM: campañas automatizadas (ofertas, avisos, novedades)
 CREATE TABLE IF NOT EXISTS campana_crm (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,

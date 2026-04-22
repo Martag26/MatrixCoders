@@ -46,6 +46,21 @@ $estaMatriculado = $usuarioId
     ? $modeloCurso->estaMatriculado($usuarioId, $id)
     : false;
 
+// ── Fecha de matriculación y expiración (90 días) ─────────────────
+$fechaMatricula   = null;
+$fechaExpiracion  = null;
+$diasParaExpirar  = null;
+if ($estaMatriculado && $usuarioId) {
+    $stmtFecha = $db->prepare("SELECT fecha FROM matricula WHERE usuario_id = ? AND curso_id = ? LIMIT 1");
+    $stmtFecha->execute([$usuarioId, $id]);
+    $fechaMatricula = $stmtFecha->fetchColumn() ?: null;
+    if ($fechaMatricula) {
+        $expTs           = strtotime($fechaMatricula) + (90 * 86400);
+        $fechaExpiracion = date('d/m/Y', $expTs);
+        $diasParaExpirar = (int)ceil(($expTs - time()) / 86400);
+    }
+}
+
 // ── Comprobación de plan ──────────────────────────────────────────
 $precio = (float)($curso['precio'] ?? 0);
 $planPermiteAcceso = match (true) {

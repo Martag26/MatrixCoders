@@ -118,6 +118,51 @@ class DashboardController
         }
         unset($c);
 
+        // ── Perfil profesional (basado en cursos matriculados) ───────────────
+        $catFreq   = [];
+        $nivelFreq = [];
+        foreach ($cursosEnProgreso as $c) {
+            $cat = trim(strtolower($c['categoria'] ?? ''));
+            if ($cat !== '') $catFreq[$cat] = ($catFreq[$cat] ?? 0) + 1;
+            $niv = $c['nivel'] ?? '';
+            if ($niv !== '') $nivelFreq[$niv] = ($nivelFreq[$niv] ?? 0) + 1;
+        }
+        arsort($catFreq);
+        arsort($nivelFreq);
+
+        $rolesKeywords = [
+            'Desarrollador Frontend'         => ['javascript','html','css','react','vue','angular','frontend','typescript'],
+            'Desarrollador Backend'          => ['php','python','java','node','backend','api','laravel','symfony','go','ruby'],
+            'Full Stack Developer'           => ['fullstack','full stack','full-stack'],
+            'Data Scientist / Analista'      => ['data','machine learning','ia','inteligencia artificial','análisis','estadística','pandas','r '],
+            'DevOps / Cloud Engineer'        => ['docker','linux','cloud','devops','kubernetes','aws','ci/cd','ansible'],
+            'Diseñador UX/UI'               => ['diseño','ux','ui','figma','prototipado','usabilidad','accesibilidad'],
+            'Especialista en Bases de Datos' => ['sql','mysql','bases de datos','postgresql','mongodb','redis','oracle'],
+            'Desarrollador Móvil'            => ['android','ios','swift','kotlin','flutter','react native','móvil'],
+            'Desarrollador de Videojuegos'   => ['unity','unreal','videojuegos','game','godot','c#'],
+        ];
+
+        $haystack = strtolower(
+            implode(' ', array_column($cursosEnProgreso, 'titulo')) . ' ' .
+            implode(' ', array_column($cursosEnProgreso, 'descripcion')) . ' ' .
+            implode(' ', array_keys($catFreq))
+        );
+        $roleScores = [];
+        foreach ($rolesKeywords as $rol => $kws) {
+            $score = 0;
+            foreach ($kws as $kw) {
+                $score += substr_count($haystack, $kw) * 2;
+            }
+            if ($score > 0) $roleScores[$rol] = $score;
+        }
+        arsort($roleScores);
+
+        $perfilRol     = array_key_first($roleScores) ?? null;
+        $perfilTopCats = array_slice($catFreq, 0, 4, true);
+        $perfilNivel   = array_key_first($nivelFreq) ?? null;
+        $perfilCursos  = count($cursosEnProgreso);
+        // ─────────────────────────────────────────────────────────────────────
+
         $pageTitle = "Espacio de trabajo";
         $flash = $_SESSION['dashboard_flash'] ?? null;
         unset($_SESSION['dashboard_flash']);

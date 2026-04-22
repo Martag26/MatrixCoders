@@ -107,8 +107,8 @@ class CrmController
     {
         $sec = $_GET['sec'] ?? 'dashboard';
 
-        if ($sec === 'usuarios' && !$this->esSuperAdmin) $sec = 'dashboard';
-        if (in_array($sec, ['cursos', 'campanas', 'editor'], true) && !$this->esAdmin) {
+        if ($sec === 'usuarios' && !$this->esAdmin) $sec = 'dashboard';
+        if (in_array($sec, ['cursos', 'campanas', 'editor', 'logs'], true) && !$this->esAdmin) {
             $sec = 'comunicacion';
         }
 
@@ -119,8 +119,7 @@ class CrmController
             'editor'       => 'Editor de Curso',
             'campanas'     => 'Campañas',
             'comunicacion' => 'Comunicación',
-            'perfil'       => 'Mi Perfil',
-            'ajustes'      => 'Ajustes',
+            'logs'         => 'Logs de Actividad',
         ];
 
         $titulo = $titulos[$sec] ?? 'Dashboard';
@@ -132,8 +131,7 @@ class CrmController
             'editor'       => $this->getEditorData(),
             'campanas'     => $this->getCampanasData(),
             'comunicacion' => $this->getComunicacionData(),
-            'perfil'       => $this->getPerfilData(),
-            'ajustes'      => [],
+            'logs'         => $this->getLogsData(),
             default        => $this->getDashboardData(),
         };
 
@@ -201,10 +199,16 @@ class CrmController
     {
         $db = $this->db;
 
-        $totalUsuarios = $db->query('SELECT COUNT(*) FROM usuario')->fetchColumn();
-        $totalCursos   = $db->query('SELECT COUNT(*) FROM curso')->fetchColumn();
-        $totalCampanas = $db->query("SELECT COUNT(*) FROM campana_crm WHERE activa=1 AND (fecha_fin IS NULL OR fecha_fin >= date('now'))")->fetchColumn();
-        $totalMensajes = $db->query("SELECT COUNT(*) FROM mensaje_curso WHERE leido=0")->fetchColumn();
+        $totalUsuarios    = (int)$db->query('SELECT COUNT(*) FROM usuario')->fetchColumn();
+        $totalCursos      = (int)$db->query('SELECT COUNT(*) FROM curso')->fetchColumn();
+        $cursosActivos    = (int)$db->query("SELECT COUNT(*) FROM curso WHERE activo=1")->fetchColumn();
+        $totalCampanas    = (int)$db->query("SELECT COUNT(*) FROM campana_crm WHERE activa=1 AND (fecha_fin IS NULL OR fecha_fin >= date('now'))")->fetchColumn();
+        $totalMensajes    = (int)$db->query("SELECT COUNT(*) FROM mensaje_curso")->fetchColumn();
+        $nuevosEsteMes    = (int)$db->query("SELECT COUNT(*) FROM usuario WHERE strftime('%Y-%m',creado_en)=strftime('%Y-%m','now')")->fetchColumn();
+        $totalMatriculas  = (int)$db->query("SELECT COUNT(*) FROM matricula")->fetchColumn();
+        try {
+            $incidenciasAbiertas = (int)$db->query("SELECT COUNT(*) FROM incidencia WHERE estado='abierta'")->fetchColumn();
+        } catch (Exception $e) { $incidenciasAbiertas = 0; }
 
         $topCursos = $db->query("
             SELECT c.titulo, COUNT(m.id) AS total
@@ -231,24 +235,60 @@ class CrmController
             GROUP BY mes ORDER BY mes ASC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
-        $recientes = $db->query("
-            SELECT n.titulo, n.tipo, n.creado_en, u.nombre AS usuario_nombre
-            FROM notificacion n LEFT JOIN usuario u ON u.id=n.usuario_id
-            ORDER BY n.creado_en DESC LIMIT 10
-        ")->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $recientes = $db->query("
+                SELECT a.titulo, a.tipo, a.creado_en, u.nombre AS usuario_nombre
+                FROM crm_actividad a LEFT JOIN usuario u ON u.id=a.usuario_id
+                ORDER BY a.creado_en DESC LIMIT 10
+            ")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $recientes = []; }
 
         $porNivel = $db->query("
             SELECT COALESCE(nivel,'Sin nivel') AS nivel, COUNT(*) AS total
             FROM curso GROUP BY nivel ORDER BY total DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
-        return compact('totalUsuarios','totalCursos','totalCampanas','totalMensajes',
+        return compact('totalUsuarios','totalCursos','cursosActivos','totalCampanas',
+                       'totalMensajes','nuevosEsteMes','totalMatriculas','incidenciasAbiertas',
                        'topCursos','porRol','actividad6m','recientes','porNivel');
+    }
+
+    private function getLogsData(): array
+    {
+        $page  = max(1, (int)($_GET['pag'] ?? 1));
+        $limit = 25;
+        $q     = trim($_GET['q'] ?? '');
+        $tipo  = $_GET['tipo'] ?? '';
+
+        $where = 'WHERE 1=1'; $params = [];
+        if ($q)    { $where .= ' AND (a.titulo LIKE ? OR u.nombre LIKE ?)'; $params[] = "%$q%"; $params[] = "%$q%"; }
+        if ($tipo) { $where .= ' AND a.tipo = ?'; $params[] = $tipo; }
+
+        $total = $this->db->prepare("SELECT COUNT(*) FROM crm_actividad a LEFT JOIN usuario u ON u.id=a.usuario_id $where");
+        $total->execute($params);
+        $totalRows = (int)$total->fetchColumn();
+        $totalPags = (int)ceil($totalRows / $limit);
+        $offset    = ($page - 1) * $limit;
+
+        $stmt = $this->db->prepare("
+            SELECT a.*, u.nombre AS usuario_nombre, u.email AS usuario_email
+            FROM crm_actividad a
+            LEFT JOIN usuario u ON u.id = a.usuario_id
+            $where
+            ORDER BY a.creado_en DESC
+            LIMIT $limit OFFSET $offset
+        ");
+        $stmt->execute($params);
+        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $tipos = $this->db->query("SELECT DISTINCT tipo FROM crm_actividad ORDER BY tipo")->fetchAll(PDO::FETCH_COLUMN);
+
+        return compact('logs','totalRows','totalPags','page','q','tipo','tipos');
     }
 
     private function getUsuariosData(): array
     {
-        if (!$this->esSuperAdmin) return [];
+        if (!$this->esAdmin) return [];
         $page  = max(1, (int)($_GET['pag'] ?? 1));
         $limit = 15;
         $q     = trim($_GET['q'] ?? '');
@@ -505,7 +545,7 @@ class CrmController
 
     private function apiCrearUsuario(): array
     {
-        if (!$this->esSuperAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
         $d = $this->input();
         $nombre = trim($d['nombre'] ?? '');
         $email  = trim($d['email'] ?? '');
@@ -539,7 +579,7 @@ class CrmController
 
     private function apiEditarUsuario(): array
     {
-        if (!$this->esSuperAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -578,7 +618,7 @@ class CrmController
 
     private function apiEliminarUsuario(): array
     {
-        if (!$this->esSuperAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];

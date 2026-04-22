@@ -81,7 +81,7 @@ $isCuenta    = in_array($currentUrl, ['perfil', 'ajustes'], true);
 (function () {
     const sidebar   = document.getElementById('mainSidebar');
     const toggle    = document.getElementById('sidebarToggle');
-    const container = document.querySelector('.contenedor-dashboard');
+    const container = document.querySelector('.contenedor-dashboard, .contenedor-dashboard-content');
     const KEY       = 'mc_sidebar_col';
 
     function apply(col) {

@@ -8,8 +8,8 @@
 </div>
 
 <!-- Toolbar -->
-<form method="GET" action="" id="filtroForm">
-  <input type="hidden" name="url" value="crm">
+<form method="GET" action="<?= $crmFormBase ?>" id="filtroForm">
+  <?= $crmFormHidden ?>
   <input type="hidden" name="sec" value="cursos">
   <div class="crm-toolbar">
     <div class="crm-search-wrap">
@@ -33,7 +33,7 @@
     </select>
     <?php endif; ?>
     <?php if ($q || $cat || $nivel): ?>
-    <a href="?url=crm&sec=cursos" class="crm-btn crm-btn-secondary">Limpiar</a>
+    <a href="<?= $crmBase ?>cursos" class="crm-btn crm-btn-secondary">Limpiar</a>
     <?php endif; ?>
   </div>
 </form>
@@ -116,7 +116,7 @@
     </div>
 
     <div class="crm-course-actions">
-      <a href="?url=crm&sec=editor&id=<?= $c['id'] ?>" class="crm-btn crm-btn-secondary crm-btn-sm" style="flex:1;justify-content:center">
+      <a href="<?= $crmBase ?>editor&id=<?= $c['id'] ?>" class="crm-btn crm-btn-secondary crm-btn-sm" style="flex:1;justify-content:center">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
         Editar
       </a>
@@ -137,13 +137,13 @@
   <span style="font-size:13px;color:var(--crm-muted)">Mostrando <?= count($cursos) ?> de <?= $totalRows ?> cursos</span>
   <div class="crm-pag-btns">
     <?php if ($page > 1): ?>
-      <a class="crm-pag-btn" href="?url=crm&sec=cursos&pag=<?= $page-1 ?>&q=<?= urlencode($q) ?>&cat=<?= urlencode($cat) ?>&nivel=<?= urlencode($nivel) ?>">‹</a>
+      <a class="crm-pag-btn" href="<?= $crmBase ?>cursos&pag=<?= $page-1 ?>&q=<?= urlencode($q) ?>&cat=<?= urlencode($cat) ?>&nivel=<?= urlencode($nivel) ?>">‹</a>
     <?php endif; ?>
     <?php for ($i = max(1,$page-2); $i <= min($totalPags,$page+2); $i++): ?>
-      <a class="crm-pag-btn <?= $i===$page?'active':'' ?>" href="?url=crm&sec=cursos&pag=<?= $i ?>&q=<?= urlencode($q) ?>&cat=<?= urlencode($cat) ?>&nivel=<?= urlencode($nivel) ?>"><?= $i ?></a>
+      <a class="crm-pag-btn <?= $i===$page?'active':'' ?>" href="<?= $crmBase ?>cursos&pag=<?= $i ?>&q=<?= urlencode($q) ?>&cat=<?= urlencode($cat) ?>&nivel=<?= urlencode($nivel) ?>"><?= $i ?></a>
     <?php endfor; ?>
     <?php if ($page < $totalPags): ?>
-      <a class="crm-pag-btn" href="?url=crm&sec=cursos&pag=<?= $page+1 ?>&q=<?= urlencode($q) ?>&cat=<?= urlencode($cat) ?>&nivel=<?= urlencode($nivel) ?>">›</a>
+      <a class="crm-pag-btn" href="<?= $crmBase ?>cursos&pag=<?= $page+1 ?>&q=<?= urlencode($q) ?>&cat=<?= urlencode($cat) ?>&nivel=<?= urlencode($nivel) ?>">›</a>
     <?php endif; ?>
   </div>
 </div>

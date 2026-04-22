@@ -145,6 +145,21 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             }
         }
 
+        /* ── AVISO EXPIRACIÓN ── */
+        .expiry-notice {
+            display: flex; align-items: flex-start; gap: 12px;
+            border-radius: 10px; padding: .85rem 1.1rem;
+            margin-top: .75rem; margin-bottom: 1.2rem;
+            font-size: .83rem; line-height: 1.55;
+        }
+        .expiry-notice--ok   { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+        .expiry-notice--warn { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+        .expiry-notice--danger { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+        .expiry-notice svg { flex-shrink: 0; margin-top: 1px; }
+        .expiry-notice strong { display: block; font-weight: 700; margin-bottom: 1px; }
+        .expiry-bar { height: 4px; border-radius: 99px; background: #e5e7eb; margin-top: 8px; overflow: hidden; }
+        .expiry-bar-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+
         /* ── MATRICULA OK ── */
         .matricula-ok {
             background: #d1fae5;
@@ -653,6 +668,46 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                     </div>
                     <a href="<?= $urlCurso ?>" class="btn-mc">▶ Ir al curso</a>
                 </div>
+                <?php if ($fechaExpiracion): ?>
+                    <?php
+                    $d = $diasParaExpirar;
+                    if ($d <= 0) {
+                        $cls = 'expiry-notice--danger';
+                        $barColor = '#ef4444';
+                        $pctUsed = 100;
+                        $msg = 'Tu acceso a este curso ha expirado.';
+                        $sub = 'El plazo de 90 días desde la matrícula venció el ' . $fechaExpiracion . '.';
+                    } elseif ($d <= 14) {
+                        $cls = 'expiry-notice--warn';
+                        $barColor = '#f59e0b';
+                        $pctUsed = max(0, min(100, round((1 - $d/90)*100)));
+                        $msg = 'Acceso expira pronto — quedan ' . $d . ' día' . ($d !== 1 ? 's' : '') . '.';
+                        $sub = 'Fecha límite: ' . $fechaExpiracion . '. Organiza tus sesiones para terminar a tiempo.';
+                    } else {
+                        $cls = 'expiry-notice--ok';
+                        $barColor = '#22c55e';
+                        $pctUsed = max(0, min(100, round((1 - $d/90)*100)));
+                        $msg = 'Acceso activo — ' . $d . ' días restantes.';
+                        $sub = 'Este acceso expira el ' . $fechaExpiracion . ' (90 días desde la matrícula).';
+                    }
+                    ?>
+                    <div class="expiry-notice <?= $cls ?>">
+                        <?php if ($d <= 0): ?>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <?php elseif ($d <= 14): ?>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <?php else: ?>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <?php endif; ?>
+                        <div style="flex:1">
+                            <strong><?= $msg ?></strong>
+                            <?= htmlspecialchars($sub) ?>
+                            <div class="expiry-bar">
+                                <div class="expiry-bar-fill" style="width:<?= $pctUsed ?>%;background:<?= $barColor ?>"></div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             <?php elseif ($usuarioId && $planPermiteAcceso): ?>
                 <div class="curso-acceso">
                     <div class="curso-acceso-copy">

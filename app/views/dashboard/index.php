@@ -70,7 +70,19 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                             <a class="section-link" href="<?= BASE_URL ?>/index.php?url=mis-documentos">Ver todo</a>
                         </div>
                         <?php if (count($documentosRecientes) === 0): ?>
-                            <p class="text-muted">Todavía no tienes documentos creados.</p>
+                            <div class="sv-empty">
+                                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline stroke-linecap="round" points="14 2 14 8 20 8"/>
+                                    <line stroke-linecap="round" x1="9" y1="13" x2="15" y2="13"/>
+                                    <line stroke-linecap="round" x1="9" y1="17" x2="12" y2="17"/>
+                                </svg>
+                                <div>
+                                    <p class="sv-empty-title">Aún no tienes documentos</p>
+                                    <p class="sv-empty-sub">Crea tu primer documento o sube uno desde la nube.</p>
+                                </div>
+                                <a class="sv-empty-btn" href="<?= BASE_URL ?>/index.php?url=mis-documentos">Crear documento →</a>
+                            </div>
                         <?php else: ?>
                             <div class="documentos-recientes-grid compact-doc-strip">
                                 <?php foreach ($documentosRecientes as $doc): ?>
@@ -103,10 +115,18 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                         </div>
 
                         <?php if (empty($cursosEnProgreso)): ?>
-                            <p class="text-muted" style="margin-top:.5rem;">
-                                Aún no tienes cursos.
-                                <a href="<?= BASE_URL ?>/index.php" style="color:var(--mc-green);font-weight:700;">Explorar cursos →</a>
-                            </p>
+                            <div class="sv-empty">
+                                <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24">
+                                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                                    <path stroke-linecap="round" d="M8 21h8M12 17v4"/>
+                                    <path stroke-linecap="round" d="M10 10l2-2 4 4"/>
+                                </svg>
+                                <div>
+                                    <p class="sv-empty-title">Aún no tienes cursos en progreso</p>
+                                    <p class="sv-empty-sub">Empieza un curso y aquí verás tu progreso.</p>
+                                </div>
+                                <a class="sv-empty-btn" href="<?= BASE_URL ?>/index.php">Explorar cursos →</a>
+                            </div>
                         <?php else: ?>
                             <div class="sv-track-wrap">
                                 <div class="sv-track" id="svTrack">
@@ -146,13 +166,12 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
 
                 </section>
 
-                <!-- ── MINI CALENDARIO (solo visual, sin eventos) ── -->
+                <!-- ── COLUMNA DERECHA: calendario + perfil ── -->
                 <aside class="calendario">
 
-                    <!-- Tarjeta del calendario mensual -->
+                    <!-- Mini calendario mensual -->
                     <div class="tarjeta-calendario">
                         <div class="calendario-header">
-                            <!-- Botón para ir al mes anterior -->
                             <a class="btn-mini" href="<?= BASE_URL ?>/index.php?url=dashboard&y=<?= $prevYear ?>&m=<?= $prevMonth ?>">&lt;</a>
                             <div class="selector-mes">
                                 <span class="mes"><?= $monthNames[$calMonth] ?></span>
@@ -160,97 +179,24 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                             </div>
                             <a class="btn-mini" href="<?= BASE_URL ?>/index.php?url=dashboard&y=<?= $nextYear ?>&m=<?= $nextMonth ?>">&gt;</a>
                         </div>
-
-                        <!-- Cabecera con los días de la semana -->
                         <div class="calendario-semana">
                             <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span>
                             <span>Vi</span><span>Sa</span><span>Do</span>
                         </div>
-
-                        <!-- Cuadrícula de días del mes -->
                         <div class="calendario-grid">
                             <?php
                             $offset = $firstWeekday === 0 ? 6 : $firstWeekday - 1;
-                            for ($i = 0; $i < $offset; $i++) {
-                                echo '<span class="dia apagado"></span>';
-                            }
+                            for ($i = 0; $i < $offset; $i++) echo '<span class="dia apagado"></span>';
                             for ($d = 1; $d <= $daysInMonth; $d++) {
                                 $isToday = ($calYear === $todayY && $calMonth === $todayM && $d === $todayD);
                                 $hasTask = in_array($d, $diasConTareas, true);
-                                $classes = 'dia' . ($isToday ? ' seleccionado' : '') . ($hasTask ? ' marcado' : '');
-                                echo '<span class="' . $classes . '">' . $d . '</span>';
+                                $cls = 'dia' . ($isToday ? ' seleccionado' : '') . ($hasTask ? ' marcado' : '');
+                                echo '<span class="' . $cls . '">' . $d . '</span>';
                             }
                             ?>
                         </div>
                     </div>
 
-                    <?php if (!empty($tareasUsuario)): ?>
-                        <div class="lista-eventos">
-                            <div class="dashboard-section-head dashboard-section-head-inline">
-                                <h2>Próximas tareas</h2>
-                            </div>
-                            <?php foreach (array_slice($tareasUsuario, 0, 4) as $tarea): ?>
-                                <div class="evento">
-                                    <span class="punto" style="background:var(--mc-green);width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>
-                                    <div class="evento-texto">
-                                        <p class="evento-titulo"><?= htmlspecialchars($tarea['titulo']) ?></p>
-                                        <p class="evento-sub">
-                                            <?= htmlspecialchars($tarea['curso'] ?? 'Curso') ?>
-                                            <?php if (!empty($tarea['fecha_limite'])): ?>
-                                                · <?= htmlspecialchars(date('d/m/Y', strtotime($tarea['fecha_limite']))) ?>
-                                            <?php endif; ?>
-                                        </p>
-                                    </div>
-                                    <span class="evento-badge">Tarea</span>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <div class="lista-eventos">
-                            <div class="dashboard-section-head dashboard-section-head-inline">
-                                <h2>Tareas</h2>
-                            </div>
-                            <div class="evento evento-empty">
-                                <div class="evento-texto">
-                                    <p class="evento-titulo">No hay tareas pendientes</p>
-                                    <p class="evento-sub">Cuando tengas entregas o ejercicios con fecha, aparecerán aquí.</p>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Plan activo del usuario -->
-                    <?php
-                    $nombresPlan = [
-                        'curso_individual' => 'Curso Individual',
-                        'plan_estudiantes' => 'Plan estudiantes',
-                        'plan_empresas'    => 'Plan empresas',
-                    ];
-                    $planActivo = $_SESSION['usuario_plan'] ?? null;
-                    ?>
-                    <div class="lista-eventos">
-                        <div class="dashboard-section-head dashboard-section-head-inline">
-                            <h2>Tu suscripción</h2>
-                        </div>
-                        <?php if ($planActivo && isset($nombresPlan[$planActivo])): ?>
-                            <div class="evento">
-                                <span class="punto" style="background:var(--mc-green);width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>
-                                <div class="evento-texto">
-                                    <p class="evento-titulo"><?= htmlspecialchars($nombresPlan[$planActivo]) ?></p>
-                                    <p class="evento-sub">Plan activo</p>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <div class="evento evento-empty">
-                                <div class="evento-texto">
-                                    <p class="evento-titulo">Sin suscripción activa</p>
-                                    <p class="evento-sub">
-                                        <a href="<?= BASE_URL ?>/index.php?url=suscripciones" style="color:var(--mc-green);font-weight:700;">Ver planes →</a>
-                                    </p>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
                 </aside>
 
             </div>

@@ -13,22 +13,25 @@ $hayFiltros    = $hayFiltros    ?? false;
 function nivelLabel(string $nivel): array
 {
     return match ($nivel) {
-        'principiante'  => ['Fundamentos', '#166534', '#dcfce7'],
-        'estudiante'    => ['Ruta academica', '#1d4ed8', '#dbeafe'],
-        'profesional'   => ['Perfil profesional', '#9a3412', '#ffedd5'],
+        'principiante'  => ['Fundamentos',       '#16a34a', '#dcfce7'],
+        'estudiante'    => ['Ruta académica',     '#2563eb', '#dbeafe'],
+        'profesional'   => ['Perfil profesional', '#ea580c', '#ffedd5'],
         default         => ['', '', ''],
     };
 }
 
+$ordenar = $ordenar ?? 'popular';
+
 function buildUrl(array $overrides = []): string
 {
-    global $q, $filtroPrecio, $filtroNivel, $filtroCategoria, $pagina;
+    global $q, $filtroPrecio, $filtroNivel, $filtroCategoria, $pagina, $ordenar;
     $params = array_merge([
         'url'       => 'buscar',
         'q'         => $q,
         'precio'    => $filtroPrecio,
         'nivel'     => $filtroNivel,
         'categoria' => $filtroCategoria,
+        'orden'     => $ordenar !== 'popular' ? $ordenar : '',
         'p'         => $pagina,
     ], $overrides);
     $params = array_filter($params, fn($v) => $v !== '' && $v !== null);
@@ -81,32 +84,65 @@ function buildUrl(array $overrides = []): string
         /* ── FILTROS PANEL ── */
         .filtros-panel {
             background: #fff;
-            border-radius: 14px;
-            box-shadow: var(--mc-shadow);
-            padding: 20px;
+            border: 1px solid #eef0f3;
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(15,23,42,.06);
+            overflow: hidden;
             position: sticky;
             top: 20px;
         }
 
+        .filtros-panel-head {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 14px 18px 12px;
+            border-bottom: 1px solid var(--mc-border);
+            background: #fafbfc;
+        }
+
+        .filtros-panel-head svg {
+            color: var(--mc-muted);
+        }
+
         .filtros-panel h3 {
-            font-size: .75rem;
+            font-size: .72rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .6px;
+            letter-spacing: .7px;
             color: var(--mc-muted);
-            margin: 0 0 14px;
+            margin: 0;
+        }
+
+        .filtros-inner {
+            padding: 16px 18px 18px;
         }
 
         .filtro-grupo {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .filtro-grupo h4 {
-            font-size: .78rem;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .75rem;
+            font-weight: 800;
             color: var(--mc-dark);
             margin: 0 0 8px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
         }
+
+        .filtro-grupo h4 svg {
+            color: var(--mc-muted);
+            flex-shrink: 0;
+        }
+
+        /* Dots de nivel */
+        .nivel-dot-principiante { background: #16a34a; }
+        .nivel-dot-estudiante   { background: #2563eb; }
+        .nivel-dot-profesional  { background: #ea580c; }
 
         .filtro-opcion {
             display: flex;
@@ -169,7 +205,16 @@ function buildUrl(array $overrides = []): string
         /* Search bar */
         .search-wrap {
             position: relative;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+        }
+
+        .search-hero-label {
+            font-size: .72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--mc-muted);
+            margin-bottom: 8px;
         }
 
         .hero-search {
@@ -178,21 +223,21 @@ function buildUrl(array $overrides = []): string
             gap: 10px;
             background: #fff;
             border: 2px solid var(--mc-border);
-            border-radius: 18px;
-            padding: 12px 16px;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
-            transition: border-color .15s, box-shadow .15s, transform .15s;
+            border-radius: 999px;
+            padding: 10px 12px 10px 18px;
+            box-shadow: 0 4px 18px rgba(15, 23, 42, .06);
+            transition: border-color .18s, box-shadow .18s;
         }
 
         .hero-search:focus-within {
             border-color: var(--mc-green);
-            box-shadow: 0 14px 28px rgba(107, 143, 113, .12);
+            box-shadow: 0 6px 24px rgba(107, 143, 113, .14);
         }
 
         .hero-search .icon {
-            width: 18px;
-            height: 18px;
-            opacity: .5;
+            width: 17px;
+            height: 17px;
+            color: var(--mc-muted);
             flex-shrink: 0;
         }
 
@@ -201,34 +246,37 @@ function buildUrl(array $overrides = []): string
             outline: none;
             flex: 1;
             font-family: 'Saira', sans-serif;
-            font-size: .92rem;
+            font-size: .95rem;
             color: var(--mc-dark);
             background: transparent;
         }
+
+        .hero-search input::placeholder { color: #adb5bd; }
 
         .hero-search button {
             background: var(--mc-green);
             color: #fff;
             border: none;
             border-radius: 999px;
-            padding: 8px 16px;
+            padding: 9px 22px;
             font-family: 'Saira', sans-serif;
             font-weight: 700;
-            font-size: .82rem;
+            font-size: .84rem;
             cursor: pointer;
-            transition: background .15s;
+            transition: background .15s, transform .1s;
             white-space: nowrap;
         }
 
         .hero-search button:hover {
             background: var(--mc-green-d);
+            transform: translateY(-1px);
         }
 
         #sugerencias {
             display: none;
             background: #fff;
             border: 1px solid var(--mc-border);
-            border-radius: 12px;
+            border-radius: 16px;
             list-style: none;
             padding: 4px 0;
             margin: 0;
@@ -288,7 +336,9 @@ function buildUrl(array $overrides = []): string
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .resultados-header h2 {
@@ -296,6 +346,46 @@ function buildUrl(array $overrides = []): string
             font-weight: 700;
             color: var(--mc-muted);
             margin: 0;
+        }
+
+        .resultados-header h2 em {
+            color: var(--mc-dark);
+            font-style: normal;
+        }
+
+        /* Sort */
+        .sort-wrap {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-shrink: 0;
+        }
+
+        .sort-label {
+            font-size: .75rem;
+            font-weight: 700;
+            color: var(--mc-muted);
+            white-space: nowrap;
+        }
+
+        .sort-select {
+            border: 1px solid var(--mc-border);
+            border-radius: 10px;
+            padding: 6px 28px 6px 10px;
+            font-family: 'Saira', sans-serif;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--mc-dark);
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+            -webkit-appearance: none;
+            cursor: pointer;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .sort-select:focus {
+            border-color: var(--mc-green);
+            box-shadow: 0 0 0 3px rgba(107,143,113,.1);
         }
 
         /* Tarjetas */
@@ -351,6 +441,7 @@ function buildUrl(array $overrides = []): string
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
+            align-items: center;
         }
 
         .tag {
@@ -361,6 +452,28 @@ function buildUrl(array $overrides = []): string
             border-radius: 20px;
             padding: 2px 8px;
             border: 1px solid transparent;
+        }
+
+        /* Nivel badge inline */
+        .nivel-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: .63rem;
+            font-weight: 800;
+            border-radius: 20px;
+            padding: 3px 9px;
+            border: 1px solid;
+            text-transform: uppercase;
+            letter-spacing: .2px;
+        }
+        .nivel-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
         }
 
         .course-badges-corner {
@@ -520,15 +633,70 @@ function buildUrl(array $overrides = []): string
             background: var(--mc-green-d);
         }
 
-        /* Paginación */
-        .pagination .page-link {
-            color: var(--mc-dark);
-            border-color: var(--mc-border);
+        /* Paginación custom */
+        .pag-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 40px;
+            flex-wrap: wrap;
         }
 
-        .pagination .page-item.active .page-link {
+        .pag-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            border-radius: 10px;
+            border: 1px solid var(--mc-border);
+            background: #fff;
+            color: var(--mc-dark);
+            font-size: .82rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+        }
+
+        .pag-btn:hover:not(.pag-disabled):not(.pag-activo) {
+            border-color: rgba(107,143,113,.4);
+            background: #f7faf8;
+            box-shadow: 0 4px 10px rgba(15,23,42,.06);
+        }
+
+        .pag-activo {
             background: var(--mc-green);
             border-color: var(--mc-green);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(107,143,113,.28);
+        }
+
+        .pag-disabled {
+            opacity: .35;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .pag-arrow {
+            padding: 0 8px;
+        }
+
+        .pag-ellipsis {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 36px;
+            font-size: .82rem;
+            color: var(--mc-muted);
+        }
+
+        .pag-info {
+            font-size: .73rem;
+            color: var(--mc-muted);
+            margin-left: 8px;
         }
 
         /* Sección destacados title */
@@ -565,63 +733,67 @@ function buildUrl(array $overrides = []): string
 
         <!-- ── PANEL FILTROS ── -->
         <aside class="filtros-panel">
-            <h3>Filtros</h3>
+            <div class="filtros-panel-head">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+                <h3>Filtros</h3>
+                <?php $nFiltros = (int)($filtroPrecio !== '') + (int)($filtroNivel !== '') + (int)($filtroCategoria !== ''); ?>
+                <?php if ($nFiltros > 0): ?>
+                    <span style="margin-left:auto;background:var(--mc-green);color:#fff;font-size:.65rem;font-weight:800;border-radius:99px;padding:1px 7px;"><?= $nFiltros ?></span>
+                <?php endif; ?>
+            </div>
+            <div class="filtros-inner">
 
             <!-- Precio -->
             <div class="filtro-grupo">
-                <h4>💰 Precio</h4>
-                <a class="filtro-opcion <?= $filtroPrecio === '' ? 'activo' : '' ?>"
-                    href="<?= buildUrl(['precio' => '', 'p' => 1]) ?>">
+                <h4>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v2m0 8v2M8.5 9.5A3.5 1.5 0 0 1 12 8a3.5 1.5 0 0 1 3.5 1.5 3.5 1.5 0 0 1-3.5 1.5 3.5 1.5 0 0 1-3.5 1.5A3.5 1.5 0 0 1 12 14"/></svg>
+                    Precio
+                </h4>
+                <a class="filtro-opcion <?= $filtroPrecio === '' ? 'activo' : '' ?>" href="<?= buildUrl(['precio' => '', 'p' => 1]) ?>">
                     <span class="dot" style="background:#9ca3af"></span> Todos
                 </a>
-                <a class="filtro-opcion <?= $filtroPrecio === 'gratis' ? 'activo' : '' ?>"
-                    href="<?= buildUrl(['precio' => 'gratis', 'p' => 1]) ?>">
+                <a class="filtro-opcion <?= $filtroPrecio === 'gratis' ? 'activo' : '' ?>" href="<?= buildUrl(['precio' => 'gratis', 'p' => 1]) ?>">
                     <span class="dot" style="background:#10b981"></span> Gratis
                 </a>
-                <a class="filtro-opcion <?= $filtroPrecio === 'pago' ? 'activo' : '' ?>"
-                    href="<?= buildUrl(['precio' => 'pago', 'p' => 1]) ?>">
+                <a class="filtro-opcion <?= $filtroPrecio === 'pago' ? 'activo' : '' ?>" href="<?= buildUrl(['precio' => 'pago', 'p' => 1]) ?>">
                     <span class="dot" style="background:#f59e0b"></span> De pago
                 </a>
             </div>
 
             <div class="filtro-sep"></div>
 
+            <!-- Nivel -->
             <div class="filtro-grupo">
-                <h4>🎯 Nivel</h4>
-                <a class="filtro-opcion <?= $filtroNivel === '' ? 'activo' : '' ?>"
-                    href="<?= buildUrl(['nivel' => '', 'p' => 1]) ?>">
+                <h4>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Nivel
+                </h4>
+                <a class="filtro-opcion <?= $filtroNivel === '' ? 'activo' : '' ?>" href="<?= buildUrl(['nivel' => '', 'p' => 1]) ?>">
                     <span class="dot" style="background:#9ca3af"></span> Todos los niveles
                 </a>
-                <a class="filtro-opcion <?= $filtroNivel === 'principiante' ? 'activo' : '' ?>"
-                    href="<?= buildUrl(['nivel' => 'principiante', 'p' => 1]) ?>">
-                    <span class="dot" style="background:#16a34a"></span> Principiante
+                <a class="filtro-opcion <?= $filtroNivel === 'principiante' ? 'activo' : '' ?>" href="<?= buildUrl(['nivel' => 'principiante', 'p' => 1]) ?>">
+                    <span class="dot nivel-dot-principiante"></span> Fundamentos
                 </a>
-                <a class="filtro-opcion <?= $filtroNivel === 'estudiante' ? 'activo' : '' ?>"
-                    href="<?= buildUrl(['nivel' => 'estudiante', 'p' => 1]) ?>">
-                    <span class="dot" style="background:#2563eb"></span> Estudiante
+                <a class="filtro-opcion <?= $filtroNivel === 'estudiante' ? 'activo' : '' ?>" href="<?= buildUrl(['nivel' => 'estudiante', 'p' => 1]) ?>">
+                    <span class="dot nivel-dot-estudiante"></span> Ruta académica
                 </a>
-                <a class="filtro-opcion <?= $filtroNivel === 'profesional' ? 'activo' : '' ?>"
-                    href="<?= buildUrl(['nivel' => 'profesional', 'p' => 1]) ?>">
-                    <span class="dot" style="background:#ea580c"></span> Trabajador / profesional
+                <a class="filtro-opcion <?= $filtroNivel === 'profesional' ? 'activo' : '' ?>" href="<?= buildUrl(['nivel' => 'profesional', 'p' => 1]) ?>">
+                    <span class="dot nivel-dot-profesional"></span> Perfil profesional
                 </a>
-                <p style="margin:10px 0 0;font-size:.72rem;color:var(--mc-muted);line-height:1.45;">
-                    Visible por ahora como filtro preparado. Lo conectaremos a la BD cuando implementes esos niveles.
-                </p>
             </div>
 
-            <div class="filtro-sep"></div>
-
             <?php if (!empty($categorias)): ?>
-                <!-- Categoría -->
+                <div class="filtro-sep"></div>
                 <div class="filtro-grupo">
-                    <h4>📂 Categoría</h4>
-                    <a class="filtro-opcion <?= $filtroCategoria === '' ? 'activo' : '' ?>"
-                        href="<?= buildUrl(['categoria' => '', 'p' => 1]) ?>">
+                    <h4>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        Categoría
+                    </h4>
+                    <a class="filtro-opcion <?= $filtroCategoria === '' ? 'activo' : '' ?>" href="<?= buildUrl(['categoria' => '', 'p' => 1]) ?>">
                         <span class="dot" style="background:#9ca3af"></span> Todas
                     </a>
                     <?php foreach ($categorias as $cat): ?>
-                        <a class="filtro-opcion <?= $filtroCategoria === $cat ? 'activo' : '' ?>"
-                            href="<?= buildUrl(['categoria' => $cat, 'p' => 1]) ?>">
+                        <a class="filtro-opcion <?= $filtroCategoria === $cat ? 'activo' : '' ?>" href="<?= buildUrl(['categoria' => $cat, 'p' => 1]) ?>">
                             <span class="dot" style="background:var(--mc-green)"></span>
                             <?= htmlspecialchars($cat) ?>
                         </a>
@@ -632,9 +804,11 @@ function buildUrl(array $overrides = []): string
             <?php if ($filtroPrecio !== '' || $filtroNivel !== '' || $filtroCategoria !== ''): ?>
                 <div class="filtro-sep"></div>
                 <a class="limpiar-btn" href="<?= buildUrl(['precio' => '', 'nivel' => '', 'categoria' => '', 'p' => 1]) ?>">
-                    ✕ Limpiar filtros
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Limpiar filtros
                 </a>
             <?php endif; ?>
+            </div><!-- /.filtros-inner -->
         </aside>
 
         <!-- ── CONTENIDO ── -->
@@ -647,10 +821,10 @@ function buildUrl(array $overrides = []): string
                     <?php if ($filtroPrecio):    ?><input type="hidden" name="precio" value="<?= htmlspecialchars($filtroPrecio) ?>"><?php endif; ?>
                     <?php if ($filtroNivel):     ?><input type="hidden" name="nivel" value="<?= htmlspecialchars($filtroNivel) ?>"><?php endif; ?>
                     <?php if ($filtroCategoria): ?><input type="hidden" name="categoria" value="<?= htmlspecialchars($filtroCategoria) ?>"><?php endif; ?>
-                    <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="">
+                    <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
                     <input type="text" name="q" id="searchInput"
                         value="<?= htmlspecialchars($q) ?>"
-                        placeholder="Busca el curso que desees"
+                        placeholder="Busca el curso que desees…"
                         autocomplete="off">
                     <button type="submit">Buscar</button>
                 </form>
@@ -677,23 +851,31 @@ function buildUrl(array $overrides = []): string
 
             <?php if (!$hayFiltros && empty($q)): ?>
                 <!-- Sin búsqueda activa: mostrar destacados -->
-                <h2 class="seccion-titulo">Cursos Destacados</h2>
-                <p class="seccion-sub">Los cursos más populares de nuestra plataforma</p>
+                <div class="resultados-header">
+                    <div>
+                        <h2 class="seccion-titulo" style="margin:0 0 2px;">Cursos Destacados</h2>
+                        <p class="seccion-sub" style="margin:0;">Los más populares de la plataforma</p>
+                    </div>
+                </div>
             <?php elseif (empty($cursos)): ?>
-                <!-- Empty state -->
                 <div class="empty-state">
-                    <div class="ei">🔍</div>
-                    <h3>Sin resultados<?= $q !== '' ? ' para "' . $q . '"' : '' ?></h3>
-                    <p>Prueba con otro término, o elimina algunos filtros para ver más resultados.</p>
+                    <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24" style="color:#d1d5db;margin-bottom:4px"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+                    <h3>Sin resultados<?= $q !== '' ? ' para "' . htmlspecialchars($q) . '"' : '' ?></h3>
+                    <p>Prueba con otro término o elimina algunos filtros.</p>
                     <a href="<?= BASE_URL ?>/index.php?url=buscar">Ver todos los cursos</a>
                 </div>
             <?php else: ?>
-                <!-- Header con total -->
                 <div class="resultados-header">
-                    <h2>
-                        <?= $total ?> resultado<?= $total !== 1 ? 's' : '' ?>
-                        <?= $q !== '' ? ' para "' . htmlspecialchars($q) . '"' : '' ?>
-                    </h2>
+                    <h2><?= $total ?> resultado<?= $total !== 1 ? 's' : '' ?><?= $q !== '' ? ' para <em>"' . htmlspecialchars($q) . '"</em>' : '' ?></h2>
+                    <div class="sort-wrap">
+                        <label class="sort-label" for="sortSelect">Ordenar:</label>
+                        <select id="sortSelect" class="sort-select" onchange="location.href=this.value">
+                            <option value="<?= buildUrl(['orden' => 'popular',    'p' => 1]) ?>" <?= $ordenar === 'popular'    ? 'selected' : '' ?>>Más populares</option>
+                            <option value="<?= buildUrl(['orden' => 'recientes',  'p' => 1]) ?>" <?= $ordenar === 'recientes'  ? 'selected' : '' ?>>Más recientes</option>
+                            <option value="<?= buildUrl(['orden' => 'precio_asc', 'p' => 1]) ?>" <?= $ordenar === 'precio_asc' ? 'selected' : '' ?>>Precio: menor a mayor</option>
+                            <option value="<?= buildUrl(['orden' => 'precio_desc','p' => 1]) ?>" <?= $ordenar === 'precio_desc'? 'selected' : '' ?>>Precio: mayor a menor</option>
+                        </select>
+                    </div>
                 </div>
             <?php endif; ?>
 
@@ -720,23 +902,26 @@ function buildUrl(array $overrides = []): string
                                         alt="<?= htmlspecialchars($titulo) ?>"
                                         onerror="this.src='<?= htmlspecialchars($imgFallback) ?>'">
 
-                                    <?php if ($nivelTxt !== '' || $precio <= 0): ?>
+                                    <?php if ($precio <= 0): ?>
                                         <div class="course-badges-corner">
-                                            <?php if ($nivelTxt !== ''): ?>
-                                                <span class="course-badge-corner" style="color:<?= $nivelColor ?>;background:<?= $nivelBg ?>;border-color:<?= $nivelColor ?>22">
-                                                    <?= htmlspecialchars($nivelTxt) ?>
-                                                </span>
-                                            <?php endif; ?>
+                                            <span class="course-badge-corner course-badge-free">Gratis</span>
                                         </div>
                                     <?php endif; ?>
                                 </div>
 
                                 <div class="card-body-inner">
-                                    <?php if ($cat !== ''): ?>
+                                    <?php if ($cat !== '' || $nivelTxt !== ''): ?>
                                         <div class="tags-row">
-                                            <span class="tag" style="color:var(--mc-muted);background:var(--mc-soft);border-color:var(--mc-border)">
-                                                <?= htmlspecialchars($cat) ?>
-                                            </span>
+                                            <?php if ($nivelTxt !== ''): ?>
+                                                <span class="nivel-badge" style="color:<?= $nivelColor ?>;background:<?= $nivelBg ?>;border-color:<?= $nivelColor ?>33">
+                                                    <?= htmlspecialchars($nivelTxt) ?>
+                                                </span>
+                                            <?php endif; ?>
+                                            <?php if ($cat !== ''): ?>
+                                                <span class="tag" style="color:var(--mc-muted);background:var(--mc-soft);border-color:var(--mc-border)">
+                                                    <?= htmlspecialchars($cat) ?>
+                                                </span>
+                                            <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
 
@@ -747,12 +932,15 @@ function buildUrl(array $overrides = []): string
                                     <?php endif; ?>
 
                                     <div class="course-meta">
-                                        👥 <?= $stu ?> <?= $stu === 1 ? 'estudiante' : 'estudiantes' ?>
+                                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        <?= $stu ?> <?= $stu === 1 ? 'estudiante' : 'estudiantes' ?>
                                         <?php if (!empty($curso['duracion_min']) && $curso['duracion_min'] > 0):
                                             $h = intdiv((int)$curso['duracion_min'], 60);
                                             $m = (int)$curso['duracion_min'] % 60;
                                         ?>
-                                            &nbsp;·&nbsp; ⏱ <?= $h > 0 ? $h . 'h ' : '' ?><?= $m > 0 ? $m . 'min' : '' ?>
+                                            &nbsp;·&nbsp;
+                                            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:2px"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
+                                            <?= $h > 0 ? $h . 'h ' : '' ?><?= $m > 0 ? $m . 'min' : '' ?>
                                         <?php endif; ?>
                                     </div>
 
@@ -777,35 +965,47 @@ function buildUrl(array $overrides = []): string
                     <?php endforeach; ?>
                 </div>
 
-                <!-- Paginación -->
+                <!-- Paginación custom -->
                 <?php if ($totalPaginas > 1): ?>
-                    <nav class="mt-5 d-flex justify-content-center">
-                        <ul class="pagination">
-                            <li class="page-item <?= $pagina <= 1 ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= buildUrl(['p' => $pagina - 1]) ?>">&laquo;</a>
-                            </li>
-                            <?php
-                            // Mostrar máximo 7 páginas centradas en la actual
-                            $rango = 3;
-                            $inicio = max(1, $pagina - $rango);
-                            $fin    = min($totalPaginas, $pagina + $rango);
-                            if ($inicio > 1): ?>
-                                <li class="page-item"><a class="page-link" href="<?= buildUrl(['p' => 1]) ?>">1</a></li>
-                                <?php if ($inicio > 2): ?><li class="page-item disabled"><span class="page-link">…</span></li><?php endif; ?>
-                            <?php endif; ?>
-                            <?php for ($i = $inicio; $i <= $fin; $i++): ?>
-                                <li class="page-item <?= $i === $pagina ? 'active' : '' ?>">
-                                    <a class="page-link" href="<?= buildUrl(['p' => $i]) ?>"><?= $i ?></a>
-                                </li>
-                            <?php endfor; ?>
-                            <?php if ($fin < $totalPaginas): ?>
-                                <?php if ($fin < $totalPaginas - 1): ?><li class="page-item disabled"><span class="page-link">…</span></li><?php endif; ?>
-                                <li class="page-item"><a class="page-link" href="<?= buildUrl(['p' => $totalPaginas]) ?>"><?= $totalPaginas ?></a></li>
-                            <?php endif; ?>
-                            <li class="page-item <?= $pagina >= $totalPaginas ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= buildUrl(['p' => $pagina + 1]) ?>">&raquo;</a>
-                            </li>
-                        </ul>
+                    <nav class="pag-nav">
+                        <?php if ($pagina > 1): ?>
+                            <a class="pag-btn pag-arrow" href="<?= buildUrl(['p' => $pagina - 1]) ?>">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                            </a>
+                        <?php else: ?>
+                            <span class="pag-btn pag-arrow pag-disabled">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                            </span>
+                        <?php endif; ?>
+
+                        <?php
+                        $inicio = max(1, $pagina - 2);
+                        $fin    = min($totalPaginas, $pagina + 2);
+                        if ($inicio > 1): ?>
+                            <a class="pag-btn" href="<?= buildUrl(['p' => 1]) ?>">1</a>
+                            <?php if ($inicio > 2): ?><span class="pag-ellipsis">…</span><?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php for ($i = $inicio; $i <= $fin; $i++): ?>
+                            <a class="pag-btn <?= $i === $pagina ? 'pag-activo' : '' ?>" href="<?= buildUrl(['p' => $i]) ?>"><?= $i ?></a>
+                        <?php endfor; ?>
+
+                        <?php if ($fin < $totalPaginas): ?>
+                            <?php if ($fin < $totalPaginas - 1): ?><span class="pag-ellipsis">…</span><?php endif; ?>
+                            <a class="pag-btn" href="<?= buildUrl(['p' => $totalPaginas]) ?>"><?= $totalPaginas ?></a>
+                        <?php endif; ?>
+
+                        <?php if ($pagina < $totalPaginas): ?>
+                            <a class="pag-btn pag-arrow" href="<?= buildUrl(['p' => $pagina + 1]) ?>">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                            </a>
+                        <?php else: ?>
+                            <span class="pag-btn pag-arrow pag-disabled">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                            </span>
+                        <?php endif; ?>
+
+                        <span class="pag-info">Página <?= $pagina ?> de <?= $totalPaginas ?></span>
                     </nav>
                 <?php endif; ?>
             <?php endif; ?>

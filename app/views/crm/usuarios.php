@@ -30,8 +30,8 @@ function crmRolDisplay(string $rolKey): string {
 </div>
 
 <!-- Toolbar -->
-<form method="GET" action="" id="filtroForm">
-  <input type="hidden" name="url" value="crm">
+<form method="GET" action="<?= $crmFormBase ?>" id="filtroForm">
+  <?= $crmFormHidden ?>
   <input type="hidden" name="sec" value="usuarios">
   <div class="crm-toolbar">
     <div class="crm-search-wrap">
@@ -51,7 +51,7 @@ function crmRolDisplay(string $rolKey): string {
       Filtrar
     </button>
     <?php if ($q || $rol): ?>
-    <a href="?url=crm&sec=usuarios" class="crm-btn crm-btn-secondary">Limpiar</a>
+    <a href="<?= $crmBase ?>usuarios" class="crm-btn crm-btn-secondary">Limpiar</a>
     <?php endif; ?>
   </div>
 </form>
@@ -125,13 +125,13 @@ function crmRolDisplay(string $rolKey): string {
     </div>
     <div class="crm-pag-btns">
       <?php if ($page > 1): ?>
-        <a class="crm-pag-btn" href="?url=crm&sec=usuarios&pag=<?= $page-1 ?>&q=<?= urlencode($q) ?>&rol=<?= urlencode($rol) ?>">‹</a>
+        <a class="crm-pag-btn" href="<?= $crmBase ?>usuarios&pag=<?= $page-1 ?>&q=<?= urlencode($q) ?>&rol=<?= urlencode($rol) ?>">‹</a>
       <?php endif; ?>
       <?php for ($i = max(1,$page-2); $i <= min($totalPags,$page+2); $i++): ?>
-        <a class="crm-pag-btn <?= $i===$page?'active':'' ?>" href="?url=crm&sec=usuarios&pag=<?= $i ?>&q=<?= urlencode($q) ?>&rol=<?= urlencode($rol) ?>"><?= $i ?></a>
+        <a class="crm-pag-btn <?= $i===$page?'active':'' ?>" href="<?= $crmBase ?>usuarios&pag=<?= $i ?>&q=<?= urlencode($q) ?>&rol=<?= urlencode($rol) ?>"><?= $i ?></a>
       <?php endfor; ?>
       <?php if ($page < $totalPags): ?>
-        <a class="crm-pag-btn" href="?url=crm&sec=usuarios&pag=<?= $page+1 ?>&q=<?= urlencode($q) ?>&rol=<?= urlencode($rol) ?>">›</a>
+        <a class="crm-pag-btn" href="<?= $crmBase ?>usuarios&pag=<?= $page+1 ?>&q=<?= urlencode($q) ?>&rol=<?= urlencode($rol) ?>">›</a>
       <?php endif; ?>
     </div>
   </div>

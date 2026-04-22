@@ -51,9 +51,9 @@
     padding: 6px 0 10px;
 }
 
-/* Grid ajuste */
+/* Grid ajuste — la columna del calendario permanece fija al colapsar */
 .contenedor-dashboard.sidebar--collapsed {
-    grid-template-columns: var(--sb-w-c) minmax(0,1fr) minmax(0,188px);
+    grid-template-columns: var(--sb-w-c) minmax(0,1fr) 274px;
 }
 .contenedor-dashboard-content.sidebar--collapsed {
     grid-template-columns: var(--sb-w-c) minmax(0,1fr);

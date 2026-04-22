@@ -9,7 +9,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/dashboard.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/sidebar.css">
+    <!-- Aplicar estado del sidebar ANTES del primer render para evitar flash -->
+    <script>
+    (function(){
+        if(localStorage.getItem('mc_sidebar_col')==='1'){
+            document.documentElement.setAttribute('data-sb','collapsed');
+        }
+    })();
+    </script>
     <style>
+        /* Flash-prevention: aplica el estado colapsado antes del JS del sidebar */
+        html[data-sb="collapsed"] .cal-page{grid-template-columns:1fr 280px!important}
+        html[data-sb="collapsed"] .right-panel{opacity:1!important;pointer-events:auto!important;overflow:visible!important}
+
         :root {
             --mc-green:#6B8F71; --mc-green-d:#4a6b50; --mc-green-lt:#f0f5f1;
             --mc-dark:#1B2336; --mc-border:#e5e7eb; --mc-soft:#f8fafc;
@@ -19,12 +33,41 @@
         *,*::before,*::after{box-sizing:border-box}
         body{font-family:'Saira',sans-serif;background:var(--mc-bg);margin:0;color:var(--mc-dark)}
 
-        /* ── PAGE LAYOUT ── */
+        /* ── PAGE LAYOUT: 3 columnas con espacio compartido ──
+           Sidebar expandido  → columna derecha contraída a 0 (prioriza calendario)
+           Sidebar colapsado  → columna derecha a 280px visible
+           El calendario central ocupa siempre el espacio restante (1fr)          */
         .cal-page{
-            max-width:1340px;margin:0 auto;padding:24px 24px 56px;
-            display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start;
+            display:grid;
+            /* Sidebar expandido por defecto: right-panel oculto */
+            grid-template-columns:1fr 0;
+            gap:0 20px;
+            align-items:start;
+            overflow:hidden;
+            transition:grid-template-columns .2s cubic-bezier(.4,0,.2,1);
         }
-        @media(max-width:960px){.cal-page{grid-template-columns:1fr}}
+
+        /* Sidebar colapsado → right-panel visible */
+        .contenedor-dashboard-content.sidebar--collapsed .cal-page{
+            grid-template-columns:1fr 280px;
+        }
+        .contenedor-dashboard-content.sidebar--collapsed .right-panel{
+            opacity:1;
+            pointer-events:auto;
+            overflow:visible;
+        }
+
+        /* Right-panel: invisible cuando el grid-column es 0 */
+        .right-panel{
+            display:grid;gap:16px;min-width:0;
+            opacity:0;pointer-events:none;overflow:hidden;
+            transition:opacity .18s ease .05s;
+        }
+
+        @media(max-width:768px){
+            .cal-page{grid-template-columns:1fr!important}
+            .right-panel{display:none!important}
+        }
 
         /* ── TOP BAR ── */
         .cal-topbar{
@@ -32,18 +75,29 @@
         }
         .cal-topbar-left{flex:1;min-width:0}
         .cal-topbar-title{
-            font-size:1.3rem;font-weight:800;margin:0;color:var(--mc-dark);line-height:1.2;
+            font-size:1.35rem;font-weight:800;margin:0;color:var(--mc-dark);line-height:1.2;
         }
         .cal-topbar-sub{
-            font-size:.78rem;color:var(--mc-muted);margin:2px 0 0;
+            font-size:.77rem;color:var(--mc-muted);margin:3px 0 0;
         }
+        .cal-stats-strip{
+            display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;
+        }
+        .cal-stat-pill{
+            display:inline-flex;align-items:center;gap:7px;
+            background:var(--mc-card);border:1px solid var(--mc-border);
+            border-radius:10px;padding:7px 13px;font-size:.78rem;font-weight:700;color:var(--mc-dark);
+            box-shadow:0 1px 4px rgba(0,0,0,.05);
+        }
+        .cal-stat-pill span{color:var(--mc-muted);font-weight:500}
+        .cal-stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
         .btn-nuevo-ev{
-            display:inline-flex;align-items:center;gap:7px;padding:8px 16px;
-            background:var(--mc-green);color:#fff;border:none;border-radius:9px;
-            font-family:'Saira',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;
-            transition:background .15s;white-space:nowrap;
+            display:inline-flex;align-items:center;gap:7px;padding:9px 18px;
+            background:var(--mc-green);color:#fff;border:none;border-radius:10px;
+            font-family:'Saira',sans-serif;font-size:.83rem;font-weight:700;cursor:pointer;
+            transition:background .15s,transform .1s;white-space:nowrap;box-shadow:0 2px 8px rgba(107,143,113,.35);
         }
-        .btn-nuevo-ev:hover{background:var(--mc-green-d)}
+        .btn-nuevo-ev:hover{background:var(--mc-green-d);transform:translateY(-1px)}
 
         /* ── CALENDAR WRAPPER ── */
         .cal-wrap{
@@ -132,8 +186,12 @@
         .chart-no-data svg{opacity:.35}
 
         /* ── EXPIRY RULE ── */
-        .expiry-info{padding:13px 16px;font-size:.81rem;color:var(--mc-muted);line-height:1.7}
+        .expiry-info{padding:14px 16px;font-size:.81rem;color:var(--mc-muted);line-height:1.75}
         .expiry-info strong{color:var(--mc-dark)}
+        .expiry-bar{display:flex;align-items:center;gap:8px;margin-top:10px}
+        .expiry-bar-track{flex:1;height:5px;background:#fee2e2;border-radius:99px}
+        .expiry-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#fca5a5,#ef4444)}
+        .expiry-note{margin-top:8px;font-size:.73rem;color:#991b1b;font-weight:600}
 
         /* ── MODALES ── */
         .ev-modal-ov{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1100;backdrop-filter:blur(2px)}
@@ -199,19 +257,55 @@
 <body>
     <?php require __DIR__ . '/../layout/header.php'; ?>
 
-    <div class="cal-page">
+    <main class="main-dashboard">
+        <div class="mc-container">
+            <div class="contenedor-dashboard-content">
+
+                <?php require __DIR__ . '/../layout/sidebar.php'; ?>
+
+                <div class="contenido-dashboard" style="min-width:0">
+                <div class="cal-page">
 
         <!-- ── COLUMNA PRINCIPAL ── -->
         <div>
             <div class="cal-topbar">
                 <div class="cal-topbar-left">
                     <h1 class="cal-topbar-title">Planificador</h1>
-                    <p class="cal-topbar-sub">Arrastra eventos para moverlos · Haz clic en un día para crear uno nuevo</p>
+                    <p class="cal-topbar-sub">Clic en un día para crear · Arrastra eventos para moverlos</p>
                 </div>
                 <button class="btn-nuevo-ev" id="btnNuevoEvento">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Nuevo evento
                 </button>
+            </div>
+
+            <?php
+            $hoy = date('Y-m-d');
+            $evMes = array_filter($fcEvents, fn($e) => substr($e['start'] ?? '', 0, 7) === date('Y-m'));
+            $evProximos = array_filter($eventosPersonales, fn($e) => ($e['fecha_inicio'] ?? '') >= $hoy);
+            $evVencidos = array_filter($fcEvents, fn($e) => ($e['extendedProps']['tipo'] ?? '') === 'expiracion' && ($e['start'] ?? '') <= $hoy);
+            ?>
+            <div class="cal-stats-strip">
+                <div class="cal-stat-pill">
+                    <span class="cal-stat-dot" style="background:var(--mc-green)"></span>
+                    <?= count($evMes) ?> <span>este mes</span>
+                </div>
+                <div class="cal-stat-pill">
+                    <span class="cal-stat-dot" style="background:#3b82f6"></span>
+                    <?= count($evProximos) ?> <span>próximos</span>
+                </div>
+                <?php if (count($evVencidos) > 0): ?>
+                <div class="cal-stat-pill" style="border-color:#fecaca;color:#991b1b">
+                    <span class="cal-stat-dot" style="background:#ef4444"></span>
+                    <?= count($evVencidos) ?> <span style="color:#dc2626">expirados</span>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($cursosEnProgreso)): ?>
+                <div class="cal-stat-pill">
+                    <span class="cal-stat-dot" style="background:#8b5cf6"></span>
+                    <?= count($cursosEnProgreso) ?> <span>cursos activos</span>
+                </div>
+                <?php endif; ?>
             </div>
 
             <div class="cal-wrap">
@@ -298,17 +392,50 @@
                 </div>
             </div>
 
-            <!-- Regla de expiración -->
+            <!-- Expiración de cursos -->
             <div class="rp-card">
-                <div class="rp-head">Regla de expiración</div>
-                <div class="expiry-info">
-                    Los cursos tienen un plazo máximo de <strong>90 días</strong> desde la matrícula para completarse.
-                    Planifica tus sesiones con antelación.
-                </div>
+                <div class="rp-head">Expiración de cursos</div>
+                <?php
+                $eventosExpiracion = array_values(array_filter($fcEvents, fn($e) => ($e['extendedProps']['tipo'] ?? '') === 'expiracion'));
+                usort($eventosExpiracion, fn($a,$b) => strcmp($a['start'], $b['start']));
+                $hoyTs = strtotime(date('Y-m-d'));
+                ?>
+                <?php if (empty($eventosExpiracion)): ?>
+                    <div class="expiry-info">
+                        Sin cursos con fecha de expiración próxima. Sigue así.
+                    </div>
+                <?php else: ?>
+                    <?php foreach (array_slice($eventosExpiracion, 0, 4) as $exp):
+                        $expTs   = strtotime($exp['start']);
+                        $diasRest = max(0, (int)ceil(($expTs - $hoyTs) / 86400));
+                        $pctUsed  = max(0, min(100, round((1 - $diasRest/90) * 100)));
+                        $urgente  = $diasRest <= 14;
+                    ?>
+                    <div class="expiry-info" style="border-bottom:1px solid var(--mc-border)">
+                        <strong><?= htmlspecialchars($exp['title'] ?? 'Curso') ?></strong>
+                        <div class="expiry-bar">
+                            <div class="expiry-bar-track">
+                                <div class="expiry-bar-fill" style="width:<?= $pctUsed ?>%"></div>
+                            </div>
+                        </div>
+                        <?php if ($diasRest === 0): ?>
+                            <p class="expiry-note">Expirado hoy</p>
+                        <?php elseif ($urgente): ?>
+                            <p class="expiry-note"><?= $diasRest ?> día<?= $diasRest !== 1 ? 's' : '' ?> restante<?= $diasRest !== 1 ? 's' : '' ?></p>
+                        <?php else: ?>
+                            <p style="margin-top:6px;font-size:.72rem;color:var(--mc-muted)">Expira el <?= date('d/m/Y', $expTs) ?></p>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
 
         </aside>
-    </div>
+    </div><!-- /.cal-page -->
+    </div><!-- /.contenido-dashboard -->
+    </div><!-- /.contenedor-dashboard-content -->
+    </div><!-- /.mc-container -->
+    </main><!-- /.main-dashboard -->
 
     <!-- ── MODAL: VER EVENTO ── -->
     <div class="ev-modal-ov" id="evOv"></div>
@@ -340,10 +467,10 @@
                     <div class="form-group">
                         <label for="evTipo">Tipo</label>
                         <select id="evTipo" name="tipo">
-                            <option value="sesion">📖 Sesión de estudio</option>
-                            <option value="hito">🏆 Hito personal</option>
-                            <option value="recordatorio">🔔 Recordatorio</option>
-                            <option value="bloqueo">🚫 Bloqueo de tiempo</option>
+                            <option value="sesion">Sesión de estudio</option>
+                            <option value="hito">Hito personal</option>
+                            <option value="recordatorio">Recordatorio</option>
+                            <option value="bloqueo">Bloqueo de tiempo</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -390,6 +517,7 @@
     <div class="cal-toast" id="calToast"></div>
 
     <?php require __DIR__ . '/../layout/footer.php'; ?>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
@@ -493,15 +621,21 @@
         });
         calendar.render();
 
-        // Activar drag en los eventos personales individualmente
-        // (FullCalendar usa eventAllow, así que editable:true globalmente no es necesario)
-        // Reemplazar eventos personales con editable:true
         fcEvents.forEach(ev => {
             if (ev.extendedProps && ev.extendedProps.editable) {
                 const calEv = calendar.getEventById(ev.id);
                 if (calEv) calEv.setProp('startEditable', true);
             }
         });
+
+        // Reajustar FullCalendar cuando el sidebar cambia de tamaño
+        const sidebarToggleBtn = document.getElementById('sidebarToggle');
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.addEventListener('click', function () {
+                // Esperar a que termine la transición CSS (~220ms) y re-renderizar
+                setTimeout(() => calendar && calendar.updateSize(), 230);
+            });
+        }
 
         // ── RADAR CHART ──
         const radarCanvas = document.getElementById('radarChart');
