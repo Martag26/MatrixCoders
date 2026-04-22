@@ -143,34 +143,6 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                         <?php endif; ?>
                     </div>
 
-                    <!-- ── MI CUENTA ── -->
-                    <div class="documentos" style="margin-top: 24px;">
-                        <div class="dashboard-section-head">
-                            <h2>Mi cuenta</h2>
-                        </div>
-                        <div class="dashboard-cuenta-grid">
-                            <a class="dashboard-cuenta-item" href="<?= BASE_URL ?>/index.php?url=perfil">
-                                <div class="dashboard-cuenta-icono">
-                                    <img src="<?= BASE_URL ?>/img/usuario.png" alt="">
-                                </div>
-                                <div class="dashboard-cuenta-body">
-                                    <strong>Mi perfil</strong>
-                                    <span>Nombre, foto y biografía</span>
-                                </div>
-                                <span class="dashboard-cuenta-flecha">→</span>
-                            </a>
-                            <a class="dashboard-cuenta-item" href="<?= BASE_URL ?>/index.php?url=ajustes">
-                                <div class="dashboard-cuenta-icono">
-                                    <img src="<?= BASE_URL ?>/img/engranaje.png" alt="">
-                                </div>
-                                <div class="dashboard-cuenta-body">
-                                    <strong>Ajustes</strong>
-                                    <span>Idioma, notificaciones y privacidad</span>
-                                </div>
-                                <span class="dashboard-cuenta-flecha">→</span>
-                            </a>
-                        </div>
-                    </div>
 
                 </section>
 

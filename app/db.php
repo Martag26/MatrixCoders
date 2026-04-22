@@ -45,6 +45,11 @@ class Database
             $conexion->exec(file_get_contents($migrateSql));
         }
 
+        $crmMigrateSql = __DIR__ . '/data/crm_migrate.sql';
+        if (file_exists($crmMigrateSql)) {
+            $conexion->exec(file_get_contents($crmMigrateSql));
+        }
+
         return $conexion;
     }
 }

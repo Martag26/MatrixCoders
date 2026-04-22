@@ -223,6 +223,19 @@ switch ($url) {
         $controller->cambiarContrasena();
         break;
 
+    // ── CRM panel (admins + moderators) ───────────────────────────────
+    case 'crm':
+        require_once "../app/controllers/CrmController.php";
+        $controller = new CrmController();
+        $controller->index();
+        break;
+
+    case 'crm-api':
+        require_once "../app/controllers/CrmController.php";
+        $controller = new CrmController();
+        $controller->api();
+        break;
+
     default:
         require_once "../app/controllers/CursoController.php";
         $controller = new CursoController();
