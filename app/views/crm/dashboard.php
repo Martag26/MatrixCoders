@@ -82,28 +82,6 @@ $rolLabel = match(true) {
   </div>
 </div>
 
-<!-- KPI strip -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
-  <?php
-  $kpis = [
-    ['label'=>'Incidencias abiertas', 'value'=> $incidenciasAbiertas ?? 0, 'icon'=>'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'color'=>($incidenciasAbiertas ?? 0) > 0 ? 'var(--crm-danger)' : 'var(--crm-success)'],
-    ['label'=>'Mensajes totales', 'value'=> $totalMensajes ?? 0, 'icon'=>'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', 'color'=>'var(--crm-info)'],
-    ['label'=>'Instructores', 'value'=> $totalInstructores ?? 0, 'icon'=>'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', 'color'=>'var(--crm-primary)'],
-    ['label'=>'Nuevos esta semana', 'value'=> $nuevosEstaSemana ?? 0, 'icon'=>'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', 'color'=>'var(--crm-success)'],
-  ];
-  foreach ($kpis as $k): ?>
-  <div class="crm-card" style="padding:14px 16px;display:flex;align-items:center;gap:12px">
-    <div style="width:36px;height:36px;border-radius:9px;background:<?= $k['color'] ?>18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-      <svg width="16" height="16" fill="none" stroke="<?= $k['color'] ?>" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="<?= $k['icon'] ?>"/></svg>
-    </div>
-    <div>
-      <div style="font-size:18px;font-weight:700;color:var(--crm-text);line-height:1"><?= number_format($k['value']) ?></div>
-      <div style="font-size:11px;color:var(--crm-muted);margin-top:2px"><?= $k['label'] ?></div>
-    </div>
-  </div>
-  <?php endforeach; ?>
-</div>
-
 <!-- Charts row -->
 <div class="crm-charts-grid">
   <div class="crm-chart-card">

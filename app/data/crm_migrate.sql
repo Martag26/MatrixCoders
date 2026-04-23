@@ -66,6 +66,20 @@ CREATE TABLE IF NOT EXISTS curso_instructor (
 INSERT OR IGNORE INTO curso_instructor (curso_id, usuario_id)
 SELECT id, instructor_id FROM curso WHERE instructor_id IS NOT NULL;
 
+-- Tareas del examen práctico
+CREATE TABLE IF NOT EXISTS tarea_practica (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    curso_id  INTEGER NOT NULL,
+    titulo    TEXT    NOT NULL,
+    enunciado TEXT,
+    tipo      TEXT    NOT NULL DEFAULT 'texto'
+              CHECK (tipo IN ('texto','codigo','diseno','proyecto')),
+    puntos    REAL    NOT NULL DEFAULT 10,
+    criterios TEXT,
+    orden     INTEGER NOT NULL DEFAULT 0,
+    creado_en TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Log de actividad CRM (para el feed del dashboard)
 CREATE TABLE IF NOT EXISTS crm_actividad (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

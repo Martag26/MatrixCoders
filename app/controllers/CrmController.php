@@ -89,9 +89,11 @@ class CrmController
             'ALTER TABLE curso   ADD COLUMN activo         INTEGER NOT NULL DEFAULT 1',
             'ALTER TABLE curso   ADD COLUMN instructor_id  INTEGER DEFAULT NULL',
             'ALTER TABLE curso   ADD COLUMN orden          INTEGER NOT NULL DEFAULT 0',
+            'ALTER TABLE curso   ADD COLUMN apuntes_json   TEXT    DEFAULT NULL',
             'ALTER TABLE campana_crm ADD COLUMN descuento_pct REAL NOT NULL DEFAULT 0',
             'ALTER TABLE leccion ADD COLUMN orden INTEGER NOT NULL DEFAULT 0',
             'ALTER TABLE unidad  ADD COLUMN orden INTEGER NOT NULL DEFAULT 0',
+            'ALTER TABLE examen  ADD COLUMN tipo  TEXT    NOT NULL DEFAULT "test"',
         ] as $sql) {
             try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
         }
@@ -177,7 +179,10 @@ class CrmController
             'crear_leccion'         => $this->apiCrearLeccion(),
             'editar_leccion'        => $this->apiEditarLeccion(),
             'eliminar_leccion'      => $this->apiEliminarLeccion(),
-            'guardar_examen'        => $this->apiGuardarExamen(),
+            'guardar_examen'          => $this->apiGuardarExamen(),
+            'guardar_examen_practico' => $this->apiGuardarExamenPractico(),
+            'subir_imagen_curso'      => $this->apiSubirImagenCurso(),
+            'guardar_apuntes'         => $this->apiGuardarApuntes(),
             'crear_campana'         => $this->apiCrearCampana(),
             'editar_campana'        => $this->apiEditarCampana(),
             'eliminar_campana'      => $this->apiEliminarCampana(),
@@ -468,14 +473,15 @@ class CrmController
         }
         unset($u);
 
-        $stmt = $this->db->prepare('SELECT e.*, (SELECT COUNT(*) FROM pregunta WHERE examen_id=e.id) AS total_preguntas FROM examen e WHERE e.curso_id=?');
+        // Test exam (tipo='test' or legacy rows without tipo)
+        $stmt = $this->db->prepare("SELECT * FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
         $stmt->execute([$cursoId]);
-        $examen = $stmt->fetch(PDO::FETCH_ASSOC);
+        $examenTest = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 
         $preguntas = [];
-        if ($examen) {
+        if ($examenTest) {
             $stmt = $this->db->prepare('SELECT * FROM pregunta WHERE examen_id=? ORDER BY orden,id');
-            $stmt->execute([$examen['id']]);
+            $stmt->execute([$examenTest['id']]);
             $preguntas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($preguntas as &$p) {
                 $os = $this->db->prepare('SELECT * FROM opcion WHERE pregunta_id=? ORDER BY orden,id');
@@ -485,13 +491,29 @@ class CrmController
             unset($p);
         }
 
+        // Practical exam
+        $stmt = $this->db->prepare("SELECT * FROM examen WHERE curso_id=? AND tipo='practico' LIMIT 1");
+        $stmt->execute([$cursoId]);
+        $examenPractico = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+        $tareasPracticas = [];
+        try {
+            $stmt = $this->db->prepare('SELECT * FROM tarea_practica WHERE curso_id=? ORDER BY orden,id');
+            $stmt->execute([$cursoId]);
+            $tareasPracticas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $tareasPracticas = []; }
+
+        // Apuntes (JSON stored in curso row)
+        $apuntesRaw = $curso['apuntes_json'] ?? null;
+        $apuntes = ($apuntesRaw && $apuntesRaw !== 'null') ? (json_decode($apuntesRaw, true) ?? []) : [];
+
         $instructores = $this->db->query("SELECT id, nombre FROM usuario WHERE rol='EDITOR' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
         $stmtIns = $this->db->prepare("SELECT usuario_id FROM curso_instructor WHERE curso_id=?");
         $stmtIns->execute([$cursoId]);
         $instructoresAsignados = $stmtIns->fetchAll(PDO::FETCH_COLUMN);
 
-        return compact('curso','unidades','examen','preguntas','instructores','instructoresAsignados');
+        return compact('curso','unidades','examenTest','examenPractico','preguntas','tareasPracticas','apuntes','instructores','instructoresAsignados');
     }
 
     private function getCampanasData(): array
@@ -728,11 +750,16 @@ class CrmController
         $nivel       = $d['nivel'] ?? null;
         $categoria   = $d['categoria'] ?? null;
         $destacado   = (int)($d['destacado'] ?? 0);
+        $activoVal   = isset($d['activo']) ? (int)$d['activo'] : null;
 
         if (!$titulo) return ['ok' => false, 'error' => 'El título es obligatorio'];
 
-        $this->db->prepare("UPDATE curso SET titulo=?,descripcion=?,precio=?,nivel=?,categoria=?,destacado=? WHERE id=?")
-                 ->execute([$titulo, $descripcion, $precio, $nivel, $categoria, $destacado, $id]);
+        $sql = "UPDATE curso SET titulo=?,descripcion=?,precio=?,nivel=?,categoria=?,destacado=?";
+        $params = [$titulo, $descripcion, $precio, $nivel, $categoria, $destacado];
+        if ($activoVal !== null) { $sql .= ',activo=?'; $params[] = $activoVal; }
+        $sql .= ' WHERE id=?';
+        $params[] = $id;
+        $this->db->prepare($sql)->execute($params);
 
         return ['ok' => true, 'mensaje' => 'Curso actualizado correctamente'];
     }
@@ -848,16 +875,16 @@ class CrmController
 
         if (!$cursoId || !$titulo) return ['ok' => false, 'error' => 'Datos incompletos'];
 
-        $stmt = $this->db->prepare("SELECT id FROM examen WHERE curso_id=?");
+        $stmt = $this->db->prepare("SELECT id FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='')");
         $stmt->execute([$cursoId]);
         $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($existing) {
             $examenId = $existing['id'];
-            $this->db->prepare("UPDATE examen SET titulo=?,descripcion=?,nota_minima=? WHERE id=?")->execute([$titulo,$desc,$nota,$examenId]);
+            $this->db->prepare("UPDATE examen SET titulo=?,descripcion=?,nota_minima=?,tipo='test' WHERE id=?")->execute([$titulo,$desc,$nota,$examenId]);
             $this->db->prepare("DELETE FROM pregunta WHERE examen_id=?")->execute([$examenId]);
         } else {
-            $this->db->prepare("INSERT INTO examen (curso_id,titulo,descripcion,nota_minima) VALUES(?,?,?,?)")->execute([$cursoId,$titulo,$desc,$nota]);
+            $this->db->prepare("INSERT INTO examen (curso_id,titulo,descripcion,nota_minima,tipo) VALUES(?,?,?,?,?)")->execute([$cursoId,$titulo,$desc,$nota,'test']);
             $examenId = (int)$this->db->lastInsertId();
         }
 
@@ -874,6 +901,84 @@ class CrmController
             }
         }
         return ['ok' => true, 'mensaje' => 'Examen guardado correctamente'];
+    }
+
+    private function apiGuardarExamenPractico(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d       = $this->input();
+        $cursoId = (int)($d['curso_id'] ?? 0);
+        $titulo  = trim($d['titulo'] ?? '');
+        $desc    = trim($d['descripcion'] ?? '');
+        $nota    = (float)($d['nota_minima'] ?? 5.0);
+        $tareas  = $d['tareas'] ?? [];
+
+        if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
+
+        if ($titulo) {
+            $stmt = $this->db->prepare("SELECT id FROM examen WHERE curso_id=? AND tipo='practico'");
+            $stmt->execute([$cursoId]);
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($existing) {
+                $this->db->prepare("UPDATE examen SET titulo=?,descripcion=?,nota_minima=? WHERE id=?")->execute([$titulo,$desc,$nota,$existing['id']]);
+            } else {
+                $this->db->prepare("INSERT INTO examen (curso_id,titulo,descripcion,nota_minima,tipo) VALUES(?,?,?,?,?)")->execute([$cursoId,$titulo,$desc,$nota,'practico']);
+            }
+        }
+
+        $this->db->prepare("DELETE FROM tarea_practica WHERE curso_id=?")->execute([$cursoId]);
+        $ins = $this->db->prepare("INSERT INTO tarea_practica (curso_id,titulo,enunciado,tipo,puntos,criterios,orden) VALUES(?,?,?,?,?,?,?)");
+        foreach ($tareas as $idx => $t) {
+            $tituloT = trim($t['titulo'] ?? '');
+            if (!$tituloT) continue;
+            $ins->execute([
+                $cursoId, $tituloT,
+                trim($t['enunciado'] ?? ''),
+                in_array($t['tipo'] ?? '', ['texto','codigo','diseno','proyecto']) ? $t['tipo'] : 'texto',
+                (float)($t['puntos'] ?? 10),
+                trim($t['criterios'] ?? ''),
+                $idx,
+            ]);
+        }
+        return ['ok' => true, 'mensaje' => 'Examen práctico guardado correctamente'];
+    }
+
+    private function apiSubirImagenCurso(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $cursoId = (int)($_POST['curso_id'] ?? 0);
+        if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
+        if (empty($_FILES['imagen']) || $_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
+            return ['ok' => false, 'error' => 'No se recibió imagen válida'];
+        }
+        $file    = $_FILES['imagen'];
+        $allowed = ['image/jpeg','image/png','image/webp','image/gif'];
+        $finfo   = finfo_open(FILEINFO_MIME_TYPE);
+        $mime    = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        if (!in_array($mime, $allowed)) return ['ok' => false, 'error' => 'Tipo de imagen no permitido (jpg/png/webp/gif)'];
+        if ($file['size'] > 5 * 1024 * 1024) return ['ok' => false, 'error' => 'Imagen demasiado grande (máx. 5 MB)'];
+
+        $ext     = match($mime) { 'image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp','image/gif'=>'gif',default=>'jpg' };
+        $nombre  = 'curso_' . $cursoId . '_' . time() . '.' . $ext;
+        $destDir = __DIR__ . '/../../public/img/';
+        if (!is_dir($destDir)) mkdir($destDir, 0755, true);
+        if (!move_uploaded_file($file['tmp_name'], $destDir . $nombre)) {
+            return ['ok' => false, 'error' => 'Error al mover el archivo'];
+        }
+        $this->db->prepare("UPDATE curso SET imagen=? WHERE id=?")->execute([$nombre, $cursoId]);
+        return ['ok' => true, 'imagen' => $nombre, 'url' => BASE_URL . '/img/' . $nombre, 'mensaje' => 'Imagen actualizada'];
+    }
+
+    private function apiGuardarApuntes(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d       = $this->input();
+        $cursoId = (int)($d['curso_id'] ?? 0);
+        $apuntes = $d['apuntes'] ?? [];
+        if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
+        $this->db->prepare("UPDATE curso SET apuntes_json=? WHERE id=?")->execute([json_encode($apuntes, JSON_UNESCAPED_UNICODE), $cursoId]);
+        return ['ok' => true, 'mensaje' => 'Apuntes guardados correctamente'];
     }
 
     private function apiCrearCampana(): array
