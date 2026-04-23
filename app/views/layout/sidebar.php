@@ -60,15 +60,12 @@ $isCuenta    = in_array($currentUrl, ['perfil', 'ajustes'], true);
             </li>
 
             <li>
-                <a href="#" class="sidebar__link sidebar__link--disabled"
-                   onclick="return false;" title="Buzón (próximamente)">
+                <a href="<?= BASE_URL ?>/index.php" class="sidebar__link" title="Buzón">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                         <polyline points="22,6 12,13 2,6"/>
                     </svg>
-                    <span class="sidebar__label">Buzón
-                        <span class="sidebar__soon">Pronto</span>
-                    </span>
+                    <span class="sidebar__label">Buzón</span>
                 </a>
             </li>
 

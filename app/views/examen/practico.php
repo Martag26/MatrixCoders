@@ -53,10 +53,15 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
 .completed-banner p{font-size:.9rem;opacity:.85;margin:0 0 16px;}
 .btn-back{display:inline-flex;align-items:center;gap:.5rem;background:#fff;color:var(--mc-dark);border:1.5px solid var(--mc-border);border-radius:10px;padding:.55rem 1.1rem;font-size:.88rem;font-weight:700;text-decoration:none;font-family:'Saira',sans-serif;transition:all .15s;}
 .btn-back:hover{border-color:var(--mc-green);color:var(--mc-green);}
+.mc-toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.mc-toast{background:#1e293b;color:#fff;border-radius:10px;padding:12px 18px;font-size:.88rem;font-weight:600;font-family:'Saira',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:340px;}
+.mc-toast.show{opacity:1;transform:translateY(0);}
+.mc-toast.success{background:#166534;}.mc-toast.error{background:#991b1b;}.mc-toast.info{background:#1e40af;}
 </style>
 </head>
 <body>
 <?php require __DIR__ . '/../layout/header.php'; ?>
+<div class="mc-toast-wrap" id="mcToastWrap"></div>
 
 <!-- Sticky progress -->
 <div class="progress-sticky">
@@ -184,6 +189,16 @@ const CURSO_ID  = <?= $cursoId ?>;
 let entregadas  = <?= $totalEntregadas ?>;
 const total     = <?= $nTareas ?>;
 
+function mcToast(msg, type = 'default', duration = 3500) {
+    const wrap  = document.getElementById('mcToastWrap');
+    const toast = document.createElement('div');
+    toast.className = 'mc-toast' + (type !== 'default' ? ' ' + type : '');
+    toast.textContent = msg;
+    wrap.appendChild(toast);
+    requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 250); }, duration);
+}
+
 function updateProgress(n) {
   entregadas = n;
   document.getElementById('progressLabel').textContent = n + ' / ' + total + ' entregadas';
@@ -219,7 +234,7 @@ async function entregar(tareaId) {
   const file    = fileInp?.files[0];
 
   if (!txt.trim() && !file) {
-    alert('Debes escribir una respuesta o adjuntar un archivo.');
+    mcToast('Debes escribir una respuesta o adjuntar un archivo antes de enviar.', 'info');
     return;
   }
 
@@ -235,6 +250,7 @@ async function entregar(tareaId) {
     const res = await fetch(`${BASE_URL}/index.php?url=examen-practico&curso=${CURSO_ID}`, { method: 'POST', body: fd }).then(r => r.json());
 
     if (res.ok) {
+      mcToast('Tarea enviada correctamente', 'success');
       const card = document.getElementById('tarea-' + tareaId);
       card.classList.replace('pendiente', 'entregada');
       card.querySelector('.entrega-form').innerHTML = `
@@ -253,12 +269,12 @@ async function entregar(tareaId) {
           </div>`);
       }
     } else {
-      alert(res.error || 'Error al enviar. Inténtalo de nuevo.');
+      mcToast(res.error || 'Error al enviar. Inténtalo de nuevo.', 'error');
       btn.disabled = false;
       btn.textContent = 'Enviar tarea →';
     }
   } catch (err) {
-    alert('Error de conexión. Inténtalo de nuevo.');
+    mcToast('Error de conexión. Comprueba tu red e inténtalo de nuevo.', 'error');
     btn.disabled = false;
     btn.textContent = 'Enviar tarea →';
   }

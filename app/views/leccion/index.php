@@ -449,6 +449,63 @@ $ytId = ytId($videoUrl);
             line-height: 1.5;
         }
 
+        /* ── RESOURCE CARDS ── */
+        .res-section { margin-bottom: 1.6rem; }
+        .res-section-title { font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--mc-muted); margin-bottom: .75rem; display: flex; align-items: center; gap: 8px; }
+        .res-no-eval-badge { text-transform: none; font-size: .72rem; font-weight: 700; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 99px; letter-spacing: 0; }
+        .res-instructor-note { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: .9rem 1rem; font-size: .9rem; color: var(--mc-text); line-height: 1.75; white-space: pre-wrap; }
+        .res-doc-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--bg, #f8fafc); border: 1.5px solid var(--bdr, #e5e7eb); border-radius: 12px; margin-bottom: 8px; }
+        .res-doc-icon { width: 42px; height: 42px; border-radius: 10px; background: #fff; border: 1px solid var(--bdr, #e5e7eb); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .res-doc-info { flex: 1; min-width: 0; }
+        .res-doc-name { font-size: .9rem; font-weight: 700; color: var(--mc-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .res-doc-desc { font-size: .78rem; color: var(--mc-muted); margin-top: 2px; }
+        .res-doc-type-tag { display: inline-block; font-size: .7rem; font-weight: 700; background: rgba(107,143,113,.12); color: var(--mc-green-d); border-radius: 99px; padding: 2px 8px; margin-top: 4px; text-transform: uppercase; letter-spacing: .3px; }
+        .res-doc-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        @media(min-width: 640px) { .res-doc-actions { flex-direction: row; } }
+        .res-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 7px; font-size: .78rem; font-weight: 700; font-family: 'Saira', sans-serif; cursor: pointer; text-decoration: none; white-space: nowrap; transition: all .15s; }
+        .res-btn-cloud { background: #fff; border: 1.5px solid #bfdbfe; color: #1d4ed8; }
+        .res-btn-cloud:hover { background: #eff6ff; border-color: #93c5fd; }
+        .res-btn-download { background: var(--mc-green); border: 1.5px solid var(--mc-green); color: #fff; }
+        .res-btn-download:hover { background: var(--mc-green-d); border-color: var(--mc-green-d); color: #fff; }
+
+        /* ── RECURSO ITEMS (legacy) ── */
+        .recurso-item {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .75rem 1rem;
+            background: #fff;
+            border: 1.5px solid var(--mc-border);
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--mc-text);
+            margin-bottom: .5rem;
+            transition: border-color .15s, background .15s;
+        }
+        .recurso-item:hover { border-color: var(--mc-green); background: #f0fdf4; }
+        .recurso-item.actividad:hover { border-color: #2563eb; background: #eff6ff; }
+        .recurso-item__icon { font-size: 1.3rem; flex-shrink: 0; }
+        .recurso-item__body { flex: 1; min-width: 0; }
+        .recurso-item__name { font-size: .9rem; font-weight: 700; }
+        .recurso-item__desc { font-size: .78rem; color: var(--mc-muted); margin-top: 1px; }
+        .btn-rec-action {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .38rem .85rem; border: 1px solid var(--mc-border); border-radius: 8px;
+            background: #fff; color: var(--mc-text); font-size: .78rem; font-weight: 600;
+            font-family: 'Saira', sans-serif; cursor: pointer; transition: all .15s;
+        }
+        .btn-rec-action:hover { border-color: var(--mc-green); color: var(--mc-green); }
+        .btn-rec-action.dark { background: var(--mc-navy); color: #fff; border-color: var(--mc-navy); }
+        .btn-rec-action.dark:hover { background: #1e2d4a; border-color: #1e2d4a; }
+
+        /* ── TOAST ── */
+        .mc-toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .mc-toast { background: var(--mc-dark); color: #fff; border-radius: 10px; padding: 12px 18px; font-size: .88rem; font-weight: 600; font-family: 'Saira', sans-serif; box-shadow: 0 4px 20px rgba(0,0,0,.25); opacity: 0; transform: translateY(8px); transition: opacity .2s, transform .2s; pointer-events: none; max-width: 320px; }
+        .mc-toast.show { opacity: 1; transform: translateY(0); }
+        .mc-toast.success { background: #166534; }
+        .mc-toast.error { background: #991b1b; }
+        .mc-toast.info { background: #1e40af; }
+
         /* ── TAREAS TAB ── */
         .tarea-card {
             background: var(--mc-soft);
@@ -769,13 +826,8 @@ $ytId = ytId($videoUrl);
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-apuntes">
-                            ✏️ Apuntes
-                        </button>
-                    </li>
-                    <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-recursos">
-                            📥 Recursos
+                            Recursos
                             <?php
                             $totalRecursos = count($recursosInstructor ?? []);
                             if ($totalRecursos > 0): ?>
@@ -821,139 +873,105 @@ $ytId = ytId($videoUrl);
                     <?php endif; ?>
                 </div>
 
-                <!-- APUNTES (NotebookLM) -->
-                <div class="tab-pane fade" id="tab-apuntes">
-
-                    <!-- Cabecera -->
-                    <div class="nb-header">
-                        <div>
-                            <h6 class="nb-title">🤖 Apuntes generados por IA</h6>
-                            <p class="nb-sub">NotebookLM analiza el vídeo y genera automáticamente los apuntes de esta lección.</p>
-                        </div>
-                        <a href="https://notebooklm.google.com" target="_blank" rel="noopener" class="btn-notebook">
-                            📓 Abrir NotebookLM
-                        </a>
-                    </div>
-
-                    <?php if ($notebookUrl): ?>
-                        <!-- Notebook embebido -->
-                        <div class="nb-embed-wrap">
-                            <iframe
-                                class="nb-iframe"
-                                src="<?= htmlspecialchars($notebookUrl) ?>"
-                                title="Apuntes NotebookLM — <?= $tituloLeccion ?>"
-                                loading="lazy"
-                                allow="clipboard-read; clipboard-write"
-                                sandbox="allow-scripts allow-same-origin allow-popups allow-forms">
-                            </iframe>
-                        </div>
-                    <?php else: ?>
-                        <!-- Placeholder cuando aún no hay notebook configurado -->
-                        <div class="nb-placeholder">
-                            <div class="nb-ph-icon">🤖</div>
-                            <h6>Apuntes de IA no disponibles para esta lección</h6>
-                            <p>El instructor aún no ha vinculado un notebook de NotebookLM a este vídeo. Puedes acceder a NotebookLM, añadir el vídeo como fuente y generar tus propios apuntes inteligentes.</p>
-                            <a href="https://notebooklm.google.com" target="_blank" rel="noopener" class="btn-notebook" style="display:inline-flex;margin-top:.5rem;">
-                                Ir a NotebookLM y generar apuntes →
-                            </a>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Guardar resumen en perfil -->
-                    <div class="nb-save-section">
-                        <div class="nb-save-header">
-                            <span class="nb-save-title">💾 Guardar resumen en tu perfil</span>
-                            <span class="nb-save-hint">Pega aquí los puntos clave del notebook. Es el único elemento que se guarda y puedes exportar desde <strong>Recursos</strong>.</span>
-                        </div>
-                        <textarea class="notas-area" id="notasArea"
-                            placeholder="Pega o escribe aquí los puntos clave del apunte para guardarlos en tu perfil..."><?= htmlspecialchars($nota) ?></textarea>
-                        <div class="notas-footer">
-                            <button class="btn-guardar" onclick="guardarNota()">Guardar en mi perfil</button>
-                            <span class="notas-saved" id="notasSaved">✔ Guardado</span>
-                            <span style="font-size:.78rem;color:var(--mc-muted);margin-left:auto;" id="notasChars">
-                                <?= strlen($nota) ?> caracteres
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RECURSOS -->
+                <!-- RECURSOS — solo documentos del CRM -->
                 <div class="tab-pane fade" id="tab-recursos">
-
                     <?php
-                    // Load instructor resources for this lesson
-                    $recursosInstructor = [];
-                    try {
-                        $stmtRec = $db->prepare("SELECT * FROM leccion_recurso WHERE leccion_id=? ORDER BY orden,id");
-                        $stmtRec->execute([$leccionId]);
-                        $recursosInstructor = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
-                    } catch (Exception $e) {}
+                    $recursosInstructor = $recursosInstructor ?? [];
+                    $apuntesInstructor  = $leccion['apuntes'] ?? '';
+                    $tiposIconSvg = [
+                        'pdf'      => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path stroke-linecap="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+                        'doc'      => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path stroke-linecap="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+                        'zip'      => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path stroke-linecap="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>',
+                        'link'     => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B8F71" stroke-width="2"><path stroke-linecap="round" d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path stroke-linecap="round" d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+                        'actividad'=> '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>',
+                        'video'    => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+                    ];
+                    $tipoLabel = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'Archivo ZIP','link'=>'Enlace','actividad'=>'Actividad práctica','video'=>'Vídeo'];
+                    $tipoColors = ['pdf'=>'#fef2f2','doc'=>'#eff6ff','zip'=>'#fffbeb','link'=>'#f0fdf4','actividad'=>'#faf5ff','video'=>'#f0f9ff'];
+                    $tipoBorders = ['pdf'=>'#fecaca','doc'=>'#bfdbfe','zip'=>'#fde68a','link'=>'#bbf7d0','actividad'=>'#ddd6fe','video'=>'#bae6fd'];
 
-                    // Load instructor apuntes for this lesson
-                    $apuntesInstructor = $leccion['apuntes'] ?? '';
+                    $docRecursos = array_filter($recursosInstructor, fn($r) => $r['tipo'] !== 'actividad');
+                    $actRecursos = array_filter($recursosInstructor, fn($r) => $r['tipo'] === 'actividad');
+                    $hayContenido = $apuntesInstructor || !empty($recursosInstructor);
                     ?>
 
                     <?php if ($apuntesInstructor): ?>
-                    <div style="margin-bottom:1.5rem">
-                        <h6 style="font-weight:700;font-size:.95rem;margin:0 0 .75rem;display:flex;align-items:center;gap:.5rem;">
-                            📋 Apuntes del instructor
-                        </h6>
-                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1rem 1.1rem;font-size:.9rem;color:var(--mc-text);line-height:1.75;white-space:pre-wrap;"><?= htmlspecialchars($apuntesInstructor) ?></div>
-                    </div>
+                    <section class="res-section">
+                        <div class="res-section-title">Notas del instructor</div>
+                        <div class="res-instructor-note"><?= nl2br(htmlspecialchars($apuntesInstructor)) ?></div>
+                    </section>
                     <?php endif; ?>
 
-                    <?php if (!empty($recursosInstructor)): ?>
-                    <div style="margin-bottom:1.5rem">
-                        <h6 style="font-weight:700;font-size:.95rem;margin:0 0 .75rem;display:flex;align-items:center;gap:.5rem;">
-                            📥 Recursos de la lección
-                        </h6>
-                        <?php
-                        $tipoIcon = ['pdf'=>'📄','doc'=>'📝','zip'=>'🗜️','link'=>'🔗','actividad'=>'✏️','video'=>'▶️'];
-                        foreach ($recursosInstructor as $rec):
-                            $icon = $tipoIcon[$rec['tipo']] ?? '📎';
+                    <?php if (!empty($docRecursos)): ?>
+                    <section class="res-section">
+                        <div class="res-section-title">Material de la lección</div>
+                        <?php foreach ($docRecursos as $rec):
+                            $svgIcon = $tiposIconSvg[$rec['tipo']] ?? $tiposIconSvg['link'];
+                            $bg      = $tipoColors[$rec['tipo']] ?? '#f8fafc';
+                            $border  = $tipoBorders[$rec['tipo']] ?? '#e5e7eb';
+                            $label   = $tipoLabel[$rec['tipo']] ?? ucfirst($rec['tipo']);
                         ?>
-                        <a href="<?= htmlspecialchars($rec['url_o_ruta']) ?>" target="_blank"
-                           style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#fff;border:1.5px solid var(--mc-border);border-radius:10px;text-decoration:none;color:var(--mc-text);margin-bottom:.5rem;transition:border-color .15s,background .15s;"
-                           onmouseover="this.style.borderColor='var(--mc-green)';this.style.background='#f0fdf4'"
-                           onmouseout="this.style.borderColor='var(--mc-border)';this.style.background='#fff'">
-                            <span style="font-size:1.4rem;flex-shrink:0"><?= $icon ?></span>
-                            <div style="flex:1;min-width:0">
-                                <div style="font-size:.9rem;font-weight:700"><?= htmlspecialchars($rec['nombre']) ?></div>
+                        <div class="res-doc-card" style="--bg:<?= $bg ?>;--bdr:<?= $border ?>">
+                            <div class="res-doc-icon"><?= $svgIcon ?></div>
+                            <div class="res-doc-info">
+                                <div class="res-doc-name"><?= htmlspecialchars($rec['nombre']) ?></div>
                                 <?php if ($rec['descripcion']): ?>
-                                    <div style="font-size:.78rem;color:var(--mc-muted)"><?= htmlspecialchars($rec['descripcion']) ?></div>
+                                <div class="res-doc-desc"><?= htmlspecialchars($rec['descripcion']) ?></div>
                                 <?php endif; ?>
-                                <div style="font-size:.75rem;color:var(--mc-green-d);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;font-weight:600"><?= ucfirst($rec['tipo']) ?> <?= $rec['descargable'] ? '· Descargable' : '' ?></div>
+                                <span class="res-doc-type-tag"><?= $label ?></span>
                             </div>
-                            <svg width="16" height="16" fill="none" stroke="var(--mc-green)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                        </a>
+                            <div class="res-doc-actions">
+                                <button class="res-btn res-btn-cloud" title="Guardar en mi nube"
+                                        onclick="addToCloud(<?= $rec['id'] ?>, '<?= addslashes(htmlspecialchars($rec['nombre'])) ?>', '<?= addslashes(htmlspecialchars($rec['url_o_ruta'])) ?>')">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                    Añadir a mi nube
+                                </button>
+                                <a class="res-btn res-btn-download" href="<?= htmlspecialchars($rec['url_o_ruta']) ?>" target="_blank"
+                                   <?= $rec['descargable'] ? 'download' : '' ?>>
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    Descargar
+                                </a>
+                            </div>
+                        </div>
                         <?php endforeach; ?>
-                    </div>
+                    </section>
                     <?php endif; ?>
 
-                    <!-- Mis apuntes personales -->
-                    <div>
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
-                            <h6 style="font-weight:700;font-size:.95rem;margin:0;">✏️ Mis apuntes personales</h6>
-                            <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
-                                <button onclick="descargarTxt()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1px solid var(--mc-border);border-radius:8px;background:#fff;color:var(--mc-text);font-size:.8rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">📄 .txt</button>
-                                <button onclick="imprimirPDF()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:none;border-radius:8px;background:var(--mc-navy);color:#fff;font-size:.8rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">🖨️ PDF</button>
+                    <?php if (!empty($actRecursos)): ?>
+                    <section class="res-section">
+                        <div class="res-section-title">Actividades de práctica <span class="res-no-eval-badge">No evaluables</span></div>
+                        <?php foreach ($actRecursos as $rec): ?>
+                        <div class="res-doc-card" style="--bg:#faf5ff;--bdr:#ddd6fe">
+                            <div class="res-doc-icon"><?= $tiposIconSvg['actividad'] ?></div>
+                            <div class="res-doc-info">
+                                <div class="res-doc-name"><?= htmlspecialchars($rec['nombre']) ?></div>
+                                <?php if ($rec['descripcion']): ?>
+                                <div class="res-doc-desc"><?= htmlspecialchars($rec['descripcion']) ?></div>
+                                <?php endif; ?>
+                                <span class="res-doc-type-tag" style="background:#f3e8ff;color:#7c3aed">Actividad práctica</span>
+                            </div>
+                            <div class="res-doc-actions">
+                                <button class="res-btn res-btn-cloud" onclick="addToCloud(<?= $rec['id'] ?>, '<?= addslashes(htmlspecialchars($rec['nombre'])) ?>', '<?= addslashes(htmlspecialchars($rec['url_o_ruta'])) ?>')">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                    Añadir a mi nube
+                                </button>
+                                <a class="res-btn res-btn-download" href="<?= htmlspecialchars($rec['url_o_ruta']) ?>" target="_blank">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    Abrir
+                                </a>
                             </div>
                         </div>
-                        <div id="recursos-preview" style="min-height:120px;background:#f8fafc;border:1px solid var(--mc-border);border-radius:10px;padding:.9rem 1rem;font-size:.9rem;color:var(--mc-text);line-height:1.7;white-space:pre-wrap;">
-                            <?php echo $nota ? htmlspecialchars($nota) : '<span style="color:#9ca3af;font-style:italic;">Sin apuntes todavía. Ve a la pestaña Apuntes para escribirlos.</span>'; ?>
-                        </div>
-                    </div>
+                        <?php endforeach; ?>
+                    </section>
+                    <?php endif; ?>
 
-                    <div id="pdf-print-area" style="display:none;">
-                        <div style="font-family:'Georgia',serif;max-width:700px;margin:0 auto;padding:40px;">
-                            <div style="border-bottom:3px solid #6B8F71;padding-bottom:16px;margin-bottom:24px;">
-                                <h1 style="font-size:1.4rem;color:#1B2336;margin:0 0 6px;"><?= htmlspecialchars($tituloCurso) ?></h1>
-                                <p style="font-size:.9rem;color:#6b7280;margin:0;">Apuntes — <?= htmlspecialchars($tituloLeccion) ?></p>
-                            </div>
-                            <div id="pdf-contenido" style="font-size:.95rem;line-height:1.8;color:#374151;white-space:pre-wrap;"></div>
-                            <div style="margin-top:32px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:.75rem;color:#9ca3af;">MatrixCoders · <?= date('d/m/Y') ?></div>
-                        </div>
+                    <?php if (!$hayContenido): ?>
+                    <div style="text-align:center;padding:3rem 1rem;color:var(--mc-muted)">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 14px;opacity:.35"><path stroke-linecap="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <p style="font-size:.92rem;font-weight:600;margin:0 0 4px">Sin recursos para esta lección</p>
+                        <p style="font-size:.82rem;margin:0">El instructor no ha añadido material todavía.</p>
                     </div>
+                    <?php endif; ?>
                 </div>
 
             </div><!-- /tab-content -->
@@ -1017,9 +1035,47 @@ $ytId = ytId($videoUrl);
                 </div>
 
             <?php endforeach; ?>
+
+            <?php if ($tieneExamen): ?>
+            <!-- Evaluación final -->
+            <div style="border-top:1px solid var(--mc-border);padding:.85rem 1.1rem;background:var(--mc-soft);">
+                <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mc-muted);margin-bottom:.6rem;">Evaluación final</div>
+
+                <?php
+                $testAprobado = !empty($resultadoExamenTest['aprobado']);
+                $testHecho    = $resultadoExamenTest !== null;
+                ?>
+
+                <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>"
+                   style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:9px;text-decoration:none;font-size:.83rem;font-weight:600;margin-bottom:.4rem;
+                          background:<?= $testAprobado ? '#f0fdf4' : ($testHecho ? '#fff7ed' : '#fff') ?>;
+                          color:<?= $testAprobado ? '#166534' : ($testHecho ? '#7c2d12' : 'var(--mc-dark)') ?>;
+                          border:1.5px solid <?= $testAprobado ? '#86efac' : ($testHecho ? '#fed7aa' : 'var(--mc-border)') ?>;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>
+                    Examen tipo test
+                    <?php if ($testAprobado): ?>
+                        <span style="margin-left:auto;font-size:.7rem;background:#dcfce7;color:#166534;border-radius:99px;padding:1px 7px"><?= number_format((float)$resultadoExamenTest['nota'],1) ?>/10</span>
+                    <?php elseif ($testHecho): ?>
+                        <span style="margin-left:auto;font-size:.7rem;background:#fef3c7;color:#92400e;border-radius:99px;padding:1px 7px">Repetir</span>
+                    <?php endif; ?>
+                </a>
+
+                <?php if (!empty($tieneExamenPractico)): ?>
+                <a href="<?= BASE_URL ?>/index.php?url=examen-practico&curso=<?= $cursoId ?>"
+                   style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:9px;text-decoration:none;font-size:.83rem;font-weight:600;background:#fff;color:var(--mc-dark);border:1.5px solid var(--mc-border);">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    Examen práctico
+                </a>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+
         </aside>
 
     </div><!-- /leccion-wrap -->
+
+    <!-- Toast container -->
+    <div class="mc-toast-wrap" id="mcToastWrap"></div>
 
     <!-- SIN FOOTER — la vista de lección ocupa todo el viewport -->
 
@@ -1060,37 +1116,62 @@ $ytId = ytId($videoUrl);
             });
         });
 
-        /* ── Contador de caracteres ── */
-        const notasArea = document.getElementById('notasArea');
-        const notasChars = document.getElementById('notasChars');
+        /* ── Toast profesional ── */
+        function mcToast(msg, type = 'default', duration = 3000) {
+            const wrap  = document.getElementById('mcToastWrap');
+            const toast = document.createElement('div');
+            toast.className = 'mc-toast' + (type !== 'default' ? ' ' + type : '');
+            toast.textContent = msg;
+            wrap.appendChild(toast);
+            requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 250);
+            }, duration);
+        }
+
+        /* ── Añadir recurso a la nube ── */
+        async function addToCloud(id, nombre, url) {
+            const btn = event.currentTarget;
+            const origTxt = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '…';
+            try {
+                const fd = new FormData();
+                fd.append('accion', 'guardar_en_nube');
+                fd.append('nombre', nombre);
+                fd.append('url',    url);
+                const res = await fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, { method: 'POST', body: fd }).then(r => r.json());
+                if (res.ok) {
+                    mcToast('Añadido a tu nube correctamente', 'success');
+                    btn.innerHTML = '✓ En tu nube';
+                    btn.style.background = '#f0fdf4';
+                    btn.style.borderColor = '#86efac';
+                    btn.style.color = '#166534';
+                } else {
+                    mcToast(res.error || 'No se pudo guardar en la nube', 'error');
+                    btn.innerHTML = origTxt;
+                    btn.disabled = false;
+                }
+            } catch(e) {
+                mcToast('Error de conexión', 'error');
+                btn.innerHTML = origTxt;
+                btn.disabled = false;
+            }
+        }
+
+        /* ── Contador de caracteres (compatibilidad) ── */
+        const notasArea  = null; // textarea eliminado — recursos solo desde CRM
+        const notasChars = null;
         if (notasArea) {
             notasArea.addEventListener('input', () => {
-                notasChars.textContent = notasArea.value.length + ' caracteres';
                 const preview = document.getElementById('recursos-preview');
                 if (preview) preview.textContent = notasArea.value || '';
             });
         }
 
         /* ── Guardar apuntes via AJAX ── */
-        let saveTimer = null;
-        function guardarNota(manual = true) {
-            if (!notasArea) return;
-            fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'nota=' + encodeURIComponent(notasArea.value)
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.ok && manual) {
-                    const ok = document.getElementById('notasSaved');
-                    ok.style.display = 'inline';
-                    setTimeout(() => ok.style.display = 'none', 2500);
-                }
-                const preview = document.getElementById('recursos-preview');
-                if (preview && notasArea.value) preview.textContent = notasArea.value;
-            });
-        }
+        /* guardarNota / descargarTxt / imprimirPDF eliminados — recursos solo desde CRM */
         if (notasArea) {
             notasArea.addEventListener('input', () => {
                 clearTimeout(saveTimer);
@@ -1139,29 +1220,6 @@ $ytId = ytId($videoUrl);
         }
         <?php endif; ?>
 
-        /* ── Recursos: descargar .txt ── */
-        function descargarTxt() {
-            const contenido = notasArea ? notasArea.value : '';
-            if (!contenido.trim()) { alert('No tienes apuntes guardados para esta lección.'); return; }
-            const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'apuntes-<?= preg_replace('/[^a-z0-9]/i', '-', $tituloLeccion) ?>.txt';
-            a.click();
-            URL.revokeObjectURL(a.href);
-        }
-
-        /* ── Recursos: imprimir como PDF ── */
-        function imprimirPDF() {
-            const contenido = notasArea ? notasArea.value : '';
-            if (!contenido.trim()) { alert('No tienes apuntes guardados para esta lección.'); return; }
-            const pdfArea = document.getElementById('pdf-print-area');
-            const pdfContenido = document.getElementById('pdf-contenido');
-            if (pdfContenido) pdfContenido.textContent = contenido;
-            if (pdfArea) pdfArea.style.display = 'block';
-            window.print();
-            if (pdfArea) pdfArea.style.display = 'none';
-        }
     </script>
     <style>
         @media print {

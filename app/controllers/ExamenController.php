@@ -26,6 +26,34 @@ if (!(int)$stmtM->fetchColumn()) {
     exit;
 }
 
+// Verificar que el alumno ha completado todas las lecciones
+try {
+    $stmtTotalLec = $db->prepare("
+        SELECT COUNT(l.id) FROM leccion l
+        JOIN unidad u ON l.unidad_id=u.id WHERE u.curso_id=?
+    ");
+    $stmtTotalLec->execute([$cursoId]);
+    $totalLecciones = (int)$stmtTotalLec->fetchColumn();
+
+    if ($totalLecciones > 0) {
+        $stmtVistas = $db->prepare("
+            SELECT COUNT(DISTINCT lv.leccion_id) FROM leccion_vista lv
+            JOIN leccion l ON l.id=lv.leccion_id
+            JOIN unidad u  ON l.unidad_id=u.id
+            WHERE u.curso_id=? AND lv.usuario_id=?
+        ");
+        $stmtVistas->execute([$cursoId, $usuarioId]);
+        $leccionesVistas = (int)$stmtVistas->fetchColumn();
+
+        if ($leccionesVistas < $totalLecciones) {
+            $progresoExamen  = round(($leccionesVistas / $totalLecciones) * 100);
+            $leccionesRestantes = $totalLecciones - $leccionesVistas;
+            require __DIR__ . '/../views/examen/bloqueado.php';
+            exit;
+        }
+    }
+} catch (Exception $e) { /* tabla no existe todavía — permitir acceso */ }
+
 // Cargar examen tipo test del curso
 $stmtEx = $db->prepare("SELECT * FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
 $stmtEx->execute([$cursoId]);
