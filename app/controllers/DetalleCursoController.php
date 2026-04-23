@@ -46,6 +46,21 @@ $estaMatriculado = $usuarioId
     ? $modeloCurso->estaMatriculado($usuarioId, $id)
     : false;
 
+// ── Fecha de matriculación y expiración (90 días) ─────────────────
+$fechaMatricula   = null;
+$fechaExpiracion  = null;
+$diasParaExpirar  = null;
+if ($estaMatriculado && $usuarioId) {
+    $stmtFecha = $db->prepare("SELECT fecha FROM matricula WHERE usuario_id = ? AND curso_id = ? LIMIT 1");
+    $stmtFecha->execute([$usuarioId, $id]);
+    $fechaMatricula = $stmtFecha->fetchColumn() ?: null;
+    if ($fechaMatricula) {
+        $expTs           = strtotime($fechaMatricula) + (90 * 86400);
+        $fechaExpiracion = date('d/m/Y', $expTs);
+        $diasParaExpirar = (int)ceil(($expTs - time()) / 86400);
+    }
+}
+
 // ── Comprobación de plan ──────────────────────────────────────────
 $precio = (float)($curso['precio'] ?? 0);
 $planPermiteAcceso = match (true) {
@@ -73,6 +88,24 @@ if ($estaMatriculado) {
         $leccionActiva = $modeloCurso->getPrimeraLeccion($id);
     }
 }
+
+// ── Descuento activo de campaña ───────────────────────────────────
+$descuentoActivo = 0.0;
+try {
+    $stmtDesc = $db->prepare("
+        SELECT cc.descuento FROM campana_curso cc
+        JOIN campana_crm cm ON cm.id = cc.campana_id
+        WHERE cc.curso_id = ? AND cm.activa = 1
+          AND (cm.fecha_fin IS NULL OR cm.fecha_fin >= date('now'))
+        LIMIT 1
+    ");
+    $stmtDesc->execute([$id]);
+    $descuentoActivo = (float)($stmtDesc->fetchColumn() ?: 0);
+} catch (Exception $e) { /* tabla no existe aún */ }
+
+$precioFinal = ($descuentoActivo > 0 && $precio > 0)
+    ? round($precio * (1 - $descuentoActivo / 100), 2)
+    : $precio;
 
 // ── Título de página ──────────────────────────────────────────────
 $pageTitle = htmlspecialchars($curso['titulo'] ?? 'Detalle del curso');

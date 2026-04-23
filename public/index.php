@@ -36,18 +36,6 @@ switch ($url) {
         $controller->index();
         break;
 
-    case 'plantillas-documento':
-        require_once "../app/controllers/DashboardController.php";
-        $controller = new DashboardController();
-        $controller->plantilla();
-        break;
-
-    case 'nuevo-documento':
-        require_once "../app/controllers/DashboardController.php";
-        $controller = new DashboardController();
-        $controller->nuevoDocumento();
-        break;
-
     case 'documento-compartido':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();
@@ -153,6 +141,21 @@ switch ($url) {
         require_once "../app/controllers/LeccionController.php";
         break;
 
+    case 'examen':
+        require_once "../app/controllers/ExamenController.php";
+        break;
+
+    case 'examen-practico':
+        require_once "../app/controllers/ExamenPracticoController.php";
+        break;
+
+    case 'apuntes-ia':
+        require_once "../app/controllers/ApuntesIaController.php";
+        break;
+
+    case 'vincular-google':
+        require_once "../app/controllers/VincularGoogleController.php";
+        break;
 
     case 'pagar':
         require_once "../app/controllers/CarritoController.php";
@@ -174,6 +177,22 @@ switch ($url) {
 
     case 'calendario':
         require_once "../app/controllers/CalendarioController.php";
+        break;
+
+    case 'notificaciones':
+        require_once "../app/controllers/NotificacionesPageController.php";
+        break;
+
+    case 'api-notificaciones':
+        require_once "../app/controllers/NotificacionController.php";
+        break;
+
+    case 'api-eventos-usuario':
+        require_once "../app/controllers/EventoUsuarioController.php";
+        break;
+
+    case 'api-perfil':
+        require_once "../app/controllers/PerfilController.php";
         break;
 
     case 'tareas':
@@ -210,6 +229,19 @@ switch ($url) {
         require_once "../app/controllers/AjustesController.php";
         $controller = new AjustesController();
         $controller->cambiarContrasena();
+        break;
+
+    // ── CRM panel (admins + moderators) ───────────────────────────────
+    case 'crm':
+        require_once "../app/controllers/CrmController.php";
+        $controller = new CrmController();
+        $controller->index();
+        break;
+
+    case 'crm-api':
+        require_once "../app/controllers/CrmController.php";
+        $controller = new CrmController();
+        $controller->api();
         break;
 
     default:

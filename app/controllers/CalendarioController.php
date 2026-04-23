@@ -3,6 +3,7 @@ require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../models/Curso.php';
 require_once __DIR__ . '/../models/Tarea.php';
+require_once __DIR__ . '/../models/EventoUsuario.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -19,16 +20,9 @@ class CalendarioController
         $database   = new Database();
         $conexion   = $database->connect();
 
-        $calYear  = isset($_GET['y']) ? (int)$_GET['y'] : (int)date('Y');
-        $calMonth = isset($_GET['m']) ? (int)$_GET['m'] : (int)date('n');
-        if ($calMonth < 1)   $calMonth = 1;
-        if ($calMonth > 12)  $calMonth = 12;
-        if ($calYear < 2000) $calYear  = 2000;
-        if ($calYear > 2100) $calYear  = 2100;
-
-        // Cursos en progreso para el panel derecho
+        // Cursos en progreso con expiración
         $stmt = $conexion->prepare("
-            SELECT c.id, c.titulo,
+            SELECT c.id, c.titulo, m.fecha AS fecha_matricula,
                 (
                     SELECT COUNT(l.id) FROM leccion l
                     JOIN unidad u ON l.unidad_id = u.id
@@ -68,30 +62,96 @@ class CalendarioController
                 $s->execute([$cp['id']]);
                 $cp['ultima_leccion_id'] = $s->fetchColumn() ?: null;
             }
+
+            $tsMatricula = strtotime($cp['fecha_matricula'] ?? 'now');
+            $tsExpira    = $tsMatricula + (90 * 86400);
+            $cp['fecha_expiracion'] = date('Y-m-d', $tsExpira);
+            $cp['dias_restantes']   = (int)ceil(($tsExpira - time()) / 86400);
         }
         unset($cp);
 
-        $pageTitle = "Calendario";
-        $tareaModel = new Tarea($conexion);
+        $pageTitle     = "Planificador";
+        $tareaModel    = new Tarea($conexion);
         $tareasUsuario = $tareaModel->obtenerPanelUsuario($usuario_id);
-        $tareasPorDia = [];
-        foreach ($tareasUsuario as $tarea) {
-            if (empty($tarea['fecha_limite'])) {
-                continue;
-            }
 
-            $timestamp = strtotime($tarea['fecha_limite']);
-            if ((int)date('Y', $timestamp) !== $calYear || (int)date('n', $timestamp) !== $calMonth) {
-                continue;
-            }
+        // Eventos personales del usuario
+        $eventoModel    = new EventoUsuario($conexion);
+        $eventosPersonales = $eventoModel->obtenerPorUsuario($usuario_id);
 
-            $dia = (int)date('j', $timestamp);
-            if (!isset($tareasPorDia[$dia])) {
-                $tareasPorDia[$dia] = [];
-            }
-
-            $tareasPorDia[$dia][] = $tarea;
+        // Paleta de colores por curso
+        $palette     = ['#6B8F71','#3b82f6','#f59e0b','#8b5cf6','#ec4899','#0ea5e9','#14b8a6','#ef4444'];
+        $cursoColors = [];
+        $ci = 0;
+        foreach ($cursosEnProgreso as $cp) {
+            $cursoColors[$cp['titulo']] = $palette[$ci++ % count($palette)];
         }
+        foreach ($tareasUsuario as $t) {
+            $key = $t['curso'] ?? 'Curso';
+            if (!isset($cursoColors[$key])) $cursoColors[$key] = $palette[$ci++ % count($palette)];
+        }
+
+        // Colores por tipo de evento personal
+        $tipoColores = [
+            'sesion'       => '#6B8F71',
+            'hito'         => '#f59e0b',
+            'recordatorio' => '#3b82f6',
+            'bloqueo'      => '#94a3b8',
+        ];
+
+        // Eventos FullCalendar: tareas de cursos
+        $fcEvents = [];
+        foreach ($tareasUsuario as $t) {
+            if (empty($t['fecha_limite'])) continue;
+            $fcEvents[] = [
+                'id'            => 'tarea_' . $t['id'],
+                'title'         => $t['titulo'],
+                'start'         => substr($t['fecha_limite'], 0, 10),
+                'color'         => $cursoColors[$t['curso'] ?? ''] ?? '#6B8F71',
+                'extendedProps' => [
+                    'tipo'        => 'tarea',
+                    'curso'       => $t['curso'] ?? '',
+                    'descripcion' => $t['descripcion'] ?? '',
+                    'editable'    => false,
+                ],
+            ];
+        }
+
+        // Eventos FullCalendar: expiraciones de cursos
+        foreach ($cursosEnProgreso as $cp) {
+            $fcEvents[] = [
+                'id'            => 'exp_' . $cp['id'],
+                'title'         => '⏰ Expira: ' . $cp['titulo'],
+                'start'         => $cp['fecha_expiracion'],
+                'color'         => '#ef4444',
+                'allDay'        => true,
+                'extendedProps' => [
+                    'tipo'        => 'expiracion',
+                    'curso'       => $cp['titulo'],
+                    'descripcion' => 'Fecha límite del curso (3 meses desde la matrícula).',
+                    'editable'    => false,
+                ],
+            ];
+        }
+
+        // Eventos FullCalendar: eventos personales
+        foreach ($eventosPersonales as $ev) {
+            $color = $ev['color'] ?? ($tipoColores[$ev['tipo']] ?? '#6B8F71');
+            $fcEvents[] = [
+                'id'            => 'ev_' . $ev['id'],
+                'title'         => $ev['titulo'],
+                'start'         => $ev['fecha_inicio'],
+                'end'           => $ev['fecha_fin'] ?? null,
+                'allDay'        => (bool)(int)$ev['todo_el_dia'],
+                'color'         => $color,
+                'extendedProps' => [
+                    'tipo'        => $ev['tipo'],
+                    'descripcion' => $ev['descripcion'] ?? '',
+                    'editable'    => true,
+                    'ev_id'       => (int)$ev['id'],
+                ],
+            ];
+        }
+
         require __DIR__ . '/../views/calendario/index.php';
     }
 }
