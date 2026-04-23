@@ -45,13 +45,12 @@
         <span class="crm-sl-label">Dashboard</span>
       </a>
 
-      <?php if ($esSuperAdmin): ?>
+      <?php if ($esAdmin): ?>
       <a href="<?= $crmBase ?>usuarios"
          class="crm-sidebar__link <?= $seccion==='usuarios'?'active':'' ?>"
          data-tooltip="Usuarios">
         <svg class="crm-sl-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
         <span class="crm-sl-label">Usuarios</span>
-        <span class="crm-sl-badge">Super</span>
       </a>
       <?php endif; ?>
 

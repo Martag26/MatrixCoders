@@ -43,7 +43,6 @@
             grid-template-columns:1fr 0;
             gap:0 20px;
             align-items:start;
-            overflow:hidden;
             transition:grid-template-columns .2s cubic-bezier(.4,0,.2,1);
         }
 

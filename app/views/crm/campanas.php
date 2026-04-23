@@ -264,7 +264,8 @@ async function guardarCampana() {
 }
 
 async function eliminarCampana(id, titulo) {
-  if (!CRM.confirm(`¿Eliminar la campaña "${titulo}"?`)) return;
+  const ok = await CRM.confirm(`¿Eliminar la campaña "${titulo}"?`, { title: 'Eliminar campaña', okLabel: 'Eliminar' });
+  if (!ok) return;
   const res = await CRM.api('eliminar_campana', { id });
   if (res.ok) { CRM.toast(res.mensaje, 'success'); setTimeout(()=>location.reload(),800); }
   else        { CRM.toast(res.error, 'error'); }

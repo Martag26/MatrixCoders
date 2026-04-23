@@ -81,22 +81,27 @@ class CrmController
     /* ------------------------------------------------------------------ */
     private function runCrmMigrations(): void
     {
-        $crmSql = __DIR__ . '/../data/crm_migrate.sql';
-        if (file_exists($crmSql)) {
-            $this->db->exec(file_get_contents($crmSql));
-        }
-
+        // Run ALTER TABLE statements FIRST so columns exist before the SQL file uses them
         foreach ([
-            'ALTER TABLE usuario ADD COLUMN es_superadmin INTEGER NOT NULL DEFAULT 0',
-            'ALTER TABLE usuario ADD COLUMN es_moderador  INTEGER NOT NULL DEFAULT 0',
-            'ALTER TABLE curso   ADD COLUMN activo        INTEGER NOT NULL DEFAULT 1',
-            'ALTER TABLE curso   ADD COLUMN instructor_id INTEGER DEFAULT NULL',
-            'ALTER TABLE curso   ADD COLUMN orden         INTEGER NOT NULL DEFAULT 0',
+            'ALTER TABLE usuario ADD COLUMN es_superadmin  INTEGER NOT NULL DEFAULT 0',
+            'ALTER TABLE usuario ADD COLUMN es_moderador   INTEGER NOT NULL DEFAULT 0',
+            'ALTER TABLE usuario ADD COLUMN notificaciones INTEGER NOT NULL DEFAULT 1',
+            'ALTER TABLE curso   ADD COLUMN activo         INTEGER NOT NULL DEFAULT 1',
+            'ALTER TABLE curso   ADD COLUMN instructor_id  INTEGER DEFAULT NULL',
+            'ALTER TABLE curso   ADD COLUMN orden          INTEGER NOT NULL DEFAULT 0',
             'ALTER TABLE campana_crm ADD COLUMN descuento_pct REAL NOT NULL DEFAULT 0',
             'ALTER TABLE leccion ADD COLUMN orden INTEGER NOT NULL DEFAULT 0',
             'ALTER TABLE unidad  ADD COLUMN orden INTEGER NOT NULL DEFAULT 0',
         ] as $sql) {
-            try { $this->db->exec($sql); } catch (Exception $e) { /* ya existe */ }
+            try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
+        }
+
+        // Now run the SQL migration file (may reference columns added above)
+        $crmSql = __DIR__ . '/../data/crm_migrate.sql';
+        if (file_exists($crmSql)) {
+            try {
+                $this->db->exec(file_get_contents($crmSql));
+            } catch (Exception $e) { /* idempotent — tables may already exist */ }
         }
     }
 
@@ -248,9 +253,19 @@ class CrmController
             FROM curso GROUP BY nivel ORDER BY total DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
+        $totalInstructores = (int)$db->query("SELECT COUNT(*) FROM usuario WHERE rol='EDITOR'")->fetchColumn();
+        $nuevosEstaSemana  = (int)$db->query("SELECT COUNT(*) FROM usuario WHERE creado_en >= date('now','-7 days')")->fetchColumn();
+
+        $recentUsersStmt = $db->query("
+            SELECT u.*, (SELECT COUNT(*) FROM matricula WHERE usuario_id=u.id) AS cursos_count
+            FROM usuario u ORDER BY u.creado_en DESC LIMIT 5
+        ");
+        $recentUsers = $recentUsersStmt ? $recentUsersStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
         return compact('totalUsuarios','totalCursos','cursosActivos','totalCampanas',
                        'totalMensajes','nuevosEsteMes','totalMatriculas','incidenciasAbiertas',
-                       'topCursos','porRol','actividad6m','recientes','porNivel');
+                       'topCursos','porRol','actividad6m','recientes','porNivel',
+                       'totalInstructores','nuevosEstaSemana','recentUsers');
     }
 
     private function getLogsData(): array
@@ -289,10 +304,12 @@ class CrmController
     private function getUsuariosData(): array
     {
         if (!$this->esAdmin) return [];
-        $page  = max(1, (int)($_GET['pag'] ?? 1));
-        $limit = 15;
-        $q     = trim($_GET['q'] ?? '');
-        $rol   = $_GET['rol'] ?? '';
+        $page     = max(1, (int)($_GET['pag'] ?? 1));
+        $perPage  = in_array((int)($_GET['per'] ?? 15), [15,25,50,100]) ? (int)($_GET['per'] ?? 15) : 15;
+        $limit    = $perPage;
+        $q        = trim($_GET['q'] ?? '');
+        $rol      = $_GET['rol'] ?? '';
+        $periodo  = $_GET['periodo'] ?? '';
 
         $where = 'WHERE 1=1';
         $params = [];
@@ -311,11 +328,18 @@ class CrmController
         } elseif ($rol === 'alumno') {
             $where .= " AND u.rol='USUARIO' AND u.es_moderador=0";
         }
+        if ($periodo === 'hoy') {
+            $where .= " AND date(u.creado_en) = date('now')";
+        } elseif ($periodo === 'semana') {
+            $where .= " AND u.creado_en >= date('now','-7 days')";
+        } elseif ($periodo === 'mes') {
+            $where .= " AND u.creado_en >= date('now','-30 days')";
+        }
 
         $total = $this->db->prepare("SELECT COUNT(*) FROM usuario u $where");
         $total->execute($params);
         $totalRows = (int)$total->fetchColumn();
-        $totalPags = (int)ceil($totalRows / $limit);
+        $totalPags = max(1, (int)ceil($totalRows / $limit));
         $offset    = ($page - 1) * $limit;
 
         $stmt = $this->db->prepare("
@@ -330,55 +354,91 @@ class CrmController
 
         $cursos = $this->db->query("SELECT id, titulo FROM curso ORDER BY titulo ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-        return compact('usuarios','totalRows','totalPags','page','q','rol','cursos');
+        // Stats by role for the strip
+        $statsRow = $this->db->query("
+            SELECT
+              COUNT(*) AS total,
+              SUM(CASE WHEN rol='USUARIO' AND es_moderador=0 THEN 1 ELSE 0 END) AS alumnos,
+              SUM(CASE WHEN rol='EDITOR' THEN 1 ELSE 0 END) AS instructores,
+              SUM(CASE WHEN rol='ADMINISTRADOR' THEN 1 ELSE 0 END) AS admins,
+              SUM(CASE WHEN creado_en >= date('now','-7 days') THEN 1 ELSE 0 END) AS nuevos7d
+            FROM usuario
+        ")->fetch(PDO::FETCH_ASSOC);
+
+        return compact('usuarios','totalRows','totalPags','page','perPage','q','rol','periodo','cursos','statsRow');
     }
 
     private function getCursosData(): array
     {
-        $page  = max(1, (int)($_GET['pag'] ?? 1));
-        $limit = 12;
-        $q     = trim($_GET['q'] ?? '');
-        $cat   = $_GET['cat'] ?? '';
-        $nivel = $_GET['nivel'] ?? '';
+        $page    = max(1, (int)($_GET['pag'] ?? 1));
+        $perPage = in_array((int)($_GET['per'] ?? 12), [6,12,24,48]) ? (int)($_GET['per'] ?? 12) : 12;
+        $limit   = $perPage;
+        $q       = trim($_GET['q'] ?? '');
+        $cat     = $_GET['cat'] ?? '';
+        $nivel   = $_GET['nivel'] ?? '';
 
         $where = 'WHERE 1=1'; $params = [];
         if ($q)     { $where .= ' AND c.titulo LIKE ?'; $params[] = "%$q%"; }
         if ($cat)   { $where .= ' AND c.categoria = ?'; $params[] = $cat; }
         if ($nivel) { $where .= ' AND c.nivel = ?';     $params[] = $nivel; }
 
-        $totalRows = (int)$this->db->prepare("SELECT COUNT(*) FROM curso c $where")
-                                   ->execute($params) ? $this->db->prepare("SELECT COUNT(*) FROM curso c $where") : 0;
         $cntStmt = $this->db->prepare("SELECT COUNT(*) FROM curso c $where");
         $cntStmt->execute($params);
         $totalRows = (int)$cntStmt->fetchColumn();
-        $totalPags = (int)ceil($totalRows / $limit);
+        $totalPags = max(1, (int)ceil($totalRows / $limit));
         $offset    = ($page - 1) * $limit;
 
-        $stmt = $this->db->prepare("
-            SELECT c.*,
-                   (SELECT COUNT(*) FROM matricula WHERE curso_id=c.id) AS alumnos,
-                   u.nombre AS instructor_nombre,
-                   (SELECT COUNT(*) FROM campana_curso cc
-                    JOIN campana_crm cm ON cm.id=cc.campana_id
-                    WHERE cc.curso_id=c.id AND cm.activa=1
-                      AND (cm.fecha_fin IS NULL OR cm.fecha_fin >= date('now'))) AS campana_activa,
-                   (SELECT cc2.descuento FROM campana_curso cc2
-                    JOIN campana_crm cm2 ON cm2.id=cc2.campana_id
-                    WHERE cc2.curso_id=c.id AND cm2.activa=1
-                      AND (cm2.fecha_fin IS NULL OR cm2.fecha_fin >= date('now'))
-                    LIMIT 1) AS descuento_activo
-            FROM curso c
-            LEFT JOIN usuario u ON u.id=c.instructor_id
-            $where ORDER BY c.id DESC LIMIT $limit OFFSET $offset
-        ");
-        $stmt->execute($params);
-        $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT c.*,
+                       (SELECT COUNT(*) FROM matricula WHERE curso_id=c.id) AS alumnos,
+                       (SELECT GROUP_CONCAT(u2.nombre, ', ') FROM curso_instructor ci JOIN usuario u2 ON u2.id=ci.usuario_id WHERE ci.curso_id=c.id) AS instructor_nombre,
+                       (SELECT GROUP_CONCAT(ci2.usuario_id) FROM curso_instructor ci2 WHERE ci2.curso_id=c.id) AS instructor_ids_str,
+                       u.nombre AS instructor_nombre_legacy,
+                       (SELECT COUNT(*) FROM campana_curso cc
+                        JOIN campana_crm cm ON cm.id=cc.campana_id
+                        WHERE cc.curso_id=c.id AND cm.activa=1
+                          AND (cm.fecha_fin IS NULL OR cm.fecha_fin >= date('now'))) AS campana_activa,
+                       (SELECT cc2.descuento FROM campana_curso cc2
+                        JOIN campana_crm cm2 ON cm2.id=cc2.campana_id
+                        WHERE cc2.curso_id=c.id AND cm2.activa=1
+                          AND (cm2.fecha_fin IS NULL OR cm2.fecha_fin >= date('now'))
+                        LIMIT 1) AS descuento_activo
+                FROM curso c
+                LEFT JOIN usuario u ON u.id=c.instructor_id
+                $where ORDER BY c.id DESC LIMIT $limit OFFSET $offset
+            ");
+            $stmt->execute($params);
+            $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            /* Fallback: query simple sin subqueries avanzadas */
+            $stmt = $this->db->prepare("
+                SELECT c.*, u.nombre AS instructor_nombre_legacy,
+                       0 AS alumnos, NULL AS instructor_nombre,
+                       NULL AS instructor_ids_str, 0 AS campana_activa, 0 AS descuento_activo
+                FROM curso c
+                LEFT JOIN usuario u ON u.id=c.instructor_id
+                $where ORDER BY c.id DESC LIMIT $limit OFFSET $offset
+            ");
+            $stmt->execute($params);
+            $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         $categorias = $this->db->query("SELECT DISTINCT categoria FROM curso WHERE categoria IS NOT NULL ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
         $niveles    = $this->db->query("SELECT DISTINCT nivel FROM curso WHERE nivel IS NOT NULL ORDER BY nivel")->fetchAll(PDO::FETCH_COLUMN);
         $instructores = $this->db->query("SELECT id, nombre FROM usuario WHERE rol='EDITOR' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
-        return compact('cursos','totalRows','totalPags','page','q','cat','nivel','categorias','niveles','instructores');
+        $cursosStats = $this->db->query("
+            SELECT
+              COUNT(*) AS total,
+              SUM(CASE WHEN activo=1 THEN 1 ELSE 0 END) AS activos,
+              SUM(CASE WHEN activo=0 THEN 1 ELSE 0 END) AS inactivos,
+              SUM(CASE WHEN precio=0 OR precio IS NULL THEN 1 ELSE 0 END) AS gratis,
+              (SELECT COUNT(*) FROM matricula) AS total_matriculas
+            FROM curso
+        ")->fetch(PDO::FETCH_ASSOC);
+
+        return compact('cursos','totalRows','totalPags','page','perPage','q','cat','nivel','categorias','niveles','instructores','cursosStats');
     }
 
     private function getEditorData(): array
@@ -427,7 +487,11 @@ class CrmController
 
         $instructores = $this->db->query("SELECT id, nombre FROM usuario WHERE rol='EDITOR' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
-        return compact('curso','unidades','examen','preguntas','instructores');
+        $stmtIns = $this->db->prepare("SELECT usuario_id FROM curso_instructor WHERE curso_id=?");
+        $stmtIns->execute([$cursoId]);
+        $instructoresAsignados = $stmtIns->fetchAll(PDO::FETCH_COLUMN);
+
+        return compact('curso','unidades','examen','preguntas','instructores','instructoresAsignados');
     }
 
     private function getCampanasData(): array
@@ -677,11 +741,22 @@ class CrmController
     {
         if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
         $d = $this->input();
-        $cursoId      = (int)($d['curso_id'] ?? 0);
-        $instructorId = $d['instructor_id'] ? (int)$d['instructor_id'] : null;
+        $cursoId     = (int)($d['curso_id'] ?? 0);
         if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
-        $this->db->prepare("UPDATE curso SET instructor_id=? WHERE id=?")->execute([$instructorId, $cursoId]);
-        return ['ok' => true, 'mensaje' => 'Instructor asignado'];
+
+        // Accept array of instructor IDs
+        $ids = array_values(array_filter(array_map('intval', (array)($d['instructor_ids'] ?? ($d['instructor_id'] ? [$d['instructor_id']] : [])))));
+
+        // Update legacy column with first instructor
+        $primary = $ids[0] ?? null;
+        $this->db->prepare("UPDATE curso SET instructor_id=? WHERE id=?")->execute([$primary, $cursoId]);
+
+        // Update junction table
+        $this->db->prepare("DELETE FROM curso_instructor WHERE curso_id=?")->execute([$cursoId]);
+        $stmt = $this->db->prepare("INSERT OR IGNORE INTO curso_instructor (curso_id, usuario_id) VALUES(?,?)");
+        foreach ($ids as $uid) { $stmt->execute([$cursoId, $uid]); }
+
+        return ['ok' => true, 'mensaje' => count($ids) . ' instructor(es) asignado(s)'];
     }
 
     private function apiGuardarUnidades(): array
@@ -826,12 +901,10 @@ class CrmController
             }
         }
 
-        if ($d['notificar'] ?? false) {
-            $this->notificarUsuarios($titulo, $cuerpo, $id);
-        }
+        $enviados = $this->notificarUsuarios($titulo, $cuerpo, $id);
 
         $this->logActividad("Campaña creada: $titulo", 'info');
-        return ['ok' => true, 'id' => $id, 'mensaje' => 'Campaña creada correctamente'];
+        return ['ok' => true, 'id' => $id, 'mensaje' => "Campaña creada y notificación enviada a $enviados usuario(s)"];
     }
 
     private function apiEditarCampana(): array
@@ -985,12 +1058,22 @@ class CrmController
         } catch (Exception $e) { /* ignorar */ }
     }
 
-    private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId): void
+    private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId): int
     {
-        $usuarios = $this->db->query("SELECT id FROM usuario WHERE notificaciones=1")->fetchAll(PDO::FETCH_COLUMN);
-        $stmt = $this->db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,ref_id) VALUES(?,?,?,?,?)");
+        // Get all users who don't already have this campaign notification
+        $stmt = $this->db->prepare("
+            SELECT u.id FROM usuario u
+            LEFT JOIN notificacion n ON n.usuario_id=u.id AND n.tipo='crm' AND n.ref_id=?
+            WHERE (u.notificaciones IS NULL OR u.notificaciones=1)
+              AND n.id IS NULL
+        ");
+        $stmt->execute([$campanaId]);
+        $usuarios = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $ins = $this->db->prepare("INSERT OR IGNORE INTO notificacion (usuario_id,tipo,titulo,cuerpo,ref_id) VALUES(?,?,?,?,?)");
         foreach ($usuarios as $uid) {
-            $stmt->execute([$uid, 'crm', $titulo, $cuerpo, $campanaId]);
+            $ins->execute([$uid, 'crm', $titulo, $cuerpo, $campanaId]);
         }
+        return count($usuarios);
     }
 }

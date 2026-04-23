@@ -89,6 +89,24 @@ if ($estaMatriculado) {
     }
 }
 
+// ── Descuento activo de campaña ───────────────────────────────────
+$descuentoActivo = 0.0;
+try {
+    $stmtDesc = $db->prepare("
+        SELECT cc.descuento FROM campana_curso cc
+        JOIN campana_crm cm ON cm.id = cc.campana_id
+        WHERE cc.curso_id = ? AND cm.activa = 1
+          AND (cm.fecha_fin IS NULL OR cm.fecha_fin >= date('now'))
+        LIMIT 1
+    ");
+    $stmtDesc->execute([$id]);
+    $descuentoActivo = (float)($stmtDesc->fetchColumn() ?: 0);
+} catch (Exception $e) { /* tabla no existe aún */ }
+
+$precioFinal = ($descuentoActivo > 0 && $precio > 0)
+    ? round($precio * (1 - $descuentoActivo / 100), 2)
+    : $precio;
+
 // ── Título de página ──────────────────────────────────────────────
 $pageTitle = htmlspecialchars($curso['titulo'] ?? 'Detalle del curso');
 

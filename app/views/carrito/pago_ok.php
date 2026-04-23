@@ -10,6 +10,16 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
     <style>
+        /* Purchased courses list */
+        .cursos-comprados{margin:0 0 28px;text-align:left;display:flex;flex-direction:column;gap:10px}
+        .curso-ok-item{display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:10px 14px}
+        .curso-ok-thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#e5e7eb}
+        .curso-ok-info{flex:1;min-width:0}
+        .curso-ok-titulo{font-size:.85rem;font-weight:700;color:#1B2336;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 2px}
+        .curso-ok-precio{font-size:.75rem;color:#6b7280;margin:0}
+        .curso-ok-check{color:#16a34a;font-size:1.1rem;flex-shrink:0}
+    </style>
+    <style>
         :root {
             --mc-green: #6B8F71;
             --mc-green-d: #4a6b50;
@@ -124,27 +134,59 @@
 </head>
 
 <body>
-    <?php require __DIR__ . '/../layout/header.php'; ?>
-    <?php $esAltaGratis = !empty($_GET['gratis']); ?>
-    <?php $esPagoSimulado = !empty($_GET['simulado']); ?>
+    <?php
+    require __DIR__ . '/../layout/header.php';
+    require_once __DIR__ . '/../../helpers/curso_imagen.php';
+    $esAltaGratis    = !empty($_GET['gratis']);
+    $esPagoSimulado  = !empty($_GET['simulado']);
+    $cursosComprados = $cursosComprados ?? [];
+    ?>
 
     <div class="ok-page">
         <div class="ok-card">
             <div class="ok-circle">✓</div>
-            <h1 class="ok-title"><?= $esPagoSimulado ? '¡Pago simulado completado!' : ($esAltaGratis ? '¡Acceso activado!' : '¡Pago completado!') ?></h1>
+            <h1 class="ok-title">
+                <?= $esPagoSimulado ? '¡Pago simulado completado!' : ($esAltaGratis ? '¡Acceso activado!' : '¡Pago completado!') ?>
+            </h1>
             <p class="ok-sub">
-                <?= $esPagoSimulado
-                    ? 'Se ha registrado una compra de prueba y los cursos ya están disponibles en tu cuenta sin realizar ningún cobro real.'
-                    : ($esAltaGratis
-                    ? 'Tus cursos gratuitos ya están activos y listos para empezar.'
-                    : 'Ya tienes acceso a tus nuevos cursos.<br>Están disponibles en tu espacio de aprendizaje.') ?>
+                <?php if ($esPagoSimulado): ?>
+                    Se ha registrado una compra de prueba y los cursos ya están disponibles en tu cuenta sin realizar ningún cobro real.
+                <?php elseif ($esAltaGratis): ?>
+                    Tus cursos gratuitos ya están activos y listos para empezar.
+                <?php else: ?>
+                    Ya tienes acceso a tus nuevos cursos. Están disponibles en tu espacio de aprendizaje.
+                <?php endif; ?>
             </p>
+
+            <?php if (!empty($cursosComprados)): ?>
+                <div class="cursos-comprados">
+                    <?php foreach ($cursosComprados as $c):
+                        $img = matrixcoders_curso_image($c['imagen'] ?? '', $c['titulo'] ?? '');
+                        $precio = (float)($c['precio'] ?? 0);
+                    ?>
+                        <div class="curso-ok-item">
+                            <img class="curso-ok-thumb"
+                                src="<?= htmlspecialchars($img) ?>"
+                                alt="<?= htmlspecialchars($c['titulo']) ?>"
+                                onerror="this.src='<?= BASE_URL ?>/img/aprendiendo.png'">
+                            <div class="curso-ok-info">
+                                <p class="curso-ok-titulo"><?= htmlspecialchars($c['titulo']) ?></p>
+                                <p class="curso-ok-precio">
+                                    <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratuito' ?>
+                                </p>
+                            </div>
+                            <span class="curso-ok-check">✓</span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
             <div class="ok-actions">
                 <a class="btn-ok primary" href="<?= BASE_URL ?>/index.php?url=dashboard">
                     📚 Ir a mis cursos
                 </a>
-                <a class="btn-ok secondary" href="<?= BASE_URL ?>/index.php?url=dashboard">
-                    🏠 Volver al dashboard
+                <a class="btn-ok secondary" href="<?= BASE_URL ?>/index.php?url=buscar">
+                    🔍 Seguir explorando
                 </a>
             </div>
         </div>

@@ -53,6 +53,19 @@ CREATE TABLE IF NOT EXISTS mensaje_curso (
     FOREIGN KEY (destinatario_id) REFERENCES usuario(id) ON DELETE SET NULL
 );
 
+-- Múltiples instructores por curso (junction table)
+CREATE TABLE IF NOT EXISTS curso_instructor (
+    curso_id    INTEGER NOT NULL,
+    usuario_id  INTEGER NOT NULL,
+    PRIMARY KEY (curso_id, usuario_id),
+    FOREIGN KEY (curso_id)   REFERENCES curso(id)   ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE
+);
+
+-- Migrar instructor_id existente a la junction table (idempotente)
+INSERT OR IGNORE INTO curso_instructor (curso_id, usuario_id)
+SELECT id, instructor_id FROM curso WHERE instructor_id IS NOT NULL;
+
 -- Log de actividad CRM (para el feed del dashboard)
 CREATE TABLE IF NOT EXISTS crm_actividad (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

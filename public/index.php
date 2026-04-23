@@ -175,6 +175,10 @@ switch ($url) {
         require_once "../app/controllers/CalendarioController.php";
         break;
 
+    case 'notificaciones':
+        require_once "../app/controllers/NotificacionesPageController.php";
+        break;
+
     case 'api-notificaciones':
         require_once "../app/controllers/NotificacionController.php";
         break;

@@ -86,8 +86,53 @@ const CRM = {
     }
   },
 
-  confirm(msg) {
-    return window.confirm(msg);
+  /* Professional confirm modal — returns a Promise<boolean> */
+  confirm(msg, opts = {}) {
+    return new Promise(resolve => {
+      let overlay = document.getElementById('crmConfirmOverlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'crmConfirmOverlay';
+        overlay.className = 'crm-confirm-overlay';
+        overlay.innerHTML = `
+          <div class="crm-confirm-box">
+            <div class="crm-confirm-icon danger" id="crmConfirmIcon">
+              <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </div>
+            <div class="crm-confirm-title" id="crmConfirmTitle">¿Confirmar acción?</div>
+            <div class="crm-confirm-msg" id="crmConfirmMsg"></div>
+            <div class="crm-confirm-actions">
+              <button class="crm-btn crm-btn-secondary" id="crmConfirmCancel">Cancelar</button>
+              <button class="crm-btn crm-btn-danger" id="crmConfirmOk">Confirmar</button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) cleanup(false); });
+      }
+      const icon    = overlay.querySelector('#crmConfirmIcon');
+      const title   = overlay.querySelector('#crmConfirmTitle');
+      const msgEl   = overlay.querySelector('#crmConfirmMsg');
+      const cancelBtn = overlay.querySelector('#crmConfirmCancel');
+      const okBtn   = overlay.querySelector('#crmConfirmOk');
+
+      icon.className  = `crm-confirm-icon ${opts.type || 'danger'}`;
+      title.textContent = opts.title || '¿Confirmar acción?';
+      msgEl.textContent = msg;
+      okBtn.textContent = opts.okLabel || 'Confirmar';
+      okBtn.className = `crm-btn crm-btn-${opts.type === 'warning' ? 'warning' : 'danger'}`;
+
+      function cleanup(result) {
+        overlay.classList.remove('show');
+        cancelBtn.removeEventListener('click', onCancel);
+        okBtn.removeEventListener('click', onOk);
+        setTimeout(() => resolve(result), 180);
+      }
+      const onCancel = () => cleanup(false);
+      const onOk     = () => cleanup(true);
+      cancelBtn.addEventListener('click', onCancel);
+      okBtn.addEventListener('click', onOk);
+      requestAnimationFrame(() => overlay.classList.add('show'));
+    });
   },
 
   formatDate(str) {
@@ -146,11 +191,13 @@ function closeModal(id) {
   if (modal) { const m = bootstrap.Modal.getInstance(modal); if (m) m.hide(); }
 }
 
-/* --- Confirm delete helper --------------------------------- */
-document.addEventListener('click', e => {
+/* --- Confirm delete helper (data-crm-confirm attribute) --- */
+document.addEventListener('click', async e => {
   const btn = e.target.closest('[data-crm-confirm]');
   if (!btn) return;
-  if (!CRM.confirm(btn.dataset.crmConfirm || '¿Confirmar acción?')) e.preventDefault();
+  e.preventDefault();
+  const ok = await CRM.confirm(btn.dataset.crmConfirm || '¿Confirmar acción?');
+  if (ok && btn.href) window.location.href = btn.href;
 });
 
 /* --- Auto-resize textareas --------------------------------- */
