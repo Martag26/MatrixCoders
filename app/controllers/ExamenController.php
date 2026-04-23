@@ -26,14 +26,19 @@ if (!(int)$stmtM->fetchColumn()) {
     exit;
 }
 
-// Cargar examen del curso
-$stmtEx = $db->prepare("SELECT * FROM examen WHERE curso_id=?");
+// Cargar examen tipo test del curso
+$stmtEx = $db->prepare("SELECT * FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
 $stmtEx->execute([$cursoId]);
 $examen = $stmtEx->fetch(PDO::FETCH_ASSOC);
 if (!$examen) {
     header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
     exit;
 }
+
+// Check if there's a practical exam for this course
+$stmtPrac = $db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
+$stmtPrac->execute([$cursoId]);
+$tieneExamenPractico = (int)$stmtPrac->fetchColumn() > 0;
 
 // Datos del curso
 $stmtC = $db->prepare("SELECT * FROM curso WHERE id=?");
@@ -45,7 +50,7 @@ $stmtU = $db->prepare("SELECT nombre FROM usuario WHERE id=?");
 $stmtU->execute([$usuarioId]);
 $usuario = $stmtU->fetch(PDO::FETCH_ASSOC);
 
-// Resultado previo
+// Resultado previo del test
 $stmtR = $db->prepare("SELECT * FROM resultado_examen WHERE usuario_id=? AND examen_id=?");
 $stmtR->execute([$usuarioId, $examen['id']]);
 $resultadoPrevio = $stmtR->fetch(PDO::FETCH_ASSOC);

@@ -776,6 +776,11 @@ $ytId = ytId($videoUrl);
                     <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-recursos">
                             📥 Recursos
+                            <?php
+                            $totalRecursos = count($recursosInstructor ?? []);
+                            if ($totalRecursos > 0): ?>
+                            <span style="display:inline-block;background:#6B8F71;color:#fff;font-size:.65rem;font-weight:700;border-radius:99px;padding:0 5px;margin-left:4px;line-height:16px"><?= $totalRecursos ?></span>
+                            <?php endif; ?>
                         </button>
                     </li>
                 </ul>
@@ -874,26 +879,71 @@ $ytId = ytId($videoUrl);
 
                 <!-- RECURSOS -->
                 <div class="tab-pane fade" id="tab-recursos">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;flex-wrap:wrap;gap:.75rem;">
-                        <div>
-                            <h6 style="font-weight:700;font-size:.95rem;margin:0;">Descarga de apuntes</h6>
-                            <p style="font-size:.8rem;color:var(--mc-muted);margin:.25rem 0 0;">Exporta los apuntes guardados de esta lección.</p>
+
+                    <?php
+                    // Load instructor resources for this lesson
+                    $recursosInstructor = [];
+                    try {
+                        $stmtRec = $db->prepare("SELECT * FROM leccion_recurso WHERE leccion_id=? ORDER BY orden,id");
+                        $stmtRec->execute([$leccionId]);
+                        $recursosInstructor = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
+                    } catch (Exception $e) {}
+
+                    // Load instructor apuntes for this lesson
+                    $apuntesInstructor = $leccion['apuntes'] ?? '';
+                    ?>
+
+                    <?php if ($apuntesInstructor): ?>
+                    <div style="margin-bottom:1.5rem">
+                        <h6 style="font-weight:700;font-size:.95rem;margin:0 0 .75rem;display:flex;align-items:center;gap:.5rem;">
+                            📋 Apuntes del instructor
+                        </h6>
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1rem 1.1rem;font-size:.9rem;color:var(--mc-text);line-height:1.75;white-space:pre-wrap;"><?= htmlspecialchars($apuntesInstructor) ?></div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($recursosInstructor)): ?>
+                    <div style="margin-bottom:1.5rem">
+                        <h6 style="font-weight:700;font-size:.95rem;margin:0 0 .75rem;display:flex;align-items:center;gap:.5rem;">
+                            📥 Recursos de la lección
+                        </h6>
+                        <?php
+                        $tipoIcon = ['pdf'=>'📄','doc'=>'📝','zip'=>'🗜️','link'=>'🔗','actividad'=>'✏️','video'=>'▶️'];
+                        foreach ($recursosInstructor as $rec):
+                            $icon = $tipoIcon[$rec['tipo']] ?? '📎';
+                        ?>
+                        <a href="<?= htmlspecialchars($rec['url_o_ruta']) ?>" target="_blank"
+                           style="display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#fff;border:1.5px solid var(--mc-border);border-radius:10px;text-decoration:none;color:var(--mc-text);margin-bottom:.5rem;transition:border-color .15s,background .15s;"
+                           onmouseover="this.style.borderColor='var(--mc-green)';this.style.background='#f0fdf4'"
+                           onmouseout="this.style.borderColor='var(--mc-border)';this.style.background='#fff'">
+                            <span style="font-size:1.4rem;flex-shrink:0"><?= $icon ?></span>
+                            <div style="flex:1;min-width:0">
+                                <div style="font-size:.9rem;font-weight:700"><?= htmlspecialchars($rec['nombre']) ?></div>
+                                <?php if ($rec['descripcion']): ?>
+                                    <div style="font-size:.78rem;color:var(--mc-muted)"><?= htmlspecialchars($rec['descripcion']) ?></div>
+                                <?php endif; ?>
+                                <div style="font-size:.75rem;color:var(--mc-green-d);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;font-weight:600"><?= ucfirst($rec['tipo']) ?> <?= $rec['descargable'] ? '· Descargable' : '' ?></div>
+                            </div>
+                            <svg width="16" height="16" fill="none" stroke="var(--mc-green)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Mis apuntes personales -->
+                    <div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem;">
+                            <h6 style="font-weight:700;font-size:.95rem;margin:0;">✏️ Mis apuntes personales</h6>
+                            <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+                                <button onclick="descargarTxt()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:1px solid var(--mc-border);border-radius:8px;background:#fff;color:var(--mc-text);font-size:.8rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">📄 .txt</button>
+                                <button onclick="imprimirPDF()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border:none;border-radius:8px;background:var(--mc-navy);color:#fff;font-size:.8rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">🖨️ PDF</button>
+                            </div>
                         </div>
-                        <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
-                            <button onclick="descargarTxt()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border:1px solid var(--mc-border);border-radius:8px;background:#fff;color:var(--mc-text);font-size:.82rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">
-                                📄 Descargar .txt
-                            </button>
-                            <button onclick="imprimirPDF()" style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border:none;border-radius:8px;background:var(--mc-navy);color:#fff;font-size:.82rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;">
-                                🖨️ Guardar como PDF
-                            </button>
+                        <div id="recursos-preview" style="min-height:120px;background:#f8fafc;border:1px solid var(--mc-border);border-radius:10px;padding:.9rem 1rem;font-size:.9rem;color:var(--mc-text);line-height:1.7;white-space:pre-wrap;">
+                            <?php echo $nota ? htmlspecialchars($nota) : '<span style="color:#9ca3af;font-style:italic;">Sin apuntes todavía. Ve a la pestaña Apuntes para escribirlos.</span>'; ?>
                         </div>
                     </div>
 
-                    <div id="recursos-preview" style="min-height:140px;background:#f8fafc;border:1px solid var(--mc-border);border-radius:10px;padding:1rem 1.1rem;font-size:.9rem;color:var(--mc-text);line-height:1.7;white-space:pre-wrap;">
-                        <?php echo $nota ? htmlspecialchars($nota) : '<span style="color:#9ca3af;font-style:italic;">Aún no tienes apuntes guardados para esta lección. Ve a la pestaña Apuntes y escribe tus notas.</span>'; ?>
-                    </div>
-
-                    <!-- Contenido de impresión PDF (oculto en pantalla) -->
                     <div id="pdf-print-area" style="display:none;">
                         <div style="font-family:'Georgia',serif;max-width:700px;margin:0 auto;padding:40px;">
                             <div style="border-bottom:3px solid #6B8F71;padding-bottom:16px;margin-bottom:24px;">
@@ -901,9 +951,7 @@ $ytId = ytId($videoUrl);
                                 <p style="font-size:.9rem;color:#6b7280;margin:0;">Apuntes — <?= htmlspecialchars($tituloLeccion) ?></p>
                             </div>
                             <div id="pdf-contenido" style="font-size:.95rem;line-height:1.8;color:#374151;white-space:pre-wrap;"></div>
-                            <div style="margin-top:32px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:.75rem;color:#9ca3af;">
-                                MatrixCoders · <?= date('d/m/Y') ?>
-                            </div>
+                            <div style="margin-top:32px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:.75rem;color:#9ca3af;">MatrixCoders · <?= date('d/m/Y') ?></div>
                         </div>
                     </div>
                 </div>

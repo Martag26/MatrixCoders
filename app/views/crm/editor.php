@@ -95,6 +95,10 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
     Apuntes
   </button>
+  <button class="crm-editor-tab" data-tab="resultados" onclick="switchTab('resultados'); cargarResultados()">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    Resultados
+  </button>
 </div>
 
 <!-- ================================================================ -->
@@ -307,7 +311,7 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
               <span class="crm-video-platform <?= $ytId ? 'yt' : 'vimeo' ?>"><?= $ytId ? 'YouTube' : 'Vídeo' ?></span>
               <?php endif; ?>
               <div class="crm-lesson-actions">
-                <button class="crm-btn-icon crm-btn-sm" title="Editar lección" onclick='editarLeccion(<?= $l['id'] ?>, <?= htmlspecialchars(json_encode(['titulo'=>$l['titulo'],'video_url'=>$l['video_url']??'']), JSON_UNESCAPED_UNICODE) ?>)'>
+                <button class="crm-btn-icon crm-btn-sm" title="Editar lección" onclick='editarLeccion(<?= $l['id'] ?>, <?= htmlspecialchars(json_encode(['titulo'=>$l['titulo'],'video_url'=>$l['video_url']??'','apuntes'=>$l['apuntes']??'']), JSON_UNESCAPED_UNICODE) ?>)'>
                   <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </button>
                 <button class="crm-btn-icon danger crm-btn-sm" title="Eliminar lección" onclick="pedirEliminarLeccion(<?= $l['id'] ?>, this)">
@@ -518,6 +522,66 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 </div>
 
 <!-- ================================================================ -->
+<!-- TAB 5: RESULTADOS                                                 -->
+<!-- ================================================================ -->
+<div id="tab-resultados" class="crm-tab-panel">
+  <div class="crm-editor-panel">
+    <div class="crm-editor-panel-header">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      <h3>Resultados de alumnos</h3>
+      <button class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="cargarResultados(true)">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Actualizar
+      </button>
+    </div>
+    <div class="crm-editor-panel-body" style="padding:0">
+      <div id="resultadosLoading" style="text-align:center;padding:40px;color:var(--crm-muted)">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;display:block;margin:0 auto 10px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+        Cargando resultados…
+      </div>
+      <div id="resultadosContent" style="display:none">
+        <div id="resultadosStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px;border-bottom:1px solid var(--crm-border)"></div>
+        <div class="crm-table-wrap" style="margin:0">
+          <table class="crm-table" id="resultadosTable">
+            <thead>
+              <tr>
+                <th>Alumno</th>
+                <th style="text-align:center">Examen test</th>
+                <th style="text-align:center">Práctico</th>
+                <th style="text-align:center">Certificado</th>
+                <th style="text-align:right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="resultadosTbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="resultadosEmpty" style="display:none;text-align:center;padding:40px;color:var(--crm-muted)">
+        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <p style="font-size:13px">Ningún alumno matriculado todavía.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Revisar práctica -->
+<div class="modal fade crm-modal" id="modalRevisarPractica" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalRevisarTitle">Revisar entrega práctica</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalRevisarBody" style="max-height:70vh;overflow-y:auto"></div>
+      <div class="modal-footer">
+        <button class="crm-btn crm-btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button class="crm-btn crm-btn-primary" onclick="guardarCalificaciones()">Guardar calificaciones</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================ -->
 <!-- MODALS                                                            -->
 <!-- ================================================================ -->
 
@@ -559,32 +623,100 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 </div>
 
 <div class="modal fade crm-modal" id="modalLeccion" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="modalLeccionTitle">Editar lección</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="max-height:80vh;overflow-y:auto">
         <input type="hidden" id="lecId">
         <input type="hidden" id="lecUnidadId">
-        <div class="crm-form-group">
-          <label class="crm-label">Título de la lección *</label>
-          <input type="text" class="crm-input" id="lecTitulo" placeholder="Título de la lección">
+
+        <!-- Basic fields -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div class="crm-form-group" style="margin:0">
+            <label class="crm-label">Título de la lección *</label>
+            <input type="text" class="crm-input" id="lecTitulo" placeholder="Título de la lección">
+          </div>
+          <div class="crm-form-group" style="margin:0">
+            <label class="crm-label">
+              URL del vídeo
+              <span id="lecPlatformBadge" style="margin-left:6px"></span>
+            </label>
+            <input type="url" class="crm-input" id="lecVideo" placeholder="https://youtube.com/watch?v=...">
+            <div class="crm-video-preview" id="lecVideoPreview"></div>
+          </div>
         </div>
-        <div class="crm-form-group">
+
+        <!-- Apuntes del instructor -->
+        <div class="crm-form-group" style="margin-bottom:14px">
           <label class="crm-label">
-            URL del vídeo
-            <span id="lecPlatformBadge" style="margin-left:6px"></span>
+            Apuntes del instructor
+            <span style="font-weight:400;color:var(--crm-muted);font-size:11px">(visible para el alumno en la lección)</span>
           </label>
-          <input type="url" class="crm-input" id="lecVideo" placeholder="https://youtube.com/watch?v=... o https://vimeo.com/...">
-          <div class="crm-form-hint">Soporta YouTube y Vimeo. Pega la URL y se detectará automáticamente.</div>
-          <div class="crm-video-preview" id="lecVideoPreview"></div>
+          <textarea class="crm-textarea" id="lecApuntes" rows="4" placeholder="Escribe notas, conceptos clave, referencias o explicaciones adicionales para esta lección…"></textarea>
+        </div>
+
+        <!-- Recursos -->
+        <div style="border:1px solid var(--crm-border);border-radius:10px;padding:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--crm-text)">Recursos descargables</div>
+              <div style="font-size:11.5px;color:var(--crm-muted)">Apuntes PDF, actividades no evaluables, enlaces de referencia…</div>
+            </div>
+            <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="mostrarFormRecurso()">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+              Añadir
+            </button>
+          </div>
+
+          <!-- Form añadir recurso -->
+          <div id="formRecurso" style="display:none;background:var(--crm-bg);border-radius:9px;padding:12px;margin-bottom:12px">
+            <div style="display:grid;grid-template-columns:1fr 130px;gap:10px;margin-bottom:8px">
+              <div class="crm-form-group" style="margin:0">
+                <label class="crm-label">Nombre del recurso *</label>
+                <input type="text" class="crm-input" id="recNombre" placeholder="Ej: Apuntes Tema 1.pdf">
+              </div>
+              <div class="crm-form-group" style="margin:0">
+                <label class="crm-label">Tipo</label>
+                <select class="crm-select" id="recTipo" onchange="toggleRecursoUrl()">
+                  <option value="link">Enlace</option>
+                  <option value="pdf">PDF</option>
+                  <option value="doc">Documento</option>
+                  <option value="zip">Archivo ZIP</option>
+                  <option value="actividad">Actividad</option>
+                  <option value="video">Vídeo extra</option>
+                </select>
+              </div>
+            </div>
+            <div class="crm-form-group" style="margin-bottom:8px" id="recUrlGroup">
+              <label class="crm-label">URL</label>
+              <input type="url" class="crm-input" id="recUrl" placeholder="https://…">
+            </div>
+            <div class="crm-form-group" style="margin-bottom:8px" id="recArchivoGroup" style="display:none">
+              <label class="crm-label">Subir archivo</label>
+              <input type="file" class="crm-input" id="recArchivo" style="padding:6px">
+            </div>
+            <div class="crm-form-group" style="margin-bottom:8px">
+              <label class="crm-label">Descripción <span style="font-weight:400;color:var(--crm-muted)">(opcional)</span></label>
+              <input type="text" class="crm-input" id="recDesc" placeholder="Breve descripción del recurso">
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="crm-btn crm-btn-primary crm-btn-sm" onclick="subirRecurso()">Añadir recurso</button>
+              <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById('formRecurso').style.display='none'">Cancelar</button>
+            </div>
+          </div>
+
+          <!-- Lista de recursos -->
+          <div id="recursosLeccionList">
+            <div id="recursosLoading" style="text-align:center;padding:12px;color:var(--crm-muted);font-size:12px">Cargando recursos…</div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="crm-btn crm-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="crm-btn crm-btn-primary" id="btnLeccion" onclick="guardarLeccion()">Guardar</button>
+        <button class="crm-btn crm-btn-primary" id="btnLeccion" onclick="guardarLeccion()">Guardar lección</button>
       </div>
     </div>
   </div>
@@ -792,26 +924,35 @@ document.getElementById('lecVideo')?.addEventListener('input', function() {
   }
 });
 
+function resetLeccionModal() {
+  document.getElementById('lecVideoPreview').style.display = 'none';
+  document.getElementById('lecVideoPreview').innerHTML     = '';
+  document.getElementById('lecPlatformBadge').innerHTML    = '';
+  document.getElementById('lecApuntes').value              = '';
+  document.getElementById('formRecurso').style.display    = 'none';
+  document.getElementById('recursosLeccionList').innerHTML = '<div id="recursosLoading" style="text-align:center;padding:12px;color:var(--crm-muted);font-size:12px">Cargando recursos…</div>';
+}
+
 function nuevaLeccion(unidadId) {
   leccionMode = 'create';
   document.getElementById('lecId').value       = '';
   document.getElementById('lecUnidadId').value = unidadId;
   document.getElementById('lecTitulo').value   = '';
   document.getElementById('lecVideo').value    = '';
-  document.getElementById('lecVideoPreview').style.display = 'none';
-  document.getElementById('lecVideoPreview').innerHTML     = '';
-  document.getElementById('lecPlatformBadge').innerHTML    = '';
   document.getElementById('modalLeccionTitle').textContent = 'Nueva lección';
   document.getElementById('btnLeccion').textContent = 'Crear lección';
+  resetLeccionModal();
+  document.getElementById('recursosLoading').textContent = 'Guarda primero la lección para añadir recursos.';
   openModal('modalLeccion');
 }
 
 function editarLeccion(id, data) {
   leccionMode = 'edit';
-  document.getElementById('lecId').value     = id;
-  document.getElementById('lecTitulo').value = data.titulo;
-  document.getElementById('lecVideo').value  = data.video_url || '';
-  const ytId = extractYouTubeId(data.video_url || '');
+  document.getElementById('lecId').value       = id;
+  document.getElementById('lecTitulo').value   = data.titulo;
+  document.getElementById('lecVideo').value    = data.video_url || '';
+  document.getElementById('lecApuntes').value  = data.apuntes || '';
+  const ytId    = extractYouTubeId(data.video_url || '');
   const preview = document.getElementById('lecVideoPreview');
   const badge   = document.getElementById('lecPlatformBadge');
   if (ytId) {
@@ -821,12 +962,16 @@ function editarLeccion(id, data) {
   } else { preview.style.display = 'none'; preview.innerHTML = ''; badge.innerHTML = ''; }
   document.getElementById('modalLeccionTitle').textContent = 'Editar lección';
   document.getElementById('btnLeccion').textContent = 'Guardar cambios';
+  resetLeccionModal();
+  document.getElementById('lecApuntes').value = data.apuntes || '';
+  cargarRecursosLeccion(id);
   openModal('modalLeccion');
 }
 
 async function guardarLeccion() {
   const titulo   = document.getElementById('lecTitulo').value.trim();
   const videoUrl = document.getElementById('lecVideo').value.trim();
+  const apuntes  = document.getElementById('lecApuntes').value;
   const id       = document.getElementById('lecId').value;
   const unidadId = document.getElementById('lecUnidadId').value;
   if (!titulo) { CRM.toast('El título es obligatorio', 'error'); return; }
@@ -837,7 +982,7 @@ async function guardarLeccion() {
   const platEl  = videoUrl ? `<span class="crm-video-platform ${ytId?'yt':'vimeo'}">${ytId?'YouTube':'Vídeo'}</span>` : '';
 
   if (leccionMode === 'edit') {
-    const res = await CRM.api('editar_leccion', { id, titulo, video_url: videoUrl });
+    const res = await CRM.api('editar_leccion', { id, titulo, video_url: videoUrl, apuntes });
     if (res.ok) {
       const el = document.querySelector(`.crm-lesson[data-leccion-id="${id}"]`);
       if (el) {
@@ -1124,6 +1269,227 @@ async function guardarTodo() {
   btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Guardar todo';
   if (r1.ok) CRM.toast('✓ Todos los cambios guardados correctamente', 'success');
   else CRM.toast(r1.error || 'Error al guardar', 'error');
+}
+
+/* ===== Lesson resources ===== */
+const TIPO_ICONS = { pdf:'📄', doc:'📝', zip:'🗜️', link:'🔗', actividad:'✏️', video:'▶️' };
+
+function toggleRecursoUrl() {
+  const tipo = document.getElementById('recTipo').value;
+  const needsFile = ['pdf','doc','zip'].includes(tipo);
+  document.getElementById('recUrlGroup').style.display    = needsFile ? 'none' : '';
+  document.getElementById('recArchivoGroup').style.display = needsFile ? '' : 'none';
+}
+
+function mostrarFormRecurso() {
+  const f = document.getElementById('formRecurso');
+  f.style.display = f.style.display === 'none' ? '' : 'none';
+  if (f.style.display !== 'none') {
+    document.getElementById('recNombre').value  = '';
+    document.getElementById('recUrl').value     = '';
+    document.getElementById('recDesc').value    = '';
+    document.getElementById('recTipo').value    = 'link';
+    toggleRecursoUrl();
+  }
+}
+
+async function cargarRecursosLeccion(leccionId) {
+  const list = document.getElementById('recursosLeccionList');
+  list.innerHTML = '<div style="text-align:center;padding:12px;color:var(--crm-muted);font-size:12px">Cargando…</div>';
+  const res = await fetch(`${window.CRM_API_URL}&action=get_recursos_leccion&leccion_id=${leccionId}`).then(r=>r.json());
+  renderRecursos(res.recursos || []);
+}
+
+function renderRecursos(recursos) {
+  const list = document.getElementById('recursosLeccionList');
+  if (!recursos.length) {
+    list.innerHTML = '<p style="font-size:12px;color:var(--crm-muted);text-align:center;padding:12px">Sin recursos añadidos todavía.</p>';
+    return;
+  }
+  list.innerHTML = recursos.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--crm-bg);border-radius:8px;border:1px solid var(--crm-border);margin-bottom:6px">
+      <span style="font-size:16px;flex-shrink:0">${TIPO_ICONS[r.tipo] || '📎'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--crm-text)">${CRM.escapeHtml(r.nombre)}</div>
+        ${r.descripcion ? `<div style="font-size:11px;color:var(--crm-muted)">${CRM.escapeHtml(r.descripcion)}</div>` : ''}
+      </div>
+      <a href="${r.url_o_ruta}" target="_blank" class="crm-btn-icon" title="Ver/Descargar">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+      </a>
+      <button class="crm-btn-icon danger" onclick="eliminarRecurso(${r.id})" title="Eliminar">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+async function subirRecurso() {
+  const leccionId = document.getElementById('lecId').value;
+  if (!leccionId) { CRM.toast('Guarda primero la lección', 'info'); return; }
+  const nombre = document.getElementById('recNombre').value.trim();
+  const tipo   = document.getElementById('recTipo').value;
+  const desc   = document.getElementById('recDesc').value.trim();
+  if (!nombre) { CRM.toast('El nombre es obligatorio', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('leccion_id', leccionId);
+  fd.append('nombre', nombre);
+  fd.append('tipo', tipo);
+  fd.append('descripcion', desc);
+
+  const needsFile = ['pdf','doc','zip'].includes(tipo);
+  if (needsFile) {
+    const file = document.getElementById('recArchivo').files[0];
+    if (!file) { CRM.toast('Selecciona un archivo', 'error'); return; }
+    fd.append('archivo', file);
+  } else {
+    const url = document.getElementById('recUrl').value.trim();
+    if (!url) { CRM.toast('La URL es obligatoria', 'error'); return; }
+    fd.append('url', url);
+  }
+
+  const res = await fetch(`${window.CRM_API_URL}&action=subir_recurso_leccion`, { method: 'POST', body: fd }).then(r=>r.json());
+  if (res.ok) {
+    CRM.toast('Recurso añadido', 'success');
+    document.getElementById('formRecurso').style.display = 'none';
+    cargarRecursosLeccion(leccionId);
+  } else CRM.toast(res.error, 'error');
+}
+
+async function eliminarRecurso(id) {
+  const ok = await CRM.confirm('¿Eliminar este recurso?', { title: 'Eliminar recurso', okLabel: 'Eliminar' });
+  if (!ok) return;
+  const res = await CRM.api('eliminar_recurso', { id });
+  if (res.ok) {
+    CRM.toast(res.mensaje, 'success');
+    cargarRecursosLeccion(document.getElementById('lecId').value);
+  } else CRM.toast(res.error, 'error');
+}
+
+/* ===== Resultados tab ===== */
+let resultadosLoaded = false;
+async function cargarResultados(force = false) {
+  if (resultadosLoaded && !force) return;
+  resultadosLoaded = true;
+  document.getElementById('resultadosLoading').style.display  = '';
+  document.getElementById('resultadosContent').style.display  = 'none';
+  document.getElementById('resultadosEmpty').style.display    = 'none';
+
+  const res = await fetch(`${window.CRM_API_URL}&action=get_resultados_curso&curso_id=${CURSO_ID}`).then(r=>r.json());
+  document.getElementById('resultadosLoading').style.display = 'none';
+  if (!res.ok) { CRM.toast(res.error, 'error'); return; }
+
+  const alumnos = res.alumnos || [];
+  if (!alumnos.length) { document.getElementById('resultadosEmpty').style.display = ''; return; }
+
+  const aprobadosTest    = alumnos.filter(a => a.test?.aprobado).length;
+  const entregadosPrac   = alumnos.filter(a => (a.practico?.total || 0) > 0).length;
+  const pendientesRevision = alumnos.filter(a => (a.practico?.total || 0) > 0 && (a.practico?.revisadas || 0) < (a.practico?.total || 0)).length;
+
+  document.getElementById('resultadosStats').innerHTML = [
+    ['Matriculados', alumnos.length, 'var(--crm-primary)'],
+    ['Aprobaron test', aprobadosTest, 'var(--crm-success)'],
+    ['Entregaron práctico', entregadosPrac, 'var(--crm-info)'],
+    ['Pendiente revisión', pendientesRevision, 'var(--crm-warning)'],
+  ].map(([lbl, val, color]) => `
+    <div class="crm-card" style="padding:12px 14px;text-align:center">
+      <div style="font-size:22px;font-weight:800;color:${color}">${val}</div>
+      <div style="font-size:11px;color:var(--crm-muted);margin-top:2px">${lbl}</div>
+    </div>`).join('');
+
+  document.getElementById('resultadosTbody').innerHTML = alumnos.map(al => {
+    const test = al.test;
+    const prac = al.practico;
+    const totalT = prac?.total_tareas || 0;
+
+    const testCell = test
+      ? `<span class="crm-badge ${test.aprobado ? 'activo' : 'inactivo'}" title="${test.realizado_en}">
+           ${test.aprobado ? '✓ Aprobado' : '✗ Suspenso'} · ${test.nota}/10
+         </span>`
+      : `<span style="font-size:11px;color:var(--crm-muted)">No realizado</span>`;
+
+    const pracCell = totalT === 0
+      ? `<span style="font-size:11px;color:var(--crm-muted)">Sin examen práctico</span>`
+      : (prac?.total || 0) === 0
+        ? `<span style="font-size:11px;color:var(--crm-muted)">Sin entregar</span>`
+        : `<span class="crm-badge ${(prac.revisadas || 0) >= totalT ? 'activo' : 'warning'}" style="background:${(prac.revisadas||0)>=totalT?'':'rgba(245,158,11,.15)'};color:${(prac.revisadas||0)>=totalT?'':'var(--crm-warning)'}">
+             ${prac.revisadas || 0}/${totalT} revisadas
+             ${prac.nota_media !== null ? '· ' + parseFloat(prac.nota_media).toFixed(1) + '/10' : ''}
+           </span>`;
+
+    const accionPrac = totalT > 0 && (prac?.total || 0) > 0
+      ? `<button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="verEntregasPractica(${al.id}, '${CRM.escapeHtml(al.nombre)}')">Ver entrega</button>`
+      : '';
+
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:30px;height:30px;border-radius:50%;background:rgba(124,58,237,.15);color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">${al.nombre.charAt(0).toUpperCase()}</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">${CRM.escapeHtml(al.nombre)}</div>
+            <div style="font-size:11px;color:var(--crm-muted)">${CRM.escapeHtml(al.email)}</div>
+          </div>
+        </div>
+      </td>
+      <td style="text-align:center">${testCell}</td>
+      <td style="text-align:center">${pracCell}</td>
+      <td style="text-align:center">
+        ${test?.aprobado ? '<span class="crm-badge activo">✓</span>' : '<span style="font-size:11px;color:var(--crm-muted)">—</span>'}
+      </td>
+      <td style="text-align:right">${accionPrac}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('resultadosContent').style.display = '';
+}
+
+let _revisionAlumnoId = null;
+async function verEntregasPractica(alumnoId, nombre) {
+  _revisionAlumnoId = alumnoId;
+  document.getElementById('modalRevisarTitle').textContent = `Entregas de ${nombre}`;
+  const body = document.getElementById('modalRevisarBody');
+  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--crm-muted)">Cargando…</div>';
+  openModal('modalRevisarPractica');
+
+  const res = await fetch(`${window.CRM_API_URL}&action=get_entregas_alumno&alumno_id=${alumnoId}&curso_id=${CURSO_ID}`).then(r=>r.json());
+  if (!res.ok) { body.innerHTML = `<p style="color:var(--crm-danger)">${res.error}</p>`; return; }
+
+  const entregas = res.entregas || [];
+  body.innerHTML = entregas.map((e, i) => `
+    <div style="border:1px solid var(--crm-border);border-radius:10px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:24px;height:24px;border-radius:6px;background:var(--crm-primary)20;color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">${i+1}</div>
+        <div style="font-size:13px;font-weight:700;flex:1">${CRM.escapeHtml(e.tarea_titulo || 'Tarea')}</div>
+        <span class="crm-badge ${e.revisado ? 'activo' : 'warning'}">${e.revisado ? 'Revisada' : 'Pendiente'}</span>
+      </div>
+      <div style="font-size:12.5px;color:var(--crm-text);background:var(--crm-bg);border-radius:8px;padding:10px;margin-bottom:10px;min-height:60px;white-space:pre-wrap;line-height:1.6">${CRM.escapeHtml(e.respuesta_texto || 'Sin respuesta de texto.')}</div>
+      ${e.archivo ? `<a href="${e.archivo}" target="_blank" style="font-size:12px;color:var(--crm-info)">📎 Descargar archivo adjunto</a>` : ''}
+      <div style="display:grid;grid-template-columns:100px 1fr;gap:10px;margin-top:12px">
+        <div>
+          <label style="font-size:11px;color:var(--crm-muted);display:block;margin-bottom:4px">Nota (0-10)</label>
+          <input type="number" class="crm-input entrega-nota" data-id="${e.id}" value="${e.nota !== null ? e.nota : ''}" min="0" max="10" step="0.5" placeholder="—">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--crm-muted);display:block;margin-bottom:4px">Feedback</label>
+          <input type="text" class="crm-input entrega-feedback" data-id="${e.id}" value="${CRM.escapeHtml(e.feedback || '')}" placeholder="Comentario al alumno…">
+        </div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--crm-muted);text-align:center;padding:20px">Sin entregas todavía.</p>';
+}
+
+async function guardarCalificaciones() {
+  const notas    = [...document.querySelectorAll('.entrega-nota')];
+  const feedbacks = [...document.querySelectorAll('.entrega-feedback')];
+  let saved = 0;
+  for (let i = 0; i < notas.length; i++) {
+    const id       = notas[i].dataset.id;
+    const nota     = notas[i].value !== '' ? notas[i].value : null;
+    const feedback = feedbacks[i].value;
+    const res = await CRM.api('revisar_practica', { entrega_id: id, nota, feedback });
+    if (res.ok) saved++;
+  }
+  CRM.toast(`${saved} entrega(s) calificada(s)`, 'success');
+  closeModal('modalRevisarPractica');
+  cargarResultados(true);
 }
 
 const _spinStyle = document.createElement('style');

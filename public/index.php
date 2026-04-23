@@ -145,6 +145,10 @@ switch ($url) {
         require_once "../app/controllers/ExamenController.php";
         break;
 
+    case 'examen-practico':
+        require_once "../app/controllers/ExamenPracticoController.php";
+        break;
+
     case 'apuntes-ia':
         require_once "../app/controllers/ApuntesIaController.php";
         break;

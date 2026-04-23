@@ -94,6 +94,9 @@ class CrmController
             'ALTER TABLE leccion ADD COLUMN orden INTEGER NOT NULL DEFAULT 0',
             'ALTER TABLE unidad  ADD COLUMN orden INTEGER NOT NULL DEFAULT 0',
             'ALTER TABLE examen  ADD COLUMN tipo  TEXT    NOT NULL DEFAULT "test"',
+            'ALTER TABLE leccion ADD COLUMN apuntes TEXT DEFAULT NULL',
+            'ALTER TABLE campana_crm ADD COLUMN audiencia     TEXT    NOT NULL DEFAULT "todos"',
+            'ALTER TABLE campana_crm ADD COLUMN dias_registro INTEGER DEFAULT NULL',
         ] as $sql) {
             try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
         }
@@ -182,8 +185,15 @@ class CrmController
             'guardar_examen'          => $this->apiGuardarExamen(),
             'guardar_examen_practico' => $this->apiGuardarExamenPractico(),
             'subir_imagen_curso'      => $this->apiSubirImagenCurso(),
-            'guardar_apuntes'         => $this->apiGuardarApuntes(),
-            'crear_campana'         => $this->apiCrearCampana(),
+            'guardar_apuntes'           => $this->apiGuardarApuntes(),
+            'guardar_apuntes_leccion'   => $this->apiGuardarApuntesLeccion(),
+            'subir_recurso_leccion'     => $this->apiSubirRecursoLeccion(),
+            'eliminar_recurso'          => $this->apiEliminarRecurso(),
+            'get_recursos_leccion'      => $this->apiGetRecursosLeccion(),
+            'get_resultados_curso'      => $this->apiGetResultadosCurso(),
+            'get_entregas_alumno'       => $this->apiGetEntregasAlumno(),
+            'revisar_practica'          => $this->apiRevisarPractica(),
+            'crear_campana'             => $this->apiCrearCampana(),
             'editar_campana'        => $this->apiEditarCampana(),
             'eliminar_campana'      => $this->apiEliminarCampana(),
             'mensajes_conversacion' => $this->apiMensajesConversacion(),
@@ -376,7 +386,7 @@ class CrmController
     private function getCursosData(): array
     {
         $page    = max(1, (int)($_GET['pag'] ?? 1));
-        $perPage = in_array((int)($_GET['per'] ?? 12), [6,12,24,48]) ? (int)($_GET['per'] ?? 12) : 12;
+        $perPage = in_array((int)($_GET['per'] ?? 10), [10,15,20,25,30]) ? (int)($_GET['per'] ?? 10) : 10;
         $limit   = $perPage;
         $q       = trim($_GET['q'] ?? '');
         $cat     = $_GET['cat'] ?? '';
@@ -470,6 +480,14 @@ class CrmController
             $ls = $this->db->prepare('SELECT * FROM leccion WHERE unidad_id=? ORDER BY orden,id');
             $ls->execute([$u['id']]);
             $u['lecciones'] = $ls->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($u['lecciones'] as &$lec) {
+                try {
+                    $rs = $this->db->prepare('SELECT * FROM leccion_recurso WHERE leccion_id=? ORDER BY orden,id');
+                    $rs->execute([$lec['id']]);
+                    $lec['recursos'] = $rs->fetchAll(PDO::FETCH_ASSOC);
+                } catch (Exception $e) { $lec['recursos'] = []; }
+            }
+            unset($lec);
         }
         unset($u);
 
@@ -848,8 +866,9 @@ class CrmController
         $id       = (int)($d['id'] ?? 0);
         $titulo   = trim($d['titulo'] ?? '');
         $videoUrl = trim($d['video_url'] ?? '');
+        $apuntes  = $d['apuntes'] ?? null;
         if (!$id || !$titulo) return ['ok' => false, 'error' => 'Datos incompletos'];
-        $this->db->prepare("UPDATE leccion SET titulo=?,video_url=? WHERE id=?")->execute([$titulo,$videoUrl,$id]);
+        $this->db->prepare("UPDATE leccion SET titulo=?,video_url=?,apuntes=? WHERE id=?")->execute([$titulo,$videoUrl,$apuntes,$id]);
         return ['ok' => true, 'mensaje' => 'Lección actualizada'];
     }
 
@@ -981,22 +1000,195 @@ class CrmController
         return ['ok' => true, 'mensaje' => 'Apuntes guardados correctamente'];
     }
 
+    /* ── Lesson resources ── */
+    private function apiGuardarApuntesLeccion(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d        = $this->input();
+        $id       = (int)($d['leccion_id'] ?? 0);
+        $apuntes  = trim($d['apuntes'] ?? '');
+        if (!$id) return ['ok' => false, 'error' => 'ID de lección inválido'];
+        $this->db->prepare("UPDATE leccion SET apuntes=? WHERE id=?")->execute([$apuntes, $id]);
+        return ['ok' => true, 'mensaje' => 'Apuntes de lección guardados'];
+    }
+
+    private function apiGetRecursosLeccion(): array
+    {
+        $leccionId = (int)($_GET['leccion_id'] ?? 0);
+        if (!$leccionId) return ['ok' => false, 'error' => 'ID inválido'];
+        try {
+            $stmt = $this->db->prepare('SELECT * FROM leccion_recurso WHERE leccion_id=? ORDER BY orden,id');
+            $stmt->execute([$leccionId]);
+            return ['ok' => true, 'recursos' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+        } catch (Exception $e) {
+            return ['ok' => true, 'recursos' => []];
+        }
+    }
+
+    private function apiSubirRecursoLeccion(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $leccionId  = (int)($_POST['leccion_id'] ?? 0);
+        $nombre     = trim($_POST['nombre'] ?? '');
+        $tipoRec    = $_POST['tipo'] ?? 'link';
+        $urlDirecta = trim($_POST['url'] ?? '');
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        if (!$leccionId || !$nombre) return ['ok' => false, 'error' => 'Datos incompletos'];
+
+        $tipos = ['pdf','doc','zip','link','actividad','video'];
+        if (!in_array($tipoRec, $tipos)) $tipoRec = 'link';
+
+        $urlFinal   = $urlDirecta;
+        $descargable = 0;
+
+        if (!empty($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
+            $file    = $_FILES['archivo'];
+            $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['pdf','doc','docx','zip','rar','txt','png','jpg','xlsx','pptx','mp4'];
+            if (!in_array($ext, $allowed)) return ['ok' => false, 'error' => 'Tipo de archivo no permitido'];
+            if ($file['size'] > 50 * 1024 * 1024) return ['ok' => false, 'error' => 'Archivo muy grande (máx. 50 MB)'];
+            $destDir = __DIR__ . '/../../public/uploads/recursos/';
+            if (!is_dir($destDir)) mkdir($destDir, 0755, true);
+            $nombreArchivo = 'lec' . $leccionId . '_' . time() . '_' . preg_replace('/[^a-z0-9._-]/i', '', $file['name']);
+            if (!move_uploaded_file($file['tmp_name'], $destDir . $nombreArchivo)) {
+                return ['ok' => false, 'error' => 'Error al guardar el archivo'];
+            }
+            $urlFinal   = BASE_URL . '/uploads/recursos/' . $nombreArchivo;
+            $descargable = 1;
+        }
+
+        if (!$urlFinal) return ['ok' => false, 'error' => 'URL o archivo requerido'];
+
+        $stmt = $this->db->prepare("SELECT COALESCE(MAX(orden),0)+1 FROM leccion_recurso WHERE leccion_id=?");
+        $stmt->execute([$leccionId]);
+        $orden = (int)$stmt->fetchColumn();
+
+        $this->db->prepare("INSERT INTO leccion_recurso (leccion_id,nombre,tipo,url_o_ruta,descripcion,descargable,orden) VALUES(?,?,?,?,?,?,?)")
+                 ->execute([$leccionId, $nombre, $tipoRec, $urlFinal, $descripcion, $descargable, $orden]);
+        $newId = (int)$this->db->lastInsertId();
+
+        return ['ok' => true, 'id' => $newId, 'url' => $urlFinal, 'nombre' => $nombre, 'tipo' => $tipoRec, 'descripcion' => $descripcion, 'descargable' => $descargable, 'orden' => $orden, 'mensaje' => 'Recurso añadido'];
+    }
+
+    private function apiEliminarRecurso(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d  = $this->input();
+        $id = (int)($d['id'] ?? 0);
+        if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
+        $this->db->prepare("DELETE FROM leccion_recurso WHERE id=?")->execute([$id]);
+        return ['ok' => true, 'mensaje' => 'Recurso eliminado'];
+    }
+
+    /* ── CRM exam results ── */
+    private function apiGetResultadosCurso(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $cursoId = (int)($_GET['curso_id'] ?? 0);
+        if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
+
+        // Enrolled students
+        $stmt = $this->db->prepare("
+            SELECT u.id, u.nombre, u.email, m.creado_en AS matriculado_en
+            FROM matricula m JOIN usuario u ON u.id=m.usuario_id
+            WHERE m.curso_id=? ORDER BY u.nombre ASC
+        ");
+        $stmt->execute([$cursoId]);
+        $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Test exam result for each
+        $stmtTest = $this->db->prepare("
+            SELECT re.nota, re.aprobado, re.realizado_en
+            FROM resultado_examen re
+            JOIN examen e ON e.id=re.examen_id
+            WHERE re.usuario_id=? AND e.curso_id=? AND (e.tipo='test' OR e.tipo IS NULL OR e.tipo='')
+            ORDER BY re.realizado_en DESC LIMIT 1
+        ");
+
+        // Practical submissions count
+        $stmtPrac = $this->db->prepare("
+            SELECT COUNT(*) AS total,
+                   SUM(CASE WHEN revisado=1 THEN 1 ELSE 0 END) AS revisadas,
+                   AVG(CASE WHEN nota IS NOT NULL THEN nota END) AS nota_media
+            FROM entrega_practica
+            WHERE alumno_id=? AND curso_id=?
+        ");
+
+        // Total practical tasks
+        $stmtTareas = $this->db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
+        $stmtTareas->execute([$cursoId]);
+        $totalTareas = (int)$stmtTareas->fetchColumn();
+
+        foreach ($alumnos as &$al) {
+            $stmtTest->execute([$al['id'], $cursoId]);
+            $al['test'] = $stmtTest->fetch(PDO::FETCH_ASSOC) ?: null;
+
+            $stmtPrac->execute([$al['id'], $cursoId]);
+            $al['practico'] = $stmtPrac->fetch(PDO::FETCH_ASSOC) ?: ['total'=>0,'revisadas'=>0,'nota_media'=>null];
+            $al['practico']['total_tareas'] = $totalTareas;
+        }
+        unset($al);
+
+        return ['ok' => true, 'alumnos' => $alumnos, 'total_tareas' => $totalTareas];
+    }
+
+    private function apiGetEntregasAlumno(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $alumnoId = (int)($_GET['alumno_id'] ?? 0);
+        $cursoId  = (int)($_GET['curso_id']  ?? 0);
+        if (!$alumnoId || !$cursoId) return ['ok' => false, 'error' => 'Parámetros inválidos'];
+        try {
+            $stmt = $this->db->prepare("
+                SELECT ep.*, tp.titulo AS tarea_titulo
+                FROM entrega_practica ep
+                JOIN tarea_practica tp ON tp.id=ep.tarea_id
+                WHERE ep.alumno_id=? AND ep.curso_id=?
+                ORDER BY tp.orden, ep.id
+            ");
+            $stmt->execute([$alumnoId, $cursoId]);
+            return ['ok' => true, 'entregas' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
+        } catch (Exception $e) {
+            return ['ok' => true, 'entregas' => []];
+        }
+    }
+
+    private function apiRevisarPractica(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d        = $this->input();
+        $entregaId = (int)($d['entrega_id'] ?? 0);
+        $nota     = $d['nota'] !== '' && $d['nota'] !== null ? (float)$d['nota'] : null;
+        $feedback = trim($d['feedback'] ?? '');
+        if (!$entregaId) return ['ok' => false, 'error' => 'ID de entrega inválido'];
+
+        $this->db->prepare("
+            UPDATE entrega_practica
+            SET nota=?, feedback=?, revisado=1, revisado_por_id=?, revisado_en=datetime('now')
+            WHERE id=?
+        ")->execute([$nota, $feedback, (int)$this->usuario['id'], $entregaId]);
+
+        return ['ok' => true, 'mensaje' => 'Entrega calificada correctamente'];
+    }
+
     private function apiCrearCampana(): array
     {
         if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
-        $d = $this->input();
-        $titulo  = trim($d['titulo'] ?? '');
-        $cuerpo  = trim($d['cuerpo'] ?? '');
-        $tipo    = $d['tipo'] ?? 'oferta';
-        $inicio  = $d['fecha_inicio'] ?? null;
-        $fin     = $d['fecha_fin']    ?? null;
-        $desc    = (float)($d['descuento_pct'] ?? 0);
-        $cursos  = $d['cursos'] ?? [];
+        $d         = $this->input();
+        $titulo    = trim($d['titulo'] ?? '');
+        $cuerpo    = trim($d['cuerpo'] ?? '');
+        $tipo      = $d['tipo'] ?? 'oferta';
+        $inicio    = $d['fecha_inicio'] ?? null;
+        $fin       = $d['fecha_fin']    ?? null;
+        $desc      = (float)($d['descuento_pct'] ?? 0);
+        $cursos    = $d['cursos'] ?? [];
+        $audiencia = in_array($d['audiencia'] ?? '', ['todos','nuevos','matriculados']) ? $d['audiencia'] : 'todos';
+        $diasReg   = ($audiencia === 'nuevos' && isset($d['dias_registro'])) ? max(1,(int)$d['dias_registro']) : null;
 
         if (!$titulo || !$cuerpo) return ['ok' => false, 'error' => 'Título y cuerpo son obligatorios'];
 
-        $this->db->prepare("INSERT INTO campana_crm (titulo,cuerpo,tipo,fecha_inicio,fecha_fin,descuento_pct,activa) VALUES(?,?,?,?,?,?,1)")
-                 ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc]);
+        $this->db->prepare("INSERT INTO campana_crm (titulo,cuerpo,tipo,fecha_inicio,fecha_fin,descuento_pct,activa,audiencia,dias_registro) VALUES(?,?,?,?,?,?,1,?,?)")
+                 ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc,$audiencia,$diasReg]);
         $id = (int)$this->db->lastInsertId();
 
         foreach ($cursos as $cid) {
@@ -1006,7 +1198,7 @@ class CrmController
             }
         }
 
-        $enviados = $this->notificarUsuarios($titulo, $cuerpo, $id);
+        $enviados = $this->notificarUsuarios($titulo, $cuerpo, $id, $audiencia, $diasReg);
 
         $this->logActividad("Campaña creada: $titulo", 'info');
         return ['ok' => true, 'id' => $id, 'mensaje' => "Campaña creada y notificación enviada a $enviados usuario(s)"];
@@ -1015,21 +1207,23 @@ class CrmController
     private function apiEditarCampana(): array
     {
         if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
-        $d  = $this->input();
-        $id = (int)($d['id'] ?? 0);
+        $d         = $this->input();
+        $id        = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
-        $titulo = trim($d['titulo'] ?? '');
-        $cuerpo = trim($d['cuerpo'] ?? '');
-        $tipo   = $d['tipo'] ?? 'oferta';
-        $inicio = $d['fecha_inicio'] ?? null;
-        $fin    = $d['fecha_fin'] ?? null;
-        $desc   = (float)($d['descuento_pct'] ?? 0);
-        $activa = (int)($d['activa'] ?? 1);
-        $cursos = $d['cursos'] ?? [];
+        $titulo    = trim($d['titulo'] ?? '');
+        $cuerpo    = trim($d['cuerpo'] ?? '');
+        $tipo      = $d['tipo'] ?? 'oferta';
+        $inicio    = $d['fecha_inicio'] ?? null;
+        $fin       = $d['fecha_fin'] ?? null;
+        $desc      = (float)($d['descuento_pct'] ?? 0);
+        $activa    = (int)($d['activa'] ?? 1);
+        $cursos    = $d['cursos'] ?? [];
+        $audiencia = in_array($d['audiencia'] ?? '', ['todos','nuevos','matriculados']) ? $d['audiencia'] : 'todos';
+        $diasReg   = ($audiencia === 'nuevos' && isset($d['dias_registro'])) ? max(1,(int)$d['dias_registro']) : null;
         if (!$titulo || !$cuerpo) return ['ok' => false, 'error' => 'Faltan campos'];
 
-        $this->db->prepare("UPDATE campana_crm SET titulo=?,cuerpo=?,tipo=?,fecha_inicio=?,fecha_fin=?,descuento_pct=?,activa=? WHERE id=?")
-                 ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc,$activa,$id]);
+        $this->db->prepare("UPDATE campana_crm SET titulo=?,cuerpo=?,tipo=?,fecha_inicio=?,fecha_fin=?,descuento_pct=?,activa=?,audiencia=?,dias_registro=? WHERE id=?")
+                 ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc,$activa,$audiencia,$diasReg,$id]);
 
         $this->db->prepare("DELETE FROM campana_curso WHERE campana_id=?")->execute([$id]);
         foreach ($cursos as $cid) {
@@ -1163,16 +1357,25 @@ class CrmController
         } catch (Exception $e) { /* ignorar */ }
     }
 
-    private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId): int
+    private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId, string $audiencia = 'todos', ?int $diasRegistro = null): int
     {
-        // Get all users who don't already have this campaign notification
+        $audienciaFilter = '';
+        $params = [$campanaId];
+
+        if ($audiencia === 'nuevos' && $diasRegistro !== null) {
+            $audienciaFilter = "AND u.creado_en >= date('now','-{$diasRegistro} days')";
+        } elseif ($audiencia === 'matriculados') {
+            $audienciaFilter = "AND EXISTS (SELECT 1 FROM matricula m WHERE m.usuario_id=u.id AND m.estado='activa')";
+        }
+
         $stmt = $this->db->prepare("
             SELECT u.id FROM usuario u
             LEFT JOIN notificacion n ON n.usuario_id=u.id AND n.tipo='crm' AND n.ref_id=?
             WHERE (u.notificaciones IS NULL OR u.notificaciones=1)
               AND n.id IS NULL
+              $audienciaFilter
         ");
-        $stmt->execute([$campanaId]);
+        $stmt->execute($params);
         $usuarios = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
         $ins = $this->db->prepare("INSERT OR IGNORE INTO notificacion (usuario_id,tipo,titulo,cuerpo,ref_id) VALUES(?,?,?,?,?)");

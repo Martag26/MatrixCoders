@@ -92,6 +92,19 @@
     </div>
     <?php endif; ?>
 
+    <?php if (!empty($cam['audiencia']) && $cam['audiencia'] !== 'todos'): ?>
+    <div style="margin-bottom:8px">
+      <?php if ($cam['audiencia']==='nuevos'): ?>
+        <span style="font-size:11px;background:rgba(59,130,246,.12);color:var(--crm-info);border-radius:99px;padding:2px 9px;font-weight:600">
+          👥 Nuevos usuarios (<?= $cam['dias_registro'] ?? 7 ?> días)
+        </span>
+      <?php elseif ($cam['audiencia']==='matriculados'): ?>
+        <span style="font-size:11px;background:rgba(16,185,129,.12);color:var(--crm-success);border-radius:99px;padding:2px 9px;font-weight:600">
+          🎓 Solo matriculados
+        </span>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
     <div class="crm-campaign-footer">
       <div class="crm-campaign-dates">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -187,10 +200,31 @@
             <?php endforeach; ?>
           </div>
         </div>
-        <div class="crm-form-group">
+        <div style="border:1px solid var(--crm-border);border-radius:10px;padding:14px;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:700;color:var(--crm-text);margin-bottom:10px">👥 Audiencia objetivo</div>
+          <div class="crm-form-row" style="margin-bottom:0">
+            <div class="crm-form-group" style="margin-bottom:0">
+              <label class="crm-label">Dirigir a</label>
+              <select class="crm-select" id="campAudiencia" onchange="toggleAudienciaOpts()">
+                <option value="todos">Todos los usuarios</option>
+                <option value="nuevos">Usuarios recién registrados</option>
+                <option value="matriculados">Solo matriculados en algún curso</option>
+              </select>
+            </div>
+            <div class="crm-form-group" id="campDiasGroup" style="margin-bottom:0;display:none">
+              <label class="crm-label">Registrados en los últimos</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" class="crm-input" id="campDias" value="7" min="1" max="365" style="width:90px">
+                <span style="font-size:13px;color:var(--crm-muted)">días</span>
+              </div>
+              <div style="font-size:11px;color:var(--crm-muted);margin-top:4px">Sólo notifica a quienes se registraron en este periodo.</div>
+            </div>
+          </div>
+        </div>
+        <div class="crm-form-group" style="margin-top:10px">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
             <input type="checkbox" id="campNotificar" style="accent-color:var(--crm-primary)">
-            Notificar a todos los usuarios sobre esta campaña
+            Enviar notificación inmediata a la audiencia seleccionada
           </label>
         </div>
       </div>
@@ -205,6 +239,11 @@
 <script>
 let modoModal = 'crear';
 
+function toggleAudienciaOpts() {
+  const val = document.getElementById('campAudiencia').value;
+  document.getElementById('campDiasGroup').style.display = val === 'nuevos' ? '' : 'none';
+}
+
 function abrirEditar(cam) {
   modoModal = 'editar';
   document.getElementById('campId').value        = cam.id;
@@ -215,9 +254,11 @@ function abrirEditar(cam) {
   document.getElementById('campFin').value       = cam.fecha_fin    || '';
   document.getElementById('campDescuento').value = cam.descuento_pct || 0;
   document.getElementById('campActiva').value    = cam.activa;
+  document.getElementById('campAudiencia').value = cam.audiencia || 'todos';
+  document.getElementById('campDias').value      = cam.dias_registro || 7;
+  toggleAudienciaOpts();
   document.getElementById('modalCampanaTitulo').textContent = 'Editar campaña';
   document.getElementById('btnGuardarCampana').textContent  = 'Guardar cambios';
-  // uncheck all, then check linked
   document.querySelectorAll('.camp-curso-check').forEach(cb => cb.checked = false);
   (cam.cursos_vinculados || []).forEach(cv => {
     document.querySelectorAll(`.camp-curso-check[value="${cv.curso_id || cv.id}"]`)
@@ -236,6 +277,9 @@ document.getElementById('modalCampana').addEventListener('show.bs.modal', () => 
     document.getElementById('campFin').value       = '';
     document.getElementById('campDescuento').value = 0;
     document.getElementById('campActiva').value    = '1';
+    document.getElementById('campAudiencia').value = 'todos';
+    document.getElementById('campDias').value      = 7;
+    toggleAudienciaOpts();
     document.getElementById('modalCampanaTitulo').textContent = 'Nueva campaña';
     document.getElementById('btnGuardarCampana').textContent  = 'Crear campaña';
     document.querySelectorAll('.camp-curso-check').forEach(cb => cb.checked = false);
@@ -243,16 +287,19 @@ document.getElementById('modalCampana').addEventListener('show.bs.modal', () => 
 });
 
 async function guardarCampana() {
-  const cursos = [...document.querySelectorAll('.camp-curso-check:checked')].map(cb => cb.value);
+  const cursos    = [...document.querySelectorAll('.camp-curso-check:checked')].map(cb => cb.value);
+  const audiencia = document.getElementById('campAudiencia').value;
   const data = {
-    titulo:        document.getElementById('campTitulo').value,
-    cuerpo:        document.getElementById('campCuerpo').value,
-    tipo:          document.getElementById('campTipo').value,
-    fecha_inicio:  document.getElementById('campInicio').value,
-    fecha_fin:     document.getElementById('campFin').value,
-    descuento_pct: parseFloat(document.getElementById('campDescuento').value) || 0,
-    activa:        document.getElementById('campActiva').value,
-    notificar:     document.getElementById('campNotificar').checked,
+    titulo:         document.getElementById('campTitulo').value,
+    cuerpo:         document.getElementById('campCuerpo').value,
+    tipo:           document.getElementById('campTipo').value,
+    fecha_inicio:   document.getElementById('campInicio').value,
+    fecha_fin:      document.getElementById('campFin').value,
+    descuento_pct:  parseFloat(document.getElementById('campDescuento').value) || 0,
+    activa:         document.getElementById('campActiva').value,
+    notificar:      document.getElementById('campNotificar').checked,
+    audiencia,
+    dias_registro:  audiencia === 'nuevos' ? parseInt(document.getElementById('campDias').value) || 7 : null,
     cursos,
   };
   const action = modoModal === 'editar' ? 'editar_campana' : 'crear_campana';

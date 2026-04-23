@@ -75,7 +75,7 @@ $perPage     = $perPage ?? 12;
     </select>
     <?php endif; ?>
     <select name="per" class="crm-filter-select" onchange="this.form.submit()" title="Cursos por página">
-      <?php foreach ([6,12,24,48] as $n): ?>
+      <?php foreach ([10,15,20,25,30] as $n): ?>
         <option value="<?= $n ?>" <?= $perPage===$n?'selected':'' ?>><?= $n ?> por página</option>
       <?php endforeach; ?>
     </select>

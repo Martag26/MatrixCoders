@@ -199,6 +199,19 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                     </div>
                 <?php endif; ?>
 
+                <?php if ($aprobado && !empty($tieneExamenPractico)): ?>
+                    <div style="margin-top:16px;padding:14px 18px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;display:flex;align-items:center;gap:12px">
+                        <span style="font-size:1.5rem">🛠️</span>
+                        <div style="flex:1">
+                            <div style="font-size:.9rem;font-weight:700;color:#1e40af;margin-bottom:2px">Siguiente paso: Examen Práctico</div>
+                            <div style="font-size:.8rem;color:#3b82f6">Has superado el test teórico. Ahora debes completar el examen práctico para obtener el certificado.</div>
+                        </div>
+                        <a href="<?= BASE_URL ?>/index.php?url=examen-practico&curso=<?= (int)$curso['id'] ?>" class="btn-primary-mc" style="flex:none;background:#2563eb;white-space:nowrap">
+                            Ir al práctico →
+                        </a>
+                    </div>
+                <?php endif; ?>
+
                 <div class="res-actions">
                     <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" class="btn-outline-mc">
                         ← Volver al curso
@@ -207,7 +220,7 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                         <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= (int)$curso['id'] ?>" class="btn-primary-mc">
                             Repetir examen →
                         </a>
-                    <?php else: ?>
+                    <?php elseif (empty($tieneExamenPractico)): ?>
                         <button onclick="imprimirCertificado()" class="btn-primary-mc">
                             🖨️ Imprimir certificado
                         </button>
