@@ -104,12 +104,17 @@
     border: 1px solid var(--crm-border, rgba(255,255,255,0.09));
     border-radius: 10px;
     padding: 11px 14px;
-    color: var(--crm-text, #f1f0fb);
+    color: #ffffff;
+    caret-color: #ffffff;
     font-size: 14px;
     font-family: inherit;
     outline: none;
     transition: border-color .15s, box-shadow .15s;
     box-sizing: border-box;
+  }
+
+  .crm-login-group input::placeholder {
+    color: rgba(255,255,255,0.45);
   }
 
   .crm-login-group input:focus {
