@@ -23,6 +23,16 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 .crm-editor-tab:hover{background:rgba(255,255,255,.06);color:var(--crm-text)}
 .crm-editor-tab.active{background:var(--crm-primary);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.35)}
 .crm-editor-tab svg{flex-shrink:0}
+
+/* ── Unit collapse ── */
+.crm-unit-lessons{overflow:hidden;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s;}
+.crm-unit-lessons.collapsed{max-height:0!important;opacity:0;pointer-events:none;}
+.crm-unit-chevron{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;color:var(--crm-muted);transition:transform .25s,background .15s;cursor:pointer;flex-shrink:0;}
+.crm-unit-chevron:hover{background:rgba(255,255,255,.08);}
+.crm-unit.is-open .crm-unit-chevron{transform:rotate(0deg);}
+.crm-unit:not(.is-open) .crm-unit-chevron{transform:rotate(-90deg);}
+.crm-add-lesson{display:none;}
+.crm-unit.is-open .crm-add-lesson{display:flex;}
 .crm-tab-panel{display:none}
 .crm-tab-panel.active{display:block}
 .crm-info-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start}
@@ -277,14 +287,17 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <div class="crm-editor-panel-body" style="padding:14px">
       <div class="crm-curriculum" id="curriculum">
         <?php foreach ($unidades as $u): ?>
-        <div class="crm-unit" data-unidad-id="<?= $u['id'] ?>">
-          <div class="crm-unit-header">
-            <span class="crm-unit-handle" title="Arrastrar">
+        <div class="crm-unit is-open" data-unidad-id="<?= $u['id'] ?>">
+          <div class="crm-unit-header" onclick="toggleUnit(this.closest('.crm-unit'))" style="cursor:pointer">
+            <span class="crm-unit-handle" title="Arrastrar" onclick="event.stopPropagation()">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
             </span>
-            <span class="crm-unit-title" onclick="toggleUnit(this)"><?= htmlspecialchars($u['titulo']) ?></span>
+            <span class="crm-unit-chevron">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+            </span>
+            <span class="crm-unit-title"><?= htmlspecialchars($u['titulo']) ?></span>
             <span style="font-size:11px;color:var(--crm-muted);margin-right:4px"><?= count($u['lecciones']) ?> lec.</span>
-            <div class="crm-unit-actions">
+            <div class="crm-unit-actions" onclick="event.stopPropagation()">
               <button class="crm-btn-icon crm-btn-sm" title="Editar unidad" onclick="openModalEditarUnidad(this, <?= $u['id'] ?>)">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
@@ -831,14 +844,15 @@ async function crearNuevaUnidad() {
     closeModal('modalNuevaUnidad');
     document.getElementById('emptyMsg')?.remove();
     const div = document.createElement('div');
-    div.className = 'crm-unit';
+    div.className = 'crm-unit is-open';
     div.dataset.unidadId = res.id;
     div.innerHTML = `
-      <div class="crm-unit-header">
-        <span class="crm-unit-handle"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></span>
-        <span class="crm-unit-title" onclick="toggleUnit(this)">${CRM.escapeHtml(titulo)}</span>
+      <div class="crm-unit-header" onclick="toggleUnit(this.closest('.crm-unit'))" style="cursor:pointer">
+        <span class="crm-unit-handle" onclick="event.stopPropagation()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></span>
+        <span class="crm-unit-chevron"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></span>
+        <span class="crm-unit-title">${CRM.escapeHtml(titulo)}</span>
         <span style="font-size:11px;color:var(--crm-muted);margin-right:4px">0 lec.</span>
-        <div class="crm-unit-actions">
+        <div class="crm-unit-actions" onclick="event.stopPropagation()">
           <button class="crm-btn-icon crm-btn-sm" onclick="openModalEditarUnidad(this, ${res.id})">
             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </button>
@@ -847,7 +861,7 @@ async function crearNuevaUnidad() {
           </button>
         </div>
       </div>
-      <div class="crm-unit-lessons sortable-lessons" data-unidad-id="${res.id}"></div>
+      <div class="crm-unit-lessons sortable-lessons" data-unidad-id="${res.id}" style="max-height:none"></div>
       <div class="crm-add-lesson" onclick="nuevaLeccion(${res.id})">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
         Añadir lección
@@ -885,10 +899,23 @@ async function pedirEliminarUnidad(id, btn) {
   else CRM.toast(res.error, 'error');
 }
 
-function toggleUnit(span) {
-  const lessons = span.closest('.crm-unit').querySelector('.crm-unit-lessons');
-  if (lessons) lessons.style.display = lessons.style.display === 'none' ? '' : 'none';
+function toggleUnit(unit) {
+  const lessons = unit.querySelector('.crm-unit-lessons');
+  if (!lessons) return;
+  const open = unit.classList.contains('is-open');
+  if (open) {
+    lessons.style.maxHeight = lessons.scrollHeight + 'px';
+    requestAnimationFrame(() => { lessons.classList.add('collapsed'); lessons.style.maxHeight = '0'; });
+    unit.classList.remove('is-open');
+  } else {
+    lessons.classList.remove('collapsed');
+    lessons.style.maxHeight = lessons.scrollHeight + 'px';
+    unit.classList.add('is-open');
+    lessons.addEventListener('transitionend', () => { if (unit.classList.contains('is-open')) lessons.style.maxHeight = 'none'; }, { once: true });
+  }
 }
+/* Init heights for all open units */
+document.querySelectorAll('.crm-unit.is-open .crm-unit-lessons').forEach(el => { el.style.maxHeight = 'none'; });
 
 /* ===== Lessons ===== */
 let leccionMode = 'create';

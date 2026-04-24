@@ -130,6 +130,8 @@ class CrmController
             'campanas'     => 'Campañas',
             'comunicacion' => 'Comunicación',
             'logs'         => 'Logs de Actividad',
+            'perfil'       => 'Mi Perfil',
+            'ajustes'      => 'Ajustes',
         ];
 
         $titulo = $titulos[$sec] ?? 'Dashboard';
@@ -142,6 +144,8 @@ class CrmController
             'campanas'     => $this->getCampanasData(),
             'comunicacion' => $this->getComunicacionData(),
             'logs'         => $this->getLogsData(),
+            'perfil'       => $this->getPerfilData(),
+            'ajustes'      => $this->getAjustesData(),
             default        => $this->getDashboardData(),
         };
 
@@ -634,7 +638,35 @@ class CrmController
 
     private function getPerfilData(): array
     {
-        return ['usuarioPerfil' => $this->usuario];
+        $db = $this->db;
+        $uid = (int)$this->usuario['id'];
+
+        $totalCursos = (int)$db->query("SELECT COUNT(*) FROM matricula WHERE usuario_id=$uid")->fetchColumn();
+
+        try {
+            $totalActividad = (int)$db->query("SELECT COUNT(*) FROM crm_actividad WHERE usuario_id=$uid")->fetchColumn();
+        } catch (Exception $e) { $totalActividad = 0; }
+
+        try {
+            $stmt = $db->prepare("SELECT titulo, creado_en FROM crm_actividad WHERE usuario_id=? ORDER BY creado_en DESC LIMIT 5");
+            $stmt->execute([$uid]);
+            $actividadReciente = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $actividadReciente = []; }
+
+        $diasCuenta = max(1, (int)round((time() - strtotime($this->usuario['creado_en'] ?? 'now')) / 86400));
+
+        return [
+            'usuarioPerfil'    => $this->usuario,
+            'totalCursos'      => $totalCursos,
+            'totalActividad'   => $totalActividad,
+            'actividadReciente'=> $actividadReciente,
+            'diasCuenta'       => $diasCuenta,
+        ];
+    }
+
+    private function getAjustesData(): array
+    {
+        return [];
     }
 
     /* ================================================================== */

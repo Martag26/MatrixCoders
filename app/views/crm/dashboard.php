@@ -84,47 +84,74 @@ $rolLabel = match(true) {
 
 <!-- Charts row -->
 <div class="crm-charts-grid">
-  <div class="crm-chart-card">
+  <div class="crm-chart-card" style="border-top:3px solid #7c3aed">
     <div class="crm-chart-header">
-      <div>
-        <h3 class="crm-chart-title">Cursos con más alumnos</h3>
-        <p class="crm-chart-sub">Top 6 por matriculaciones</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(124,58,237,.1);display:flex;align-items:center;justify-content:center;color:var(--crm-primary);flex-shrink:0">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/></svg>
+        </div>
+        <div>
+          <h3 class="crm-chart-title">Cursos más populares</h3>
+          <p class="crm-chart-sub">Top 6 por matriculaciones</p>
+        </div>
       </div>
+      <span style="font-size:11px;color:var(--crm-muted);background:var(--crm-bg);padding:3px 8px;border-radius:6px;border:1px solid var(--crm-border)"><?= count($topCursos) ?> cursos</span>
     </div>
-    <canvas id="chartTopCursos" class="crm-chart-canvas" height="200"></canvas>
+    <div style="height:230px;position:relative"><canvas id="chartTopCursos"></canvas></div>
   </div>
 
-  <div class="crm-chart-card">
+  <div class="crm-chart-card" style="border-top:3px solid #3b82f6">
     <div class="crm-chart-header">
-      <div>
-        <h3 class="crm-chart-title">Distribución de usuarios</h3>
-        <p class="crm-chart-sub">Por rol en la plataforma</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.1);display:flex;align-items:center;justify-content:center;color:var(--crm-info);flex-shrink:0">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <h3 class="crm-chart-title">Roles de usuarios</h3>
+          <p class="crm-chart-sub">Distribución por rol</p>
+        </div>
       </div>
+      <span style="font-size:11px;color:var(--crm-muted);background:var(--crm-bg);padding:3px 8px;border-radius:6px;border:1px solid var(--crm-border)"><?= $totalUsuarios ?> total</span>
     </div>
-    <canvas id="chartRoles" class="crm-chart-canvas" height="200"></canvas>
+    <div style="height:230px;position:relative"><canvas id="chartRoles"></canvas></div>
   </div>
 </div>
 
 <!-- Second charts row -->
 <div class="crm-charts-grid" style="grid-template-columns:2fr 1fr">
-  <div class="crm-chart-card">
+  <div class="crm-chart-card" style="border-top:3px solid #10b981">
     <div class="crm-chart-header">
-      <div>
-        <h3 class="crm-chart-title">Nuevos registros</h3>
-        <p class="crm-chart-sub">Últimos 6 meses</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.1);display:flex;align-items:center;justify-content:center;color:var(--crm-success);flex-shrink:0">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div>
+          <h3 class="crm-chart-title">Nuevos registros</h3>
+          <p class="crm-chart-sub">Evolución últimos 6 meses</p>
+        </div>
       </div>
+      <?php
+        $totalReg6m = array_sum(array_column($actividad6m, 'total'));
+        $mediaReg   = count($actividad6m) > 0 ? round($totalReg6m / count($actividad6m), 1) : 0;
+      ?>
+      <span style="font-size:11px;color:var(--crm-success);background:rgba(16,185,129,.1);padding:3px 8px;border-radius:6px;font-weight:600">~<?= $mediaReg ?>/mes</span>
     </div>
-    <canvas id="chartRegistros" class="crm-chart-canvas" height="160"></canvas>
+    <div style="height:190px;position:relative"><canvas id="chartRegistros"></canvas></div>
   </div>
 
-  <div class="crm-chart-card">
+  <div class="crm-chart-card" style="border-top:3px solid #f59e0b">
     <div class="crm-chart-header">
-      <div>
-        <h3 class="crm-chart-title">Cursos por nivel</h3>
-        <p class="crm-chart-sub">Distribución</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,.1);display:flex;align-items:center;justify-content:center;color:var(--crm-warning);flex-shrink:0">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <div>
+          <h3 class="crm-chart-title">Niveles de cursos</h3>
+          <p class="crm-chart-sub">Distribución por nivel</p>
+        </div>
       </div>
     </div>
-    <canvas id="chartNiveles" class="crm-chart-canvas" height="160"></canvas>
+    <div style="height:190px;position:relative"><canvas id="chartNiveles"></canvas></div>
   </div>
 </div>
 
@@ -291,7 +318,8 @@ $rolLabel = match(true) {
 
 <script>
 (function(){
-  const topCursosLabels = <?= json_encode(array_map(fn($c)=>mb_strimwidth($c['titulo'],0,26,'…'), $topCursos), JSON_UNESCAPED_UNICODE) ?>;
+  /* ─── Data ─── */
+  const topCursosLabels = <?= json_encode(array_map(fn($c)=>mb_strimwidth($c['titulo'],0,22,'…'), $topCursos), JSON_UNESCAPED_UNICODE) ?>;
   const topCursosData   = <?= json_encode(array_column($topCursos,'total')) ?>;
   const rolesLabels     = <?= json_encode(array_column($porRol,'etiqueta'), JSON_UNESCAPED_UNICODE) ?>;
   const rolesData       = <?= json_encode(array_column($porRol,'total')) ?>;
@@ -300,37 +328,213 @@ $rolLabel = match(true) {
   const nivelesLabels   = <?= json_encode(array_column($porNivel,'nivel'), JSON_UNESCAPED_UNICODE) ?>;
   const nivelesData     = <?= json_encode(array_column($porNivel,'total')) ?>;
 
-  Chart.defaults.font.family = "'Inter', sans-serif";
-  Chart.defaults.color = 'rgba(241,240,251,0.45)';
+  /* ─── Global defaults ─── */
+  Chart.defaults.font.family  = "'Inter','Segoe UI',sans-serif";
+  Chart.defaults.font.size    = 11;
+  Chart.defaults.color        = '#6b7280';
+  Chart.defaults.animation.duration = 900;
 
-  const palette = ['#7c3aed','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6'];
-  const gridColor = 'rgba(255,255,255,0.06)';
+  const GRID  = 'rgba(0,0,0,.05)';
+  const PAL   = ['#7c3aed','#6366f1','#3b82f6','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899'];
+  const TOTAL_ROLES = rolesData.reduce((a,b)=>a+b,0);
 
-  new Chart(document.getElementById('chartTopCursos'), {
-    type: 'bar',
-    data: { labels: topCursosLabels, datasets:[{ data: topCursosData, backgroundColor: palette, borderRadius: 7, borderSkipped: false }] },
-    options: { responsive:true, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.parsed.y+' alumnos'}} }, scales:{ x:{grid:{display:false}}, y:{grid:{color:gridColor}, beginAtZero:true, ticks:{stepSize:1}} } }
+  /* ─── Tooltip shared style ─── */
+  const tooltipBase = {
+    backgroundColor:'rgba(17,22,37,.95)',
+    borderColor:'rgba(124,58,237,.3)',
+    borderWidth:1,
+    cornerRadius:10,
+    padding:{x:14,y:10},
+    titleColor:'#fff',
+    bodyColor:'rgba(255,255,255,.75)',
+    titleFont:{weight:'700',size:12},
+    bodyFont:{size:11},
+    displayColors:false,
+    boxShadow:'0 8px 24px rgba(0,0,0,.3)',
+  };
+
+  /* ─── Helper: gradient fill ─── */
+  function vertGradient(ctx, color, alpha1=0.45, alpha2=0.02) {
+    const g = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+    g.addColorStop(0, color.replace(')',`,${alpha1})`).replace('rgb','rgba'));
+    g.addColorStop(1, color.replace(')',`,${alpha2})`).replace('rgb','rgba'));
+    return g;
+  }
+  function hexToRgb(h){ const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return `rgb(${r},${g},${b})`; }
+
+  /* ──────────────────────────────────────────
+     CHART 1 — Top cursos (bar con degradados)
+  ────────────────────────────────────────── */
+  const ctx1 = document.getElementById('chartTopCursos').getContext('2d');
+  const barGradients = topCursosData.map((_,i) => {
+    const g = ctx1.createLinearGradient(0,0,0,260);
+    const c = PAL[i % PAL.length];
+    const rgb = hexToRgb(c);
+    g.addColorStop(0, rgb.replace('rgb','rgba').replace(')',`,.9)`));
+    g.addColorStop(1, rgb.replace('rgb','rgba').replace(')',`,.5)`));
+    return g;
   });
+
+  new Chart(ctx1, {
+    type:'bar',
+    data:{
+      labels: topCursosLabels,
+      datasets:[{
+        data: topCursosData,
+        backgroundColor: barGradients,
+        borderRadius: { topLeft:8,topRight:8 },
+        borderSkipped: false,
+        borderColor: PAL.map(c=>c),
+        borderWidth: 0,
+        hoverBackgroundColor: PAL.map((c,i) => barGradients[i]),
+        hoverBorderWidth: 2,
+        hoverBorderColor: PAL,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...tooltipBase, callbacks:{
+          title: ctx => ctx[0].label,
+          label: ctx => `  ${ctx.parsed.y} alumno${ctx.parsed.y!==1?'s':''}`,
+        }}
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{maxRotation:30,font:{size:10}} },
+        y:{ grid:{color:GRID,drawBorder:false}, beginAtZero:true, ticks:{stepSize:1,precision:0} }
+      }
+    }
+  });
+
+  /* ──────────────────────────────────────────
+     CHART 2 — Roles (doughnut con texto central)
+  ────────────────────────────────────────── */
+  const centerTextPlugin = {
+    id:'centerText',
+    afterDraw(chart){
+      if (chart.config.type !== 'doughnut') return;
+      const {width,height,ctx} = chart;
+      ctx.save();
+      const x = chart.getDatasetMeta(0).data[0]?.x || width/2;
+      const y = chart.getDatasetMeta(0).data[0]?.y || height/2;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.font='800 22px Inter,sans-serif'; ctx.fillStyle='#1a1625';
+      ctx.fillText(TOTAL_ROLES, x, y-6);
+      ctx.font='600 10px Inter,sans-serif'; ctx.fillStyle='#6b7280';
+      ctx.fillText('USUARIOS', x, y+10);
+      ctx.restore();
+    }
+  };
 
   new Chart(document.getElementById('chartRoles'), {
-    type: 'doughnut',
-    data: { labels: rolesLabels, datasets:[{ data: rolesData, backgroundColor: palette, borderWidth: 0, hoverOffset: 6 }] },
-    options: { responsive:true, cutout:'68%', plugins:{ legend:{ position:'bottom', labels:{padding:14,font:{size:12},color:'rgba(241,240,251,0.6)'} } } }
+    type:'doughnut',
+    data:{
+      labels: rolesLabels,
+      datasets:[{
+        data: rolesData,
+        backgroundColor: PAL,
+        borderWidth: 3,
+        borderColor:'rgba(15,15,30,.6)',
+        hoverBorderWidth: 3,
+        hoverOffset: 8,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:'72%',
+      plugins:{
+        legend:{ position:'bottom', labels:{ padding:16, font:{size:11}, color:'#6b7280', boxWidth:10, boxHeight:10, borderRadius:3 } },
+        tooltip:{...tooltipBase, callbacks:{
+          label: ctx => `  ${ctx.label}: ${ctx.parsed} (${TOTAL_ROLES > 0 ? Math.round(ctx.parsed/TOTAL_ROLES*100):0}%)`,
+        }}
+      }
+    },
+    plugins:[centerTextPlugin]
   });
 
-  new Chart(document.getElementById('chartRegistros'), {
-    type: 'line',
-    data: {
+  /* ──────────────────────────────────────────
+     CHART 3 — Registros (line con gradiente)
+  ────────────────────────────────────────── */
+  const ctx3 = document.getElementById('chartRegistros').getContext('2d');
+  const lineGrad = ctx3.createLinearGradient(0,0,0,220);
+  lineGrad.addColorStop(0, 'rgba(124,58,237,.35)');
+  lineGrad.addColorStop(0.6,'rgba(124,58,237,.08)');
+  lineGrad.addColorStop(1, 'rgba(124,58,237,0)');
+
+  const maxReg = Math.max(...registrosTotals, 1);
+  new Chart(ctx3, {
+    type:'line',
+    data:{
       labels: registrosMeses.map(m=>{ const [y,mo]=m.split('-'); return new Date(y,mo-1).toLocaleDateString('es-ES',{month:'short',year:'2-digit'}); }),
-      datasets:[{ data: registrosTotals, borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.15)', fill:true, tension:.4, pointBackgroundColor:'#fff', pointBorderColor:'#7c3aed', pointBorderWidth:2, pointRadius:5 }]
+      datasets:[{
+        data: registrosTotals,
+        borderColor:'#7c3aed',
+        borderWidth: 2.5,
+        backgroundColor: lineGrad,
+        fill: true,
+        tension: .45,
+        pointBackgroundColor:'#fff',
+        pointBorderColor:'#7c3aed',
+        pointBorderWidth: 2.5,
+        pointRadius: ctx => ctx.raw === maxReg ? 7 : 4,
+        pointHoverRadius: 7,
+      }]
     },
-    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}}, y:{grid:{color:gridColor}, beginAtZero:true, ticks:{stepSize:1}}} }
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...tooltipBase, callbacks:{
+          label: ctx => `  ${ctx.parsed.y} registro${ctx.parsed.y!==1?'s':''}`,
+        }}
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:10}} },
+        y:{ grid:{color:GRID,drawBorder:false}, beginAtZero:true, ticks:{stepSize:1,precision:0} }
+      }
+    }
+  });
+
+  /* ──────────────────────────────────────────
+     CHART 4 — Niveles (horizontal bar mejorado)
+  ────────────────────────────────────────── */
+  const nivelColors = {'principiante':'#10b981','estudiante':'#3b82f6','profesional':'#7c3aed','Sin nivel':'#6b7280'};
+  const nivelBg = nivelesLabels.map(l => {
+    const c = nivelColors[l] || '#6b7280';
+    const ctx4tmp = document.getElementById('chartNiveles').getContext('2d');
+    const g = ctx4tmp.createLinearGradient(0,0,300,0);
+    g.addColorStop(0, c+'dd');
+    g.addColorStop(1, c+'66');
+    return g;
   });
 
   new Chart(document.getElementById('chartNiveles'), {
-    type: 'bar',
-    data: { labels: nivelesLabels, datasets:[{ data: nivelesData, backgroundColor: palette, borderRadius: 6 }] },
-    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:gridColor}, beginAtZero:true, ticks:{stepSize:1}}, y:{grid:{display:false}}} }
+    type:'bar',
+    data:{
+      labels: nivelesLabels,
+      datasets:[{
+        data: nivelesData,
+        backgroundColor: nivelBg,
+        borderRadius:{ topRight:7,bottomRight:7 },
+        borderSkipped:false,
+        borderWidth:0,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{...tooltipBase, callbacks:{
+          label: ctx => `  ${ctx.parsed.x} curso${ctx.parsed.x!==1?'s':''}`,
+        }}
+      },
+      scales:{
+        x:{ grid:{color:GRID,drawBorder:false}, beginAtZero:true, ticks:{stepSize:1,precision:0} },
+        y:{ grid:{display:false}, ticks:{font:{size:11}} }
+      }
+    }
   });
 })();
 </script>

@@ -39,6 +39,7 @@ body.crm-body {
   color: var(--crm-text);
   min-height: 100vh;
   display: flex;
+  overflow-x: hidden;
 }
 
 /* ============================================================
@@ -111,7 +112,7 @@ body.crm-body {
   white-space: nowrap;
   transition: opacity var(--crm-transition);
 }
-.crm-sidebar.collapsed .crm-sidebar__section-label { opacity: 0; }
+.crm-sidebar.collapsed .crm-sidebar__section-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
 
 .crm-sidebar__link {
   display: flex; align-items: center;
@@ -140,7 +141,7 @@ body.crm-body {
   transition: opacity var(--crm-transition);
   white-space: nowrap;
 }
-.crm-sidebar.collapsed .crm-sl-label { opacity: 0; pointer-events: none; }
+.crm-sidebar.collapsed .crm-sl-label { opacity: 0; pointer-events: none; width: 0; overflow: hidden; }
 .crm-sl-badge {
   font-size: 9px; font-weight: 700;
   background: var(--crm-primary);
@@ -187,11 +188,17 @@ body.crm-body {
 .crm-main {
   margin-left: var(--crm-sidebar-w);
   flex: 1;
+  min-width: 0;
+  max-width: calc(100vw - var(--crm-sidebar-w));
   display: flex; flex-direction: column;
   min-height: 100vh;
-  transition: margin-left var(--crm-transition);
+  overflow-x: hidden;
+  transition: margin-left var(--crm-transition), max-width var(--crm-transition);
 }
-.crm-main.expanded { margin-left: var(--crm-sidebar-w-col); }
+.crm-main.expanded {
+  margin-left: var(--crm-sidebar-w-col);
+  max-width: calc(100vw - var(--crm-sidebar-w-col));
+}
 
 /* ============================================================
    HEADER
@@ -300,8 +307,12 @@ body.crm-body {
    ============================================================ */
 .crm-content {
   flex: 1;
+  min-width: 0;
+  width: 100%;
   padding: 28px 28px 40px;
   overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Page header */
