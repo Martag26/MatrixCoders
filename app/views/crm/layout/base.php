@@ -56,14 +56,16 @@
       </a>
       <?php endif; ?>
 
-      <?php if ($esAdmin): ?>
+      <?php if ($esAdmin || $esInstructor): ?>
       <a href="<?= $crmBase ?>cursos"
          class="crm-sidebar__link <?= in_array($seccion,['cursos','editor'])?'active':'' ?>"
          data-tooltip="Cursos">
         <svg class="crm-sl-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-        <span class="crm-sl-label">Cursos</span>
+        <span class="crm-sl-label">Mis Cursos</span>
       </a>
+      <?php endif; ?>
 
+      <?php if ($esAdmin): ?>
       <a href="<?= $crmBase ?>campanas"
          class="crm-sidebar__link <?= $seccion==='campanas'?'active':'' ?>"
          data-tooltip="Campañas">
@@ -135,10 +137,11 @@
       <!-- User dropdown -->
       <?php
         $rolLabel = match(true) {
-          ($esSuperAdmin)  => 'Superadmin',
-          ($esAdmin)       => 'Administrador',
-          ($esModerador)   => 'Moderador',
-          default          => 'Usuario',
+          ($esSuperAdmin)              => 'Superadmin',
+          ($esAdmin)                   => 'Administrador',
+          ($esModerador)               => 'Moderador',
+          (isset($esInstructor) && $esInstructor) => 'Instructor',
+          default                      => 'Usuario',
         };
         $avatarInitial = mb_strtoupper(mb_substr($usuario['nombre'] ?? 'U', 0, 1, 'UTF-8'), 'UTF-8');
       ?>

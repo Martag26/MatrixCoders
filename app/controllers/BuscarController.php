@@ -37,7 +37,7 @@ class BuscarController
 
         // Categorías disponibles
         $stmtCats = $db->query(
-            "SELECT DISTINCT categoria FROM curso WHERE categoria IS NOT NULL AND categoria <> '' ORDER BY categoria ASC"
+            "SELECT DISTINCT categoria FROM curso WHERE categoria IS NOT NULL AND categoria <> '' AND COALESCE(activo,1)=1 ORDER BY categoria ASC"
         );
         $categorias = $stmtCats ? $stmtCats->fetchAll(PDO::FETCH_COLUMN) : [];
 
@@ -66,6 +66,7 @@ class BuscarController
             $params  = array_merge($params, $filtroCategorias);
         }
 
+        $where[] = 'COALESCE(c.activo, 1) = 1';
         $whereSQL   = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
         $hayFiltros = ($q !== '' || $filtroPrecio !== '' || !empty($filtroNiveles) || !empty($filtroCategorias) || $ordenar !== 'popular');
 

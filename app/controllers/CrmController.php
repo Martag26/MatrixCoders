@@ -10,6 +10,7 @@ class CrmController
     private bool   $esSuperAdmin;
     private bool   $esAdmin;
     private bool   $esModerador;
+    private bool   $esInstructor;
 
     /* Dynamic URL bases — set in constructor based on entry point */
     public string $crmBase;
@@ -63,8 +64,10 @@ class CrmController
         $this->esSuperAdmin = ($rol === 'ADMINISTRADOR' && !empty($this->usuario['es_superadmin']));
         $this->esAdmin      = ($rol === 'ADMINISTRADOR');
         $this->esModerador  = !empty($this->usuario['es_moderador']);
+        $this->esInstructor = ($rol === 'EDITOR');
 
-        if (!$this->esAdmin && !$this->esModerador) {
+        // Block only USUARIO role — admins, moderators and instructors can enter
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) {
             if ($standalone) {
                 $_SESSION = [];
                 session_destroy();
@@ -97,6 +100,8 @@ class CrmController
             'ALTER TABLE leccion ADD COLUMN apuntes TEXT DEFAULT NULL',
             'ALTER TABLE campana_crm ADD COLUMN audiencia     TEXT    NOT NULL DEFAULT "todos"',
             'ALTER TABLE campana_crm ADD COLUMN dias_registro INTEGER DEFAULT NULL',
+            'ALTER TABLE examen        ADD COLUMN fecha_entrega TEXT    DEFAULT NULL',
+            'ALTER TABLE examen        ADD COLUMN modo_entrega  TEXT    NOT NULL DEFAULT "cualquiera"',
         ] as $sql) {
             try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
         }
@@ -118,7 +123,15 @@ class CrmController
         $sec = $_GET['sec'] ?? 'dashboard';
 
         if ($sec === 'usuarios' && !$this->esAdmin) $sec = 'dashboard';
-        if (in_array($sec, ['cursos', 'campanas', 'editor', 'logs'], true) && !$this->esAdmin) {
+        if (in_array($sec, ['campanas', 'logs'], true) && !$this->esAdmin) {
+            $sec = $this->esInstructor ? 'dashboard' : 'comunicacion';
+        }
+        // Instructors: only dashboard, editor (own courses), perfil, comunicacion
+        if ($this->esInstructor && !in_array($sec, ['dashboard', 'editor', 'perfil', 'comunicacion'], true)) {
+            $sec = 'dashboard';
+        }
+        // Moderators: no cursos/editor access
+        if ($this->esModerador && !$this->esAdmin && in_array($sec, ['cursos', 'editor'], true)) {
             $sec = 'comunicacion';
         }
 
@@ -153,6 +166,7 @@ class CrmController
         $esSuperAdmin  = $this->esSuperAdmin;
         $esAdmin       = $this->esAdmin;
         $esModerador   = $this->esModerador;
+        $esInstructor  = $this->esInstructor;
         $seccion       = $sec;
         $crmBase       = $this->crmBase;
         $crmApiUrl     = $this->crmApiUrl;
@@ -179,6 +193,7 @@ class CrmController
             'editar_usuario'        => $this->apiEditarUsuario(),
             'eliminar_usuario'      => $this->apiEliminarUsuario(),
             'toggle_curso'          => $this->apiToggleCurso(),
+            'toggle_all_cursos'     => $this->apiToggleAllCursos(),
             'actualizar_curso'      => $this->apiActualizarCurso(),
             'guardar_unidades'      => $this->apiGuardarUnidades(),
             'crear_unidad'          => $this->apiCrearUnidad(),
@@ -395,11 +410,19 @@ class CrmController
         $q       = trim($_GET['q'] ?? '');
         $cat     = $_GET['cat'] ?? '';
         $nivel   = $_GET['nivel'] ?? '';
+        $estado  = $_GET['estado'] ?? '';    // '' | 'activo' | 'inactivo'
 
         $where = 'WHERE 1=1'; $params = [];
-        if ($q)     { $where .= ' AND c.titulo LIKE ?'; $params[] = "%$q%"; }
-        if ($cat)   { $where .= ' AND c.categoria = ?'; $params[] = $cat; }
-        if ($nivel) { $where .= ' AND c.nivel = ?';     $params[] = $nivel; }
+        if ($q)                { $where .= ' AND c.titulo LIKE ?'; $params[] = "%$q%"; }
+        if ($cat)              { $where .= ' AND c.categoria = ?'; $params[] = $cat; }
+        if ($nivel)            { $where .= ' AND c.nivel = ?';     $params[] = $nivel; }
+        if ($estado === 'activo')   { $where .= ' AND c.activo = 1'; }
+        if ($estado === 'inactivo') { $where .= ' AND c.activo = 0'; }
+        // Instructors can only see their own courses
+        if ($this->esInstructor && !$this->esAdmin) {
+            $where .= ' AND EXISTS (SELECT 1 FROM curso_instructor ci WHERE ci.curso_id=c.id AND ci.usuario_id=?)';
+            $params[] = (int)$this->usuario['id'];
+        }
 
         $cntStmt = $this->db->prepare("SELECT COUNT(*) FROM curso c $where");
         $cntStmt->execute($params);
@@ -457,7 +480,7 @@ class CrmController
             FROM curso
         ")->fetch(PDO::FETCH_ASSOC);
 
-        return compact('cursos','totalRows','totalPags','page','perPage','q','cat','nivel','categorias','niveles','instructores','cursosStats');
+        return compact('cursos','totalRows','totalPags','page','perPage','q','cat','nivel','estado','categorias','niveles','instructores','cursosStats');
     }
 
     private function getEditorData(): array
@@ -787,6 +810,19 @@ class CrmController
         return ['ok' => true, 'activo' => $nuevo, 'mensaje' => "Curso " . ($nuevo ? 'activado' : 'desactivado')];
     }
 
+    private function apiToggleAllCursos(): array
+    {
+        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d      = $this->input();
+        $activo = isset($d['activo']) ? (int)(bool)$d['activo'] : null;
+        if ($activo === null) return ['ok' => false, 'error' => 'Valor no especificado'];
+        $this->db->prepare("UPDATE curso SET activo=?")->execute([$activo]);
+        $total = (int)$this->db->query("SELECT COUNT(*) FROM curso")->fetchColumn();
+        $msg   = $activo ? "Todos los cursos activados" : "Todos los cursos desactivados";
+        $this->logActividad($msg, 'info');
+        return ['ok' => true, 'activo' => $activo, 'total' => $total, 'mensaje' => $msg];
+    }
+
     private function apiActualizarCurso(): array
     {
         if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
@@ -957,12 +993,14 @@ class CrmController
     private function apiGuardarExamenPractico(): array
     {
         if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
-        $d       = $this->input();
-        $cursoId = (int)($d['curso_id'] ?? 0);
-        $titulo  = trim($d['titulo'] ?? '');
-        $desc    = trim($d['descripcion'] ?? '');
-        $nota    = (float)($d['nota_minima'] ?? 5.0);
-        $tareas  = $d['tareas'] ?? [];
+        $d            = $this->input();
+        $cursoId      = (int)($d['curso_id'] ?? 0);
+        $titulo       = trim($d['titulo'] ?? '');
+        $desc         = trim($d['descripcion'] ?? '');
+        $nota         = (float)($d['nota_minima'] ?? 5.0);
+        $fechaEntrega = !empty($d['fecha_entrega']) ? $d['fecha_entrega'] : null;
+        $modoEntrega  = in_array($d['modo_entrega'] ?? '', ['cualquiera','texto','archivo','url','texto_y_archivo']) ? $d['modo_entrega'] : 'cualquiera';
+        $tareas       = $d['tareas'] ?? [];
 
         if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
 
@@ -971,9 +1009,9 @@ class CrmController
             $stmt->execute([$cursoId]);
             $existing = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($existing) {
-                $this->db->prepare("UPDATE examen SET titulo=?,descripcion=?,nota_minima=? WHERE id=?")->execute([$titulo,$desc,$nota,$existing['id']]);
+                $this->db->prepare("UPDATE examen SET titulo=?,descripcion=?,nota_minima=?,fecha_entrega=?,modo_entrega=? WHERE id=?")->execute([$titulo,$desc,$nota,$fechaEntrega,$modoEntrega,$existing['id']]);
             } else {
-                $this->db->prepare("INSERT INTO examen (curso_id,titulo,descripcion,nota_minima,tipo) VALUES(?,?,?,?,?)")->execute([$cursoId,$titulo,$desc,$nota,'practico']);
+                $this->db->prepare("INSERT INTO examen (curso_id,titulo,descripcion,nota_minima,tipo,fecha_entrega,modo_entrega) VALUES(?,?,?,?,?,?,?)")->execute([$cursoId,$titulo,$desc,$nota,'practico',$fechaEntrega,$modoEntrega]);
             }
         }
 
