@@ -63,7 +63,7 @@ class AuthController
         // Almacenar datos del usuario en la sesión
         $_SESSION['usuario_id'] = $user['id'];
         $_SESSION['usuario_nombre'] = $user['nombre'];
-        $_SESSION['usuario_plan'] = $user['plan'];
+        $_SESSION['usuario_plan'] = $user['plan'] ?? 'gratuito';
 
         // Redirigir al panel principal tras un login correcto
         header("Location: " . BASE_URL . "/index.php?url=dashboard");
@@ -80,6 +80,9 @@ class AuthController
      */
     public function logout()
     {
+        // Iniciar sesión si no está activa para poder destruirla
+        if (session_status() === PHP_SESSION_NONE) session_start();
+
         // Eliminar todos los datos almacenados en la sesión
         session_destroy();
 

@@ -41,10 +41,25 @@
 
                     <!-- Formulario de registro: envía por POST al controlador doRegister -->
                     <form method="POST" action="<?= BASE_URL ?>/index.php?url=doRegister" class="auth-form">
-                        <input class="form-control input-mc" type="text"     name="nombre"    placeholder="Nombre">
-                        <input class="form-control input-mc" type="email"    name="email"     placeholder="Correo electrónico">
-                        <input class="form-control input-mc" type="password" name="password"  placeholder="Contraseña">
-                        <input class="form-control input-mc" type="password" name="password2" placeholder="Confirmar contraseña">
+                        <div class="mb-3">
+                            <label class="label-mc">Nombre</label>
+                            <input class="form-control input-mc" type="text" name="nombre" placeholder="Tu nombre">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="label-mc">Correo electrónico</label>
+                            <input class="form-control input-mc <?= $error ? 'is-invalid' : '' ?>" type="email" name="email" placeholder="correo@ejemplo.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="label-mc">Contraseña</label>
+                            <input class="form-control input-mc <?= $error ? 'is-invalid' : '' ?>" type="password" name="password" placeholder="Mínimo 6 caracteres">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="label-mc">Confirmar contraseña</label>
+                            <input class="form-control input-mc <?= $error ? 'is-invalid' : '' ?>" type="password" name="password2" placeholder="Repite la contraseña">
+                        </div>
 
                         <!-- Botón de envío del formulario -->
                         <button class="btn btn-mc w-100 mt-2" type="submit">Registrarse</button>

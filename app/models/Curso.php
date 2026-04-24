@@ -62,14 +62,18 @@ class Curso
     public function obtenerDestacados(int $limite = 3): array
     {
         $stmt = $this->db->prepare("
-        SELECT c.*, COUNT(m.id) AS total_matriculas
+        SELECT c.*, COUNT(m.id) AS total_matriculas,
+               (SELECT cc.descuento FROM campana_curso cc
+                JOIN campana_crm cm ON cm.id=cc.campana_id
+                WHERE cc.curso_id=c.id AND cm.activa=1
+                  AND (cm.fecha_fin IS NULL OR cm.fecha_fin >= date('now'))
+                LIMIT 1) AS descuento_activo
         FROM curso c
         LEFT JOIN matricula m ON m.curso_id = c.id
         GROUP BY c.id
         ORDER BY total_matriculas DESC, c.id DESC
         LIMIT ?
     ");
-        // Forzamos el tipo entero para que PDO no lo trate como string
         $stmt->bindValue(1, $limite, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -146,9 +150,13 @@ class Curso
     public function getTareasByCurso(int $cursoId): array
     {
         $stmt = $this->db->prepare("
-            SELECT * FROM tarea
-            WHERE curso_id = ?
-            ORDER BY fecha_limite ASC
+            SELECT
+                t.*,
+                l.titulo AS leccion_titulo
+            FROM tarea t
+            LEFT JOIN leccion l ON l.id = t.leccion_id
+            WHERE t.curso_id = ?
+            ORDER BY t.fecha_limite ASC, t.id ASC
         ");
         $stmt->execute([$cursoId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

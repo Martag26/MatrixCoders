@@ -1,0 +1,489 @@
+/* =============================================================================
+   perfil.css — Estilos compartidos para Perfil y Ajustes
+   ============================================================================= */
+
+/* ── Cabecera de sección ───────────────────────────────────────────────────── */
+.perfil-header {
+    margin-bottom: 20px;
+}
+
+.perfil-titulo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--mc-dark);
+    margin: 0 0 4px;
+}
+
+.perfil-subtitulo {
+    font-size: .9rem;
+    color: var(--mc-muted);
+    margin: 0;
+}
+
+/* ── Tarjeta principal ─────────────────────────────────────────────────────── */
+.perfil-card {
+    background: var(--mc-card);
+    border-radius: 14px;
+    box-shadow: var(--mc-shadow);
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+/* ── Avatar + nombre ───────────────────────────────────────────────────────── */
+.perfil-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--mc-border);
+}
+
+.perfil-avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--mc-green);
+    flex-shrink: 0;
+}
+
+.perfil-avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--mc-green);
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.perfil-avatar-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.perfil-nombre {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--mc-dark);
+    margin: 0;
+}
+
+.perfil-rol {
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--mc-green);
+    background: rgba(95, 135, 102, .1);
+    padding: 2px 8px;
+    border-radius: 20px;
+    width: fit-content;
+}
+
+.perfil-email {
+    font-size: .85rem;
+    color: var(--mc-muted);
+}
+
+/* ── Lista de datos (solo lectura) ─────────────────────────────────────────── */
+.perfil-datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.perfil-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.perfil-campo-label {
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--mc-muted);
+}
+
+.perfil-campo-valor {
+    font-size: .95rem;
+    color: var(--mc-dark);
+    word-break: break-word;
+}
+
+/* ── Sección de edición ────────────────────────────────────────────────────── */
+.perfil-editar-section {
+    border-top: 1px solid var(--mc-border);
+    padding-top: 24px;
+}
+
+.perfil-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--mc-dark);
+    margin: 0 0 18px;
+}
+
+/* ── Formulario ────────────────────────────────────────────────────────────── */
+.perfil-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 520px;
+}
+
+.perfil-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.perfil-form-group label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--mc-dark);
+}
+
+.perfil-form-group input[type="text"],
+.perfil-form-group textarea,
+.perfil-form-group select {
+    border: 1.5px solid var(--mc-border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: .9rem;
+    font-family: inherit;
+    color: var(--mc-dark);
+    background: #fff;
+    transition: border-color .2s;
+    width: 100%;
+}
+
+.perfil-form-group input[type="text"]:focus,
+.perfil-form-group textarea:focus,
+.perfil-form-group select:focus {
+    outline: none;
+    border-color: var(--mc-green);
+}
+
+.perfil-form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.perfil-file-input {
+    font-size: .85rem;
+    color: var(--mc-dark);
+}
+
+.perfil-hint {
+    font-size: .78rem;
+    color: var(--mc-muted);
+    font-weight: 400;
+}
+
+.req {
+    color: var(--mc-danger);
+    font-weight: 700;
+}
+
+.perfil-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+/* ── Badges de estado (ajustes) ────────────────────────────────────────────── */
+.ajustes-badge {
+    display: inline-block;
+    font-size: .78rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 20px;
+}
+
+.ajustes-badge-on {
+    background: rgba(95, 135, 102, .12);
+    color: var(--mc-green);
+}
+
+.ajustes-badge-off {
+    background: rgba(107, 114, 128, .1);
+    color: var(--mc-muted);
+}
+
+/* ── Toggle de notificaciones ──────────────────────────────────────────────── */
+.ajustes-toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--mc-dark);
+}
+
+.ajustes-toggle-wrap {
+    flex-shrink: 0;
+}
+
+.ajustes-toggle-input {
+    display: none;
+}
+
+.ajustes-toggle-track {
+    display: block;
+    width: 44px;
+    height: 24px;
+    background: var(--mc-border);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.ajustes-toggle-input:checked + .ajustes-toggle-track {
+    background: var(--mc-green);
+}
+
+.ajustes-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+
+.ajustes-toggle-input:checked + .ajustes-toggle-track .ajustes-toggle-thumb {
+    transform: translateX(20px);
+}
+
+/* ── Radio group de privacidad ─────────────────────────────────────────────── */
+.ajustes-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ajustes-radio-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--mc-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+}
+
+.ajustes-radio-item:hover {
+    border-color: var(--mc-green);
+    background: rgba(95, 135, 102, .04);
+}
+
+.ajustes-radio-item input[type="radio"] {
+    margin-top: 2px;
+    accent-color: var(--mc-green);
+    flex-shrink: 0;
+}
+
+.ajustes-radio-item span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ajustes-radio-item strong {
+    font-size: .9rem;
+    color: var(--mc-dark);
+}
+
+.ajustes-radio-item small {
+    font-size: .8rem;
+    color: var(--mc-muted);
+}
+
+/* ── Flash messages ────────────────────────────────────────────────────────── */
+.dashboard-flash {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: .9rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+}
+
+.dashboard-flash-success {
+    background: rgba(95, 135, 102, .12);
+    color: #2d6a4f;
+    border: 1px solid rgba(95, 135, 102, .3);
+}
+
+.dashboard-flash-error {
+    background: rgba(239, 68, 68, .08);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, .25);
+}
+
+/* ── Etiquetas de plan ─────────────────────────────────────────────────────── */
+.perfil-plan {
+    display: inline-block;
+    font-size: .78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-decoration: none;
+    width: fit-content;
+}
+
+.perfil-plan-activo {
+    background: rgba(95, 135, 102, .12);
+    color: var(--mc-green);
+    border: 1px solid rgba(95, 135, 102, .25);
+}
+
+.perfil-plan-libre {
+    background: rgba(107, 114, 128, .1);
+    color: var(--mc-muted);
+    border: 1px solid var(--mc-border);
+    transition: border-color .15s;
+}
+
+.perfil-plan-libre:hover {
+    border-color: var(--mc-green);
+    color: var(--mc-green);
+}
+
+/* ── Errores de campo inline ───────────────────────────────────────────────── */
+.perfil-field-error {
+    font-size: .78rem;
+    color: var(--mc-danger);
+    min-height: 1rem;
+}
+
+.perfil-form-group input[type="text"].campo-invalido,
+.perfil-form-group input[type="password"].campo-invalido,
+.perfil-form-group textarea.campo-invalido {
+    border-color: var(--mc-danger);
+}
+
+/* ── Inputs de contraseña ──────────────────────────────────────────────────── */
+.perfil-form-group input[type="password"] {
+    border: 1.5px solid var(--mc-border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: .9rem;
+    font-family: inherit;
+    color: var(--mc-dark);
+    background: #fff;
+    transition: border-color .2s;
+    width: 100%;
+}
+
+.perfil-form-group input[type="password"]:focus {
+    outline: none;
+    border-color: var(--mc-green);
+}
+
+/* ── Tarjetas "Mi cuenta" en el dashboard ──────────────────────────────────── */
+.dashboard-cuenta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.dashboard-cuenta-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--mc-card);
+    border: 1.5px solid var(--mc-border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--mc-dark);
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.dashboard-cuenta-item:hover {
+    border-color: var(--mc-green);
+    box-shadow: 0 4px 12px rgba(95, 135, 102, .12);
+    color: var(--mc-dark);
+}
+
+.dashboard-cuenta-icono {
+    width: 38px;
+    height: 38px;
+    background: rgba(95, 135, 102, .1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dashboard-cuenta-icono img {
+    width: 20px;
+    height: 20px;
+    opacity: .75;
+}
+
+.dashboard-cuenta-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dashboard-cuenta-body strong {
+    font-size: .9rem;
+    font-weight: 700;
+}
+
+.dashboard-cuenta-body span {
+    font-size: .78rem;
+    color: var(--mc-muted);
+}
+
+.dashboard-cuenta-flecha {
+    font-size: .9rem;
+    color: var(--mc-muted);
+    flex-shrink: 0;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .perfil-avatar-section {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+
+    .perfil-avatar-info {
+        align-items: center;
+    }
+
+    .perfil-rol {
+        align-self: center;
+    }
+
+    .perfil-datos {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-form {
+        max-width: 100%;
+    }
+}

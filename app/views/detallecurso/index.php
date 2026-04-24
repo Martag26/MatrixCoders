@@ -145,6 +145,21 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             }
         }
 
+        /* ── AVISO EXPIRACIÓN ── */
+        .expiry-notice {
+            display: flex; align-items: flex-start; gap: 12px;
+            border-radius: 10px; padding: .85rem 1.1rem;
+            margin-top: .75rem; margin-bottom: 1.2rem;
+            font-size: .83rem; line-height: 1.55;
+        }
+        .expiry-notice--ok   { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+        .expiry-notice--warn { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+        .expiry-notice--danger { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
+        .expiry-notice svg { flex-shrink: 0; margin-top: 1px; }
+        .expiry-notice strong { display: block; font-weight: 700; margin-bottom: 1px; }
+        .expiry-bar { height: 4px; border-radius: 99px; background: #e5e7eb; margin-top: 8px; overflow: hidden; }
+        .expiry-bar-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+
         /* ── MATRICULA OK ── */
         .matricula-ok {
             background: #d1fae5;
@@ -398,26 +413,26 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
 
         /* ── TAREAS ── */
         .tarea-item {
-            background: var(--mc-soft);
-            border-left: 3px solid var(--mc-green);
-            border-radius: 0 9px 9px 0;
-            padding: .8rem 1rem;
-            margin-bottom: .5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            background: linear-gradient(180deg, #ffffff 0%, #fafbfd 100%);
+            border: 1px solid var(--mc-border);
+            border-radius: 16px;
+            padding: 1rem 1.1rem;
+            margin-bottom: .8rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             gap: 1rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
         }
 
         .tarea-titulo {
-            font-weight: 700;
-            font-size: .9rem;
+            font-weight: 800;
+            font-size: .98rem;
         }
 
         .tarea-desc {
-            font-size: .82rem;
+            font-size: .84rem;
             color: var(--mc-muted);
-            margin-top: 2px;
+            margin-top: 6px;
         }
 
         .tarea-fecha {
@@ -426,8 +441,8 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             white-space: nowrap;
             background: #fff;
             border: 1px solid var(--mc-border);
-            border-radius: 6px;
-            padding: 3px 9px;
+            border-radius: 999px;
+            padding: 6px 10px;
             color: var(--mc-green-d);
             flex-shrink: 0;
         }
@@ -436,6 +451,52 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             color: #dc2626;
             border-color: #fca5a5;
             background: #fff7f7;
+        }
+
+        .tarea-panel-top {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .55rem;
+            align-items: center;
+            margin-bottom: .55rem;
+        }
+
+        .tarea-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        .tarea-chip-soft {
+            background: #eef3f7;
+            color: var(--mc-dark);
+        }
+
+        .tarea-chip-accent {
+            background: rgba(107, 143, 113, .12);
+            color: var(--mc-green-d);
+        }
+
+        .tarea-body-meta {
+            display: grid;
+            gap: .45rem;
+        }
+
+        .tarea-lesson-ref {
+            font-size: .78rem;
+            color: var(--mc-muted);
+            font-weight: 700;
+        }
+
+        .tarea-empty {
+            padding: 1.2rem 1.3rem;
+            border-radius: 16px;
+            border: 1px solid var(--mc-border);
+            background: #f8fafc;
+            color: var(--mc-muted);
         }
 
         /* ── SIDEBAR ── */
@@ -607,6 +668,46 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                     </div>
                     <a href="<?= $urlCurso ?>" class="btn-mc">▶ Ir al curso</a>
                 </div>
+                <?php if ($fechaExpiracion): ?>
+                    <?php
+                    $d = $diasParaExpirar;
+                    if ($d <= 0) {
+                        $cls = 'expiry-notice--danger';
+                        $barColor = '#ef4444';
+                        $pctUsed = 100;
+                        $msg = 'Tu acceso a este curso ha expirado.';
+                        $sub = 'El plazo de 90 días desde la matrícula venció el ' . $fechaExpiracion . '.';
+                    } elseif ($d <= 14) {
+                        $cls = 'expiry-notice--warn';
+                        $barColor = '#f59e0b';
+                        $pctUsed = max(0, min(100, round((1 - $d/90)*100)));
+                        $msg = 'Acceso expira pronto — quedan ' . $d . ' día' . ($d !== 1 ? 's' : '') . '.';
+                        $sub = 'Fecha límite: ' . $fechaExpiracion . '. Organiza tus sesiones para terminar a tiempo.';
+                    } else {
+                        $cls = 'expiry-notice--ok';
+                        $barColor = '#22c55e';
+                        $pctUsed = max(0, min(100, round((1 - $d/90)*100)));
+                        $msg = 'Acceso activo — ' . $d . ' días restantes.';
+                        $sub = 'Este acceso expira el ' . $fechaExpiracion . ' (90 días desde la matrícula).';
+                    }
+                    ?>
+                    <div class="expiry-notice <?= $cls ?>">
+                        <?php if ($d <= 0): ?>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <?php elseif ($d <= 14): ?>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <?php else: ?>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        <?php endif; ?>
+                        <div style="flex:1">
+                            <strong><?= $msg ?></strong>
+                            <?= htmlspecialchars($sub) ?>
+                            <div class="expiry-bar">
+                                <div class="expiry-bar-fill" style="width:<?= $pctUsed ?>%;background:<?= $barColor ?>"></div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             <?php elseif ($usuarioId && $planPermiteAcceso): ?>
                 <div class="curso-acceso">
                     <div class="curso-acceso-copy">
@@ -725,12 +826,24 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                     <div class="tab-pane fade" id="tab-tareas">
                         <?php foreach ($tareas as $t):
                             $vencida = !empty($t['fecha_limite']) && strtotime($t['fecha_limite']) < time();
+                            $diasRestantes = !empty($t['fecha_limite'])
+                                ? (int)floor((strtotime(substr($t['fecha_limite'], 0, 10)) - strtotime(date('Y-m-d'))) / 86400)
+                                : null;
                         ?>
                             <div class="tarea-item">
-                                <div>
+                                <div class="tarea-body-meta">
+                                    <div class="tarea-panel-top">
+                                        <span class="tarea-chip tarea-chip-soft"><?= $vencida ? 'Vencida' : ($diasRestantes === 0 ? 'Entrega hoy' : 'Tarea del curso') ?></span>
+                                        <?php if (!empty($t['leccion_titulo'])): ?>
+                                            <span class="tarea-chip tarea-chip-accent"><?= htmlspecialchars($t['leccion_titulo']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="tarea-titulo"><?= htmlspecialchars($t['titulo'] ?? '') ?></div>
                                     <?php if (!empty($t['descripcion'])): ?>
                                         <div class="tarea-desc"><?= htmlspecialchars($t['descripcion']) ?></div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($t['leccion_titulo'])): ?>
+                                        <span class="tarea-lesson-ref">Asociada a la leccion: <?= htmlspecialchars($t['leccion_titulo']) ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if (!empty($t['fecha_limite'])): ?>
@@ -751,9 +864,18 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             <aside class="sidebar-sticky">
                 <div class="sidebar-card">
                     <div class="sidebar-body">
-                        <div class="sidebar-price <?= $precio <= 0 ? 'gratis' : '' ?>">
-                            <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
-                        </div>
+                        <?php if ($precio <= 0): ?>
+                            <div class="sidebar-price gratis">Gratis</div>
+                        <?php elseif (($descuentoActivo ?? 0) > 0): ?>
+                            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+                                <span style="font-size:1.1rem;color:#6b7280;text-decoration:line-through"><?= number_format($precio, 2) ?>€</span>
+                                <span class="sidebar-price" style="margin-bottom:0"><?= number_format($precioFinal, 2) ?>€</span>
+                                <span style="background:#ef4444;color:#fff;font-size:.75rem;font-weight:800;padding:2px 8px;border-radius:99px">-<?= round($descuentoActivo) ?>%</span>
+                            </div>
+                            <p style="font-size:.78rem;color:#ef4444;font-weight:600;margin:0 0 12px">¡Oferta por tiempo limitado!</p>
+                        <?php else: ?>
+                            <div class="sidebar-price"><?= number_format($precio, 2) ?>€</div>
+                        <?php endif; ?>
 
                         <?php if ($precio <= 0): ?>
                             <form method="POST" action="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>">
@@ -770,7 +892,7 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                 <a href="<?= BASE_URL ?>/index.php?url=login" class="btn-mc">Iniciar sesión</a>
                             <?php else: ?>
                                 <button class="btn-mc"
-                                    onclick="abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
+                                    onclick="abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precioFinal ?? $precio ?>, <?= $precio ?>, <?= $descuentoActivo ?? 0 ?>, '<?= htmlspecialchars(addslashes($imagen ?? '')) ?>')">
                                     🛒 Añadir al carrito
                                 </button>
                             <?php endif; ?>
@@ -794,26 +916,149 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
 
     </div><!-- /curso-body -->
 
+    <!-- Toast éxito -->
+    <div id="toastCarrito">
+        <div class="mc-toast-inner">
+            <span class="mc-toast-check">
+                <svg width="12" height="12" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </span>
+            <span id="toastMsg">¡Curso añadido al carrito!</span>
+            <a href="<?= BASE_URL ?>/index.php?url=carrito" class="mc-toast-link">Ver cesta →</a>
+        </div>
+    </div>
+
     <!-- Modal carrito -->
-    <div class="modal fade" id="modalCarrito" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius:16px;">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Añadir al carrito</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mc-cart-dialog">
+            <div class="modal-content mc-cart-modal">
+
+                <!-- Close -->
+                <button type="button" class="mc-modal-x" data-bs-dismiss="modal" aria-label="Cerrar">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+
+                <!-- Course card -->
+                <div class="mc-modal-course">
+                    <div class="mc-modal-thumb-wrap">
+                        <img id="mc-modal-img" src="" alt="" class="mc-modal-thumb">
+                        <div class="mc-modal-thumb-placeholder">
+                            <svg width="28" height="28" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </div>
+                    </div>
+                    <div class="mc-modal-course-info">
+                        <span class="mc-modal-pretitle">Añadir al carrito</span>
+                        <p id="modal-texto" class="mc-modal-course-title"></p>
+                        <div class="mc-modal-pricing">
+                            <span id="modal-precio-original" class="mc-price-old" style="display:none"></span>
+                            <span id="modal-precio" class="mc-price-main"></span>
+                            <span id="modal-desc-badge" class="mc-disc-badge" style="display:none"></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body text-center py-4">
-                    <p id="modal-texto" class="mb-1" style="font-size:1rem;"></p>
-                    <p id="modal-precio" class="fw-bold" style="font-size:1.2rem;color:#111827;"></p>
-                    <p class="text-muted" style="font-size:.9rem;">¿Quieres añadir este curso a tu carrito?</p>
+
+                <!-- Divider -->
+                <div class="mc-modal-divider"></div>
+
+                <!-- Trust chips -->
+                <div class="mc-modal-trust">
+                    <span class="mc-trust-chip">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+                        Acceso inmediato
+                    </span>
+                    <span class="mc-trust-chip">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+                        Garantía 30 días
+                    </span>
+                    <span class="mc-trust-chip">
+                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+                        Certificado incluido
+                    </span>
                 </div>
-                <div class="modal-footer border-0 pt-0 justify-content-center gap-2">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success" id="btn-confirmar-carrito">Añadir al carrito</button>
+
+                <!-- Error -->
+                <div id="modal-error" class="mc-modal-error" style="display:none"></div>
+
+                <!-- Actions -->
+                <div class="mc-modal-actions">
+                    <button type="button" id="btn-confirmar-carrito" class="mc-btn-add">
+                        <span class="btn-cc-spinner"></span>
+                        <svg class="btn-cc-icon" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span class="btn-cc-label">Añadir al carrito</span>
+                    </button>
+                    <button type="button" class="mc-btn-cancel" data-bs-dismiss="modal">Cancelar</button>
                 </div>
+
+                <!-- Security note -->
+                <p class="mc-modal-security">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    Pago seguro con <strong>Stripe</strong> · Cifrado SSL
+                </p>
+
             </div>
         </div>
     </div>
+
+    <style>
+    /* ── Toast ── */
+    #toastCarrito{position:fixed;bottom:28px;right:28px;z-index:9999;opacity:0;transform:translateY(20px);transition:opacity .3s ease,transform .3s ease;pointer-events:none}
+    #toastCarrito.show{opacity:1;transform:translateY(0);pointer-events:auto}
+    .mc-toast-inner{background:#1B2336;color:#fff;border-radius:14px;padding:13px 20px;display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:600;box-shadow:0 8px 36px rgba(0,0,0,.25);font-family:'Saira',sans-serif;white-space:nowrap}
+    .mc-toast-check{background:#6B8F71;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+    .mc-toast-link{color:#6B8F71;font-weight:800;margin-left:6px;text-decoration:none;white-space:nowrap}
+    .mc-toast-link:hover{text-decoration:underline}
+
+    /* ── Dialog ── */
+    .mc-cart-dialog{max-width:460px}
+    .mc-cart-modal{border-radius:20px!important;border:none!important;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.18)!important;font-family:'Saira',sans-serif;padding:0}
+
+    /* ── Close button ── */
+    .mc-modal-x{position:absolute;top:14px;right:14px;z-index:10;width:30px;height:30px;border-radius:8px;border:1px solid #e5e7eb;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6b7280;transition:all .15s}
+    .mc-modal-x:hover{background:#f3f4f6;color:#1B2336}
+
+    /* ── Course card row ── */
+    .mc-modal-course{display:flex;gap:16px;align-items:flex-start;padding:28px 28px 20px}
+    .mc-modal-thumb-wrap{position:relative;width:88px;height:72px;border-radius:12px;overflow:hidden;flex-shrink:0;background:#f3f4f6}
+    .mc-modal-thumb{width:100%;height:100%;object-fit:cover;display:block}
+    .mc-modal-thumb-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+    .mc-modal-thumb[src=''],.mc-modal-thumb:not([src]){display:none}
+    .mc-modal-thumb[src=''] ~ .mc-modal-thumb-placeholder,.mc-modal-thumb:not([src]) ~ .mc-modal-thumb-placeholder{display:flex}
+    .mc-modal-course-info{flex:1;min-width:0}
+    .mc-modal-pretitle{font-size:.7rem;font-weight:700;color:#6B8F71;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px}
+    .mc-modal-course-title{font-size:.95rem;font-weight:800;color:#1B2336;margin:0 0 10px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .mc-modal-pricing{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .mc-price-old{font-size:.83rem;color:#9ca3af;text-decoration:line-through;font-weight:500}
+    .mc-price-main{font-size:1.35rem;font-weight:900;color:#1B2336;line-height:1}
+    .mc-disc-badge{background:#ef4444;color:#fff;font-size:.65rem;font-weight:800;border-radius:6px;padding:3px 7px;letter-spacing:.3px}
+
+    /* ── Divider ── */
+    .mc-modal-divider{height:1px;background:#f0f0f0;margin:0 28px}
+
+    /* ── Trust chips ── */
+    .mc-modal-trust{display:flex;gap:6px;flex-wrap:wrap;padding:16px 28px}
+    .mc-trust-chip{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;color:#16a34a;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:99px;padding:4px 10px}
+
+    /* ── Error ── */
+    .mc-modal-error{margin:0 28px 12px;padding:10px 14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:.82rem;font-weight:600}
+
+    /* ── Actions ── */
+    .mc-modal-actions{padding:4px 28px 0;display:flex;flex-direction:column;gap:10px}
+    .mc-btn-add{width:100%;padding:15px;border-radius:13px;border:none;background:#1B2336;color:#fff;font-weight:800;font-size:.95rem;font-family:'Saira',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .18s,transform .1s;position:relative;overflow:hidden}
+    .mc-btn-add:hover:not(:disabled){background:#0f172a;transform:translateY(-1px)}
+    .mc-btn-add:active:not(:disabled){transform:translateY(0)}
+    .mc-btn-add:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .mc-btn-add.success{background:#16a34a}
+    .btn-cc-spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:mcSpin .65s linear infinite;flex-shrink:0}
+    .mc-btn-add.loading .btn-cc-spinner{display:block}
+    .mc-btn-add.loading .btn-cc-icon,.mc-btn-add.loading .btn-cc-label{display:none}
+    .mc-btn-cancel{width:100%;padding:11px;border-radius:10px;border:none;background:transparent;color:#6b7280;font-size:.85rem;font-weight:600;font-family:'Saira',sans-serif;cursor:pointer;transition:color .15s}
+    .mc-btn-cancel:hover{color:#1B2336}
+
+    /* ── Security note ── */
+    .mc-modal-security{text-align:center;font-size:.72rem;color:#9ca3af;margin:8px 28px 22px;display:flex;align-items:center;justify-content:center;gap:5px}
+    .mc-modal-security strong{color:#6b7280}
+
+    @keyframes mcSpin{to{transform:rotate(360deg)}}
+    </style>
 
     <?php require __DIR__ . '/../layout/footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -843,39 +1088,115 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
 
         let cursoSeleccionado = null;
 
-        function abrirModal(id, titulo, precio) {
+        function abrirModal(id, titulo, precioFinal, precioOriginal = 0, descuento = 0, imagen = '') {
             cursoSeleccionado = id;
+            const btn     = document.getElementById('btn-confirmar-carrito');
+            const elError = document.getElementById('mc-modal-error') || document.getElementById('modal-error');
+
+            // Reset button state
+            btn.disabled = false;
+            btn.classList.remove('loading', 'success');
+            if (elError) elError.style.display = 'none';
+
+            // Course image
+            const img = document.getElementById('mc-modal-img');
+            const placeholder = img?.nextElementSibling;
+            if (img) {
+                if (imagen) {
+                    img.src = imagen;
+                    img.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                    img.onerror = () => { img.style.display = 'none'; if (placeholder) placeholder.style.display = 'flex'; };
+                } else {
+                    img.src = '';
+                    img.style.display = 'none';
+                    if (placeholder) placeholder.style.display = 'flex';
+                }
+            }
+
+            // Title
             document.getElementById('modal-texto').textContent = titulo;
-            document.getElementById('modal-precio').textContent =
-                precio > 0 ? precio.toFixed(2) + '€' : 'Gratis';
+
+            // Pricing
+            const elPrecio   = document.getElementById('modal-precio');
+            const elOriginal = document.getElementById('modal-precio-original');
+            const elBadge    = document.getElementById('modal-desc-badge');
+
+            if (precioFinal <= 0) {
+                elPrecio.textContent = 'Gratis';
+                elOriginal.style.display = 'none';
+                elBadge.style.display = 'none';
+            } else if (descuento > 0 && precioOriginal > precioFinal) {
+                elPrecio.textContent = precioFinal.toFixed(2) + '€';
+                elOriginal.textContent = precioOriginal.toFixed(2) + '€';
+                elOriginal.style.display = '';
+                elBadge.textContent = '-' + Math.round(descuento) + '%';
+                elBadge.style.display = '';
+            } else {
+                elPrecio.textContent = precioFinal.toFixed(2) + '€';
+                elOriginal.style.display = 'none';
+                elBadge.style.display = 'none';
+            }
+
             new bootstrap.Modal(document.getElementById('modalCarrito')).show();
         }
-        document.getElementById('btn-confirmar-carrito').addEventListener('click', function() {
+
+        document.getElementById('btn-confirmar-carrito').addEventListener('click', function () {
             if (!cursoSeleccionado) return;
+            const btn     = this;
+            const elError = document.getElementById('modal-error');
+
+            btn.disabled = true;
+            btn.classList.add('loading');
+
             const fd = new FormData();
             fd.append('curso_id', cursoSeleccionado);
-            fetch(BASE_URL + '/index.php?url=carrito-añadir', {
-                    method: 'POST',
-                    body: fd
-                })
+            fetch(BASE_URL + '/index.php?url=carrito-añadir', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(data => {
                     if (data.ok) {
+                        // Update badge
                         let badge = document.querySelector('.carrito-badge');
                         if (data.total > 0) {
                             if (!badge) {
                                 badge = document.createElement('span');
-                                badge.className = 'carrito-badge';
-                                document.querySelector('a[aria-label="carrito"]').appendChild(badge);
+                                badge.className = 'notif-bell-badge carrito-badge';
+                                document.querySelector('a[aria-label="carrito"]')?.appendChild(badge);
                             }
                             badge.textContent = data.total;
-                        } else {
-                            if (badge) badge.remove();
+                            badge.classList.add('visible');
                         }
-                        bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                        // Success state on button
+                        btn.classList.remove('loading');
+                        btn.classList.add('success');
+                        btn.innerHTML = `<svg width="18" height="18" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>¡Añadido!</span>`;
+                        setTimeout(() => {
+                            bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                            showToast('¡Curso añadido al carrito!');
+                        }, 900);
+                        return;
                     }
+                    btn.disabled = false;
+                    btn.classList.remove('loading');
+                    if (elError) {
+                        elError.textContent = data.mensaje || (data.estado === 'ya_en_carrito'
+                            ? 'Este curso ya está en tu cesta.' : 'No se ha podido añadir.');
+                        elError.style.display = 'block';
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.classList.remove('loading');
                 });
         });
+
+        function showToast(msg) {
+            const t = document.getElementById('toastCarrito');
+            document.getElementById('toastMsg').textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._hideTimer);
+            t._hideTimer = setTimeout(() => t.classList.remove('show'), 4000);
+        }
     </script>
 </body>
 
