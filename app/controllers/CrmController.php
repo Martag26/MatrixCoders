@@ -102,6 +102,7 @@ class CrmController
             'ALTER TABLE campana_crm ADD COLUMN dias_registro INTEGER DEFAULT NULL',
             'ALTER TABLE examen        ADD COLUMN fecha_entrega TEXT    DEFAULT NULL',
             'ALTER TABLE examen        ADD COLUMN modo_entrega  TEXT    NOT NULL DEFAULT "cualquiera"',
+            'ALTER TABLE notificacion  ADD COLUMN url_accion    TEXT    DEFAULT NULL',
         ] as $sql) {
             try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
         }
@@ -224,6 +225,10 @@ class CrmController
             'cambiar_contrasena'    => $this->apiCambiarContrasena(),
             'actualizar_ajustes'    => $this->apiActualizarAjustes(),
             'asignar_instructor'    => $this->apiAsignarInstructor(),
+            'get_crm_notifs'        => $this->apiGetCrmNotifs(),
+            'marcar_notif_leida'    => $this->apiMarcarNotifLeida(),
+            'marcar_todas_leidas'   => $this->apiMarcarTodasLeidas(),
+            'check_campana_conflicto' => $this->apiCheckCampanaConflicto(),
             default                 => ['ok' => false, 'error' => 'Acción no reconocida'],
         };
 
@@ -1248,14 +1253,17 @@ class CrmController
         $titulo    = trim($d['titulo'] ?? '');
         $cuerpo    = trim($d['cuerpo'] ?? '');
         $tipo      = $d['tipo'] ?? 'oferta';
-        $inicio    = $d['fecha_inicio'] ?? null;
-        $fin       = $d['fecha_fin']    ?? null;
+        $inicio    = !empty($d['fecha_inicio']) ? $d['fecha_inicio'] : null;
+        $fin       = !empty($d['fecha_fin'])    ? $d['fecha_fin']    : null;
         $desc      = (float)($d['descuento_pct'] ?? 0);
         $cursos    = $d['cursos'] ?? [];
         $audiencia = in_array($d['audiencia'] ?? '', ['todos','nuevos','matriculados']) ? $d['audiencia'] : 'todos';
         $diasReg   = ($audiencia === 'nuevos' && isset($d['dias_registro'])) ? max(1,(int)$d['dias_registro']) : null;
 
         if (!$titulo || !$cuerpo) return ['ok' => false, 'error' => 'Título y cuerpo son obligatorios'];
+
+        $conflicto = $this->detectarConflictoCampana($titulo, $tipo, $inicio, $fin, $cursos, null);
+        if ($conflicto) return ['ok' => false, 'error' => $conflicto];
 
         $this->db->prepare("INSERT INTO campana_crm (titulo,cuerpo,tipo,fecha_inicio,fecha_fin,descuento_pct,activa,audiencia,dias_registro) VALUES(?,?,?,?,?,?,1,?,?)")
                  ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc,$audiencia,$diasReg]);
@@ -1283,14 +1291,17 @@ class CrmController
         $titulo    = trim($d['titulo'] ?? '');
         $cuerpo    = trim($d['cuerpo'] ?? '');
         $tipo      = $d['tipo'] ?? 'oferta';
-        $inicio    = $d['fecha_inicio'] ?? null;
-        $fin       = $d['fecha_fin'] ?? null;
+        $inicio    = !empty($d['fecha_inicio']) ? $d['fecha_inicio'] : null;
+        $fin       = !empty($d['fecha_fin'])    ? $d['fecha_fin']    : null;
         $desc      = (float)($d['descuento_pct'] ?? 0);
         $activa    = (int)($d['activa'] ?? 1);
         $cursos    = $d['cursos'] ?? [];
         $audiencia = in_array($d['audiencia'] ?? '', ['todos','nuevos','matriculados']) ? $d['audiencia'] : 'todos';
         $diasReg   = ($audiencia === 'nuevos' && isset($d['dias_registro'])) ? max(1,(int)$d['dias_registro']) : null;
         if (!$titulo || !$cuerpo) return ['ok' => false, 'error' => 'Faltan campos'];
+
+        $conflicto = $this->detectarConflictoCampana($titulo, $tipo, $inicio, $fin, $cursos, $id);
+        if ($conflicto) return ['ok' => false, 'error' => $conflicto];
 
         $this->db->prepare("UPDATE campana_crm SET titulo=?,cuerpo=?,tipo=?,fecha_inicio=?,fecha_fin=?,descuento_pct=?,activa=?,audiencia=?,dias_registro=? WHERE id=?")
                  ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc,$activa,$audiencia,$diasReg,$id]);
@@ -1353,6 +1364,19 @@ class CrmController
         $id = (int)$this->db->lastInsertId();
         $this->db->prepare("INSERT INTO incidencia_respuesta (incidencia_id,usuario_id,mensaje) VALUES(?,?,?)")
                  ->execute([$id,(int)$this->usuario['id'],$mensaje]);
+
+        // Notify all admins & moderators
+        try {
+            $admins = $this->db->query("SELECT id FROM usuario WHERE rol='ADMINISTRADOR' OR es_moderador=1")->fetchAll(PDO::FETCH_COLUMN);
+            $ins = $this->db->prepare("INSERT OR IGNORE INTO notificacion (usuario_id,tipo,titulo,cuerpo,ref_id,url_accion) VALUES(?,?,?,?,?,?)");
+            $prioLabel = ['urgente'=>'⚠️ URGENTE','alta'=>'🔴 Alta','normal'=>'🟡 Normal','baja'=>'🟢 Baja'][$prior] ?? $prior;
+            foreach ($admins as $aid) {
+                if ($aid != (int)$this->usuario['id']) {
+                    $ins->execute([$aid,'crm',"Nueva incidencia: $asunto","Prioridad: $prioLabel · De: {$this->usuario['nombre']}",$id,'?url=crm&sec=comunicacion&tab=incidencias']);
+                }
+            }
+        } catch (Exception $e) {}
+
         return ['ok' => true, 'id' => $id, 'mensaje' => 'Incidencia creada'];
     }
 
@@ -1425,6 +1449,189 @@ class CrmController
             $this->db->prepare("INSERT INTO crm_actividad (usuario_id,tipo,titulo) VALUES(?,?,?)")
                      ->execute([(int)$this->usuario['id'], $tipo, $titulo]);
         } catch (Exception $e) { /* ignorar */ }
+    }
+
+    /* ── Campaign conflict detection ── */
+    private function detectarConflictoCampana(string $titulo, string $tipo, ?string $inicio, ?string $fin, array $cursos, ?int $excludeId): ?string
+    {
+        // 1. Fecha inicio posterior a fecha fin
+        if ($inicio && $fin && $inicio > $fin) {
+            return 'La fecha de inicio no puede ser posterior a la fecha de fin.';
+        }
+
+        // 2. Título exactamente duplicado (misma campaña con mismo título)
+        $dupQ = "SELECT id FROM campana_crm WHERE titulo=? AND activa=1" . ($excludeId ? " AND id<>$excludeId" : '');
+        $dup  = $this->db->prepare($dupQ);
+        $dup->execute([$titulo]);
+        if ($dup->fetch()) {
+            return "Ya existe una campaña activa con el título \"$titulo\". Usa un nombre diferente.";
+        }
+
+        // 3. Para campañas de tipo 'oferta': solapamiento de fechas sobre los mismos cursos
+        if ($tipo === 'oferta' && !empty($cursos)) {
+            foreach ($cursos as $cid) {
+                $cid = (int)$cid;
+                if (!$cid) continue;
+
+                $overlapQ = "
+                    SELECT c.titulo FROM campana_crm cam
+                    JOIN campana_curso cc ON cc.campana_id=cam.id
+                    WHERE cc.curso_id=?
+                      AND cam.tipo='oferta'
+                      AND cam.activa=1
+                      " . ($excludeId ? "AND cam.id<>$excludeId" : '') . "
+                      AND (
+                        -- cam solapada con el nuevo rango
+                        (? IS NULL OR cam.fecha_fin IS NULL OR cam.fecha_fin >= ?)
+                        AND (? IS NULL OR cam.fecha_inicio IS NULL OR cam.fecha_inicio <= ?)
+                      )
+                    LIMIT 1
+                ";
+                $ov = $this->db->prepare($overlapQ);
+                $ov->execute([$cid, $fin, $inicio ?? '2000-01-01', $inicio, $fin ?? '2099-12-31']);
+                $cursoRow = $ov->fetch(PDO::FETCH_ASSOC);
+                if ($cursoRow) {
+                    $cursoNombre = $cursoRow['titulo'] ?? "ID $cid";
+                    return "El curso \"" . mb_strimwidth($cursoNombre, 0, 40, '…') . "\" ya tiene una oferta activa que se solapa con estas fechas. Desactiva la campaña existente o elige otro rango.";
+                }
+            }
+        }
+
+        // 4. Mismas fechas exactas + mismo tipo (posible duplicado de campaña global)
+        if ($inicio && $fin) {
+            $sameQ = "SELECT titulo FROM campana_crm WHERE tipo=? AND fecha_inicio=? AND fecha_fin=? AND activa=1" . ($excludeId ? " AND id<>$excludeId" : '') . " LIMIT 1";
+            $same  = $this->db->prepare($sameQ);
+            $same->execute([$tipo, $inicio, $fin]);
+            if ($row = $same->fetch(PDO::FETCH_ASSOC)) {
+                return "Ya existe una campaña de tipo \"$tipo\" con exactamente el mismo rango de fechas: \"{$row['titulo']}\". Combínalas o ajusta las fechas.";
+            }
+        }
+
+        return null;
+    }
+
+    private function apiCheckCampanaConflicto(): array
+    {
+        $d      = $this->input();
+        $titulo = trim($d['titulo'] ?? '');
+        $tipo   = $d['tipo'] ?? 'oferta';
+        $inicio = !empty($d['fecha_inicio']) ? $d['fecha_inicio'] : null;
+        $fin    = !empty($d['fecha_fin'])    ? $d['fecha_fin']    : null;
+        $cursos = $d['cursos'] ?? [];
+        $excl   = isset($d['id']) ? (int)$d['id'] : null;
+
+        $error = $this->detectarConflictoCampana($titulo, $tipo, $inicio, $fin, $cursos, $excl);
+        return $error ? ['ok' => false, 'error' => $error] : ['ok' => true];
+    }
+
+    /* ── CRM Notifications ── */
+    private function apiGetCrmNotifs(): array
+    {
+        $uid = (int)$this->usuario['id'];
+
+        // For admins/moderators: get system CRM activity notifications
+        $notifs = [];
+
+        // 1. Unread platform notifications for this user (type crm or any)
+        try {
+            $stmt = $this->db->prepare("
+                SELECT id, tipo, titulo, cuerpo, leido, url_accion, creado_en
+                FROM notificacion
+                WHERE usuario_id=?
+                ORDER BY creado_en DESC LIMIT 20
+            ");
+            $stmt->execute([$uid]);
+            $notifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $notifs = []; }
+
+        // 2. For admins: inject recent high-priority CRM events not yet seen
+        $adminAlerts = [];
+        if ($this->esAdmin || $this->esModerador) {
+            // New open incidencias
+            try {
+                $s = $this->db->query("
+                    SELECT i.id, i.asunto, u.nombre AS usuario_nombre, i.prioridad, i.creado_en
+                    FROM incidencia i JOIN usuario u ON u.id=i.usuario_id
+                    WHERE i.estado='abierta'
+                    ORDER BY CASE i.prioridad WHEN 'urgente' THEN 1 WHEN 'alta' THEN 2 ELSE 3 END, i.creado_en DESC
+                    LIMIT 5
+                ");
+                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $inc) {
+                    $adminAlerts[] = [
+                        'id'       => 'inc_' . $inc['id'],
+                        'tipo'     => 'incidencia',
+                        'titulo'   => 'Incidencia abierta: ' . mb_strimwidth($inc['asunto'], 0, 60, '…'),
+                        'cuerpo'   => 'De ' . $inc['usuario_nombre'] . ' · ' . ucfirst($inc['prioridad']),
+                        'leido'    => 0,
+                        'creado_en'=> $inc['creado_en'],
+                        'url_accion'=> '?url=crm&sec=comunicacion&tab=incidencias',
+                        'badge'    => $inc['prioridad'] === 'urgente' ? 'danger' : ($inc['prioridad'] === 'alta' ? 'warning' : 'info'),
+                    ];
+                }
+            } catch (Exception $e) {}
+
+            // Pending practical reviews
+            try {
+                $s = $this->db->prepare("
+                    SELECT COUNT(*) AS total FROM entrega_practica WHERE revisado=0
+                ");
+                $s->execute();
+                $pendientes = (int)$s->fetchColumn();
+                if ($pendientes > 0) {
+                    $adminAlerts[] = [
+                        'id'        => 'prac_review',
+                        'tipo'      => 'revision',
+                        'titulo'    => "$pendientes entrega(s) prácticas pendientes de revisión",
+                        'cuerpo'    => 'Accede al editor de cada curso → pestaña Resultados',
+                        'leido'     => 0,
+                        'creado_en' => date('Y-m-d H:i:s'),
+                        'url_accion'=> '?url=crm&sec=cursos',
+                        'badge'     => 'warning',
+                    ];
+                }
+            } catch (Exception $e) {}
+
+            // Unread course messages
+            try {
+                $s = $this->db->query("SELECT COUNT(*) FROM mensaje_curso WHERE leido=0");
+                $noLeidos = (int)$s->fetchColumn();
+                if ($noLeidos > 0) {
+                    $adminAlerts[] = [
+                        'id'        => 'msg_unread',
+                        'tipo'      => 'mensaje',
+                        'titulo'    => "$noLeidos mensaje(s) sin leer en cursos",
+                        'cuerpo'    => 'Ver en la sección Comunicación',
+                        'leido'     => 0,
+                        'creado_en' => date('Y-m-d H:i:s'),
+                        'url_accion'=> '?url=crm&sec=comunicacion',
+                        'badge'     => 'info',
+                    ];
+                }
+            } catch (Exception $e) {}
+        }
+
+        $unread = count(array_filter($notifs, fn($n) => !$n['leido'])) + count($adminAlerts);
+
+        return ['ok' => true, 'notifs' => $notifs, 'alerts' => $adminAlerts, 'unread' => $unread];
+    }
+
+    private function apiMarcarNotifLeida(): array
+    {
+        $d  = $this->input();
+        $id = (int)($d['id'] ?? 0);
+        if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
+        try {
+            $this->db->prepare("UPDATE notificacion SET leido=1 WHERE id=? AND usuario_id=?")->execute([$id, (int)$this->usuario['id']]);
+        } catch (Exception $e) {}
+        return ['ok' => true];
+    }
+
+    private function apiMarcarTodasLeidas(): array
+    {
+        try {
+            $this->db->prepare("UPDATE notificacion SET leido=1 WHERE usuario_id=?")->execute([(int)$this->usuario['id']]);
+        } catch (Exception $e) {}
+        return ['ok' => true];
     }
 
     private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId, string $audiencia = 'todos', ?int $diasRegistro = null): int
