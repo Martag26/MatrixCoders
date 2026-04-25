@@ -212,6 +212,21 @@ body {
     transform: translateY(-1px);
 }
 
+.btn-course-enrolled {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: .72rem;
+    font-weight: 700;
+    border: 1px solid #bbf7d0;
+    cursor: default;
+    pointer-events: none;
+}
+
 .card-body-inner-home {
     padding: 14px;
     display: flex;

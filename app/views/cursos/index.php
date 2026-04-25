@@ -195,11 +195,18 @@
                                                     <span class="course-price"><?= number_format($precio, 2) ?>€</span>
                                                 <?php endif; ?>
                                             </div>
+                                            <?php if (!in_array($curso['id'], $matriculasUsuario ?? [])): ?>
                                             <button class="btn-course-cart"
                                                 onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precioFinal ?>)">
                                                 <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="">
                                                 <span>Añadir</span>
                                             </button>
+                                            <?php else: ?>
+                                            <span class="btn-course-enrolled">
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                Matriculado
+                                            </span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>

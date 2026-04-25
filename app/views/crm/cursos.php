@@ -2,6 +2,7 @@
 $cursosStats = $cursosStats ?? ['total'=>0,'activos'=>0,'inactivos'=>0,'gratis'=>0,'total_matriculas'=>0];
 $perPage     = $perPage ?? 12;
 $estado      = $estado ?? '';
+$sort        = $sort ?? 'reciente';
 ?>
 
 <div class="crm-page-header">
@@ -10,17 +11,6 @@ $estado      = $estado ?? '';
     <p>Administra el catálogo, activa/desactiva y asigna instructores. Total: <strong><?= number_format($totalRows) ?></strong></p>
   </div>
   <div class="crm-page-actions" style="gap:6px">
-    <?php if ($esAdmin): ?>
-    <!-- Bulk toggle buttons -->
-    <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="toggleAllCursos(1)" title="Activar todos los cursos">
-      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      Activar todos
-    </button>
-    <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="toggleAllCursos(0)" title="Desactivar todos los cursos">
-      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      Desactivar todos
-    </button>
-    <?php endif; ?>
     <!-- View toggle -->
     <div style="display:flex;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:9px;padding:3px;gap:2px">
       <button id="btnCards" onclick="setView('cards')" title="Vista tarjetas"
@@ -91,13 +81,22 @@ $estado      = $estado ?? '';
       <option value="activo" <?= $estado==='activo'?'selected':'' ?>>Solo activos</option>
       <option value="inactivo" <?= $estado==='inactivo'?'selected':'' ?>>Solo inactivos</option>
     </select>
+    <select name="sort" class="crm-filter-select" onchange="this.form.submit()" title="Ordenar por">
+      <option value="reciente"    <?= $sort==='reciente'   ?'selected':'' ?>>Más recientes</option>
+      <option value="antiguo"     <?= $sort==='antiguo'    ?'selected':'' ?>>Más antiguos</option>
+      <option value="nombre_az"   <?= $sort==='nombre_az'  ?'selected':'' ?>>Nombre A → Z</option>
+      <option value="nombre_za"   <?= $sort==='nombre_za'  ?'selected':'' ?>>Nombre Z → A</option>
+      <option value="alumnos"     <?= $sort==='alumnos'    ?'selected':'' ?>>Más alumnos</option>
+      <option value="precio_asc"  <?= $sort==='precio_asc' ?'selected':'' ?>>Precio menor</option>
+      <option value="precio_desc" <?= $sort==='precio_desc'?'selected':'' ?>>Precio mayor</option>
+    </select>
     <select name="per" class="crm-filter-select" onchange="this.form.submit()" title="Cursos por página">
       <?php foreach ([10,15,20,25,30] as $n): ?>
         <option value="<?= $n ?>" <?= $perPage===$n?'selected':'' ?>><?= $n ?> por página</option>
       <?php endforeach; ?>
     </select>
     <?php if ($q || $cat || $nivel || $estado): ?>
-    <a href="<?= $crmBase ?>cursos" class="crm-btn crm-btn-secondary">
+    <a href="<?= $crmBase ?>cursos&sort=<?= urlencode($sort) ?>" class="crm-btn crm-btn-secondary">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
       Limpiar
     </a>
@@ -300,7 +299,7 @@ $estado      = $estado ?? '';
   <span style="font-size:13px;color:var(--crm-muted)">Mostrando <?= count($cursos) ?> de <?= number_format($totalRows) ?> cursos</span>
   <div class="crm-pag-btns">
     <?php
-    $pagBase = $crmBase . 'cursos&per=' . $perPage . '&q=' . urlencode($q) . '&cat=' . urlencode($cat) . '&nivel=' . urlencode($nivel) . '&estado=' . urlencode($estado);
+    $pagBase = $crmBase . 'cursos&per=' . $perPage . '&q=' . urlencode($q) . '&cat=' . urlencode($cat) . '&nivel=' . urlencode($nivel) . '&estado=' . urlencode($estado) . '&sort=' . urlencode($sort);
     ?>
     <?php if ($page > 1): ?>
       <a class="crm-pag-btn" href="<?= $pagBase ?>&pag=<?= $page-1 ?>">‹</a>
@@ -344,8 +343,28 @@ $estado      = $estado ?? '';
   </div>
 </div>
 
+<!-- Bulk action floating bar -->
+<div id="bulkActionBar" style="
+  position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);
+  background:#fff;border:1px solid var(--crm-border);border-radius:16px;
+  box-shadow:0 8px 32px rgba(0,0,0,.14);padding:14px 20px;
+  display:flex;align-items:center;gap:14px;z-index:9999;
+  transition:bottom .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;
+  min-width:340px;max-width:90vw">
+  <div id="bulkActionText" style="font-size:13px;color:var(--crm-text);flex:1"></div>
+  <button id="bulkActionBtn" class="crm-btn crm-btn-primary crm-btn-sm" style="gap:6px" onclick="executeBulkAction()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span id="bulkActionLabel">Aplicar a todos</span>
+  </button>
+  <button onclick="hideBulkBar()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--crm-muted);border-radius:6px;display:flex;align-items:center" title="Cerrar">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+  </button>
+</div>
+
 <script>
 const CRM_VIEW_KEY = 'mc_crm_courses_view';
+let _bulkTarget = null; // 1 = activar todos, 0 = desactivar todos
+let _bulkBarTimer = null;
 
 function setView(v) {
   localStorage.setItem(CRM_VIEW_KEY, v);
@@ -360,12 +379,51 @@ function setView(v) {
 // Restore saved view on load
 (function(){ setView(localStorage.getItem(CRM_VIEW_KEY) || 'cards'); })();
 
+function showBulkBar(activo, titulo) {
+  <?php if (!$esAdmin): ?>return;<?php endif; ?>
+  _bulkTarget = activo;
+  const bar   = document.getElementById('bulkActionBar');
+  const btn   = document.getElementById('bulkActionBtn');
+  document.getElementById('bulkActionText').textContent =
+    activo ? `"${titulo}" activado — ¿Activar también el resto de cursos?`
+           : `"${titulo}" desactivado — ¿Desactivar también el resto de cursos?`;
+  document.getElementById('bulkActionLabel').textContent = activo ? 'Activar todos' : 'Desactivar todos';
+  btn.style.background = activo ? 'var(--crm-success)' : 'var(--crm-danger)';
+  bar.style.bottom = '24px';
+  clearTimeout(_bulkBarTimer);
+  _bulkBarTimer = setTimeout(hideBulkBar, 12000);
+}
+
+function hideBulkBar() {
+  document.getElementById('bulkActionBar').style.bottom = '-80px';
+  clearTimeout(_bulkBarTimer);
+}
+
+async function executeBulkAction() {
+  if (_bulkTarget === null) return;
+  hideBulkBar();
+  const activo = _bulkTarget;
+  const res = await CRM.api('toggle_all_cursos', { activo });
+  if (res.ok) {
+    CRM.toast(res.mensaje, activo ? 'success' : 'info');
+    document.querySelectorAll('[onchange^="toggleCurso"]').forEach(cb => { cb.checked = !!activo; });
+    document.querySelectorAll('[onchange^="toggleCursoRow"]').forEach(cb => { cb.checked = !!activo; });
+    document.querySelectorAll('.crm-course-card').forEach(card => { card.classList.toggle('inactive', !activo); });
+    document.querySelectorAll('#viewTable tbody tr').forEach(row => { row.style.opacity = activo ? '' : '.55'; });
+    setTimeout(() => location.reload(), 900);
+  } else {
+    CRM.toast(res.error, 'error');
+  }
+}
+
 async function toggleCurso(id, checkbox) {
+  const titulo = document.getElementById('card-' + id)?.querySelector('.crm-course-title')?.textContent?.trim() || 'Curso';
   const res = await CRM.api('toggle_curso', { id });
   if (res.ok) {
     CRM.toast(res.mensaje, res.activo ? 'success' : 'info');
     const card = document.getElementById('card-' + id);
     if (card) card.classList.toggle('inactive', !res.activo);
+    showBulkBar(res.activo ? 1 : 0, titulo);
   } else {
     CRM.toast(res.error, 'error');
     checkbox.checked = !checkbox.checked;
@@ -373,11 +431,13 @@ async function toggleCurso(id, checkbox) {
 }
 
 async function toggleCursoRow(id, checkbox) {
+  const row   = document.getElementById('trow-' + id);
+  const titulo = row?.querySelector('span[style*="font-weight"]')?.textContent?.trim() || 'Curso';
   const res = await CRM.api('toggle_curso', { id });
   if (res.ok) {
     CRM.toast(res.mensaje, res.activo ? 'success' : 'info');
-    const row = document.getElementById('trow-' + id);
     if (row) row.style.opacity = res.activo ? '' : '.55';
+    showBulkBar(res.activo ? 1 : 0, titulo);
   } else {
     CRM.toast(res.error, 'error');
     checkbox.checked = !checkbox.checked;
@@ -401,22 +461,4 @@ async function guardarInstructor() {
 document.getElementById('searchCurso')?.addEventListener('input', CRM.debounce(() => {
   document.getElementById('filtroForm').submit();
 }, 600));
-
-async function toggleAllCursos(activo) {
-  const label = activo ? 'activar' : 'desactivar';
-  const ok = await CRM.confirm(`¿${label.charAt(0).toUpperCase()+label.slice(1)} TODOS los cursos?`, { title: 'Acción masiva', okLabel: label.charAt(0).toUpperCase()+label.slice(1)+' todos' });
-  if (!ok) return;
-  const res = await CRM.api('toggle_all_cursos', { activo });
-  if (res.ok) {
-    CRM.toast(res.mensaje, activo ? 'success' : 'info');
-    // Update all visible toggles + cards/rows
-    document.querySelectorAll('[onchange^="toggleCurso"]').forEach(cb => { cb.checked = !!activo; });
-    document.querySelectorAll('[onchange^="toggleCursoRow"]').forEach(cb => { cb.checked = !!activo; });
-    document.querySelectorAll('.crm-course-card').forEach(card => { card.classList.toggle('inactive', !activo); });
-    document.querySelectorAll('#viewTable tbody tr').forEach(row => { row.style.opacity = activo ? '' : '.55'; });
-    setTimeout(() => location.reload(), 800);
-  } else {
-    CRM.toast(res.error, 'error');
-  }
-}
 </script>

@@ -413,13 +413,24 @@ class CrmController
         $perPage = in_array((int)($_GET['per'] ?? 10), [10,15,20,25,30]) ? (int)($_GET['per'] ?? 10) : 10;
         $limit   = $perPage;
         $q       = trim($_GET['q'] ?? '');
-        $cat     = $_GET['cat'] ?? '';
+        $cat     = trim($_GET['cat'] ?? '');
         $nivel   = $_GET['nivel'] ?? '';
         $estado  = $_GET['estado'] ?? '';    // '' | 'activo' | 'inactivo'
+        $sort    = $_GET['sort'] ?? 'reciente'; // reciente|antiguo|nombre_az|nombre_za|alumnos|precio_asc|precio_desc
+        $sortMap = [
+            'reciente'   => 'c.id DESC',
+            'antiguo'    => 'c.id ASC',
+            'nombre_az'  => 'LOWER(c.titulo) ASC',
+            'nombre_za'  => 'LOWER(c.titulo) DESC',
+            'alumnos'    => 'alumnos DESC',
+            'precio_asc' => 'c.precio ASC',
+            'precio_desc'=> 'c.precio DESC',
+        ];
+        $orderBy = $sortMap[$sort] ?? 'c.id DESC';
 
         $where = 'WHERE 1=1'; $params = [];
         if ($q)                { $where .= ' AND c.titulo LIKE ?'; $params[] = "%$q%"; }
-        if ($cat)              { $where .= ' AND c.categoria = ?'; $params[] = $cat; }
+        if ($cat)              { $where .= ' AND TRIM(c.categoria) = ?'; $params[] = $cat; }
         if ($nivel)            { $where .= ' AND c.nivel = ?';     $params[] = $nivel; }
         if ($estado === 'activo')   { $where .= ' AND c.activo = 1'; }
         if ($estado === 'inactivo') { $where .= ' AND c.activo = 0'; }
@@ -453,7 +464,7 @@ class CrmController
                         LIMIT 1) AS descuento_activo
                 FROM curso c
                 LEFT JOIN usuario u ON u.id=c.instructor_id
-                $where ORDER BY c.id DESC LIMIT $limit OFFSET $offset
+                $where ORDER BY $orderBy LIMIT $limit OFFSET $offset
             ");
             $stmt->execute($params);
             $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -471,7 +482,7 @@ class CrmController
             $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        $categorias = $this->db->query("SELECT DISTINCT categoria FROM curso WHERE categoria IS NOT NULL ORDER BY categoria")->fetchAll(PDO::FETCH_COLUMN);
+        $categorias = $this->db->query("SELECT DISTINCT TRIM(categoria) AS categoria FROM curso WHERE categoria IS NOT NULL AND TRIM(categoria) != '' ORDER BY TRIM(categoria)")->fetchAll(PDO::FETCH_COLUMN);
         $niveles    = $this->db->query("SELECT DISTINCT nivel FROM curso WHERE nivel IS NOT NULL ORDER BY nivel")->fetchAll(PDO::FETCH_COLUMN);
         $instructores = $this->db->query("SELECT id, nombre FROM usuario WHERE rol='EDITOR' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -485,7 +496,7 @@ class CrmController
             FROM curso
         ")->fetch(PDO::FETCH_ASSOC);
 
-        return compact('cursos','totalRows','totalPags','page','perPage','q','cat','nivel','estado','categorias','niveles','instructores','cursosStats');
+        return compact('cursos','totalRows','totalPags','page','perPage','q','cat','nivel','estado','sort','categorias','niveles','instructores','cursosStats');
     }
 
     private function getEditorData(): array
