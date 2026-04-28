@@ -22,7 +22,7 @@ $filtroTipo = $_GET['tipo'] ?? '';
 $page       = max(1, (int)($_GET['p'] ?? 1));
 $perPage    = 20;
 
-$tiposValidos = ['tarea', 'expiracion', 'crm', 'mensaje', 'info'];
+$tiposValidos = ['tarea', 'tarea_vencida', 'expiracion', 'evento_calendario', 'crm', 'mensaje', 'info'];
 
 $where  = 'WHERE usuario_id = ?';
 $params = [$usuario_id];

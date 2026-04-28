@@ -734,11 +734,14 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                         </button>
                     </li>
                 <?php endif; ?>
-                <?php if (!empty($tareas)): ?>
-                    <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tareas">Tareas</button>
-                    </li>
-                <?php endif; ?>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tareas">
+                        Tareas
+                        <?php if (!empty($tareas)): ?>
+                            <span class="badge ms-1" style="background:var(--mc-green);font-size:.68rem;"><?= count($tareas) ?></span>
+                        <?php endif; ?>
+                    </button>
+                </li>
             </ul>
 
             <div class="tab-content">
@@ -822,18 +825,65 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                 <?php endif; ?>
 
                 <!-- ── TAREAS ── -->
-                <?php if (!empty($tareas)): ?>
-                    <div class="tab-pane fade" id="tab-tareas">
+                <div class="tab-pane fade" id="tab-tareas">
+                    <?php if (empty($tareas)): ?>
+                        <div class="tarea-empty">
+                            <p style="font-weight:700;margin:0 0 4px">Sin tareas asignadas</p>
+                            <p style="font-size:.82rem;margin:0;line-height:1.6">
+                                Este curso todavía no tiene tareas publicadas.
+                                Cuando el instructor añada tareas con fecha límite aparecerán aquí.
+                            </p>
+                        </div>
+                    <?php else: ?>
+                        <?php
+                        // Estadísticas rápidas de tareas (solo si el usuario está matriculado)
+                        if ($estaMatriculado):
+                            $totalT     = count($tareas);
+                            $entregadas = count(array_filter($tareas, fn($t) => $t['estado_visual'] === 'entregada'));
+                            $vencidas   = count(array_filter($tareas, fn($t) => $t['estado_visual'] === 'vencida'));
+                            $proximas   = count(array_filter($tareas, fn($t) => $t['estado_visual'] === 'proxima'));
+                        ?>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.2rem">
+                            <span style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:99px;padding:5px 13px;font-size:.77rem;font-weight:700;color:#166534">
+                                ✔ <?= $entregadas ?>/<?= $totalT ?> entregadas
+                            </span>
+                            <?php if ($proximas > 0): ?>
+                            <span style="background:#fffbeb;border:1px solid #fde68a;border-radius:99px;padding:5px 13px;font-size:.77rem;font-weight:700;color:#92400e">
+                                ⚡ <?= $proximas ?> próxima<?= $proximas !== 1 ? 's' : '' ?>
+                            </span>
+                            <?php endif; ?>
+                            <?php if ($vencidas > 0): ?>
+                            <span style="background:#fef2f2;border:1px solid #fecaca;border-radius:99px;padding:5px 13px;font-size:.77rem;font-weight:700;color:#991b1b">
+                                ⚠ <?= $vencidas ?> vencida<?= $vencidas !== 1 ? 's' : '' ?>
+                            </span>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+
                         <?php foreach ($tareas as $t):
-                            $vencida = !empty($t['fecha_limite']) && strtotime($t['fecha_limite']) < time();
-                            $diasRestantes = !empty($t['fecha_limite'])
-                                ? (int)floor((strtotime(substr($t['fecha_limite'], 0, 10)) - strtotime(date('Y-m-d'))) / 86400)
-                                : null;
+                            $estadoVisual  = $t['estado_visual'] ?? 'pendiente';
+                            $vencida       = $estadoVisual === 'vencida';
+                            $entregada     = $estadoVisual === 'entregada';
+                            $proxima       = $estadoVisual === 'proxima';
+                            $diasRestantes = $t['dias_restantes'] ?? null;
+
+                            $chipLabel = match($estadoVisual) {
+                                'entregada' => '✔ Entregada',
+                                'vencida'   => '⚠ Vencida',
+                                'proxima'   => $diasRestantes === 0 ? 'Entrega hoy' : 'En '.$diasRestantes.'d',
+                                default     => 'Tarea del curso',
+                            };
+                            $chipStyle = match($estadoVisual) {
+                                'entregada' => 'background:#d1fae5;color:#065f46',
+                                'vencida'   => 'background:#fee2e2;color:#991b1b',
+                                'proxima'   => 'background:#fef9c3;color:#854d0e',
+                                default     => '',
+                            };
                         ?>
                             <div class="tarea-item">
                                 <div class="tarea-body-meta">
                                     <div class="tarea-panel-top">
-                                        <span class="tarea-chip tarea-chip-soft"><?= $vencida ? 'Vencida' : ($diasRestantes === 0 ? 'Entrega hoy' : 'Tarea del curso') ?></span>
+                                        <span class="tarea-chip tarea-chip-soft" style="<?= $chipStyle ?>"><?= $chipLabel ?></span>
                                         <?php if (!empty($t['leccion_titulo'])): ?>
                                             <span class="tarea-chip tarea-chip-accent"><?= htmlspecialchars($t['leccion_titulo']) ?></span>
                                         <?php endif; ?>
@@ -842,8 +892,13 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                     <?php if (!empty($t['descripcion'])): ?>
                                         <div class="tarea-desc"><?= htmlspecialchars($t['descripcion']) ?></div>
                                     <?php endif; ?>
-                                    <?php if (!empty($t['leccion_titulo'])): ?>
-                                        <span class="tarea-lesson-ref">Asociada a la leccion: <?= htmlspecialchars($t['leccion_titulo']) ?></span>
+                                    <?php if ($entregada && !empty($t['entregado_en'])): ?>
+                                        <span class="tarea-lesson-ref" style="color:#15803d">
+                                            Entregada el <?= fmtFecha($t['entregado_en']) ?>
+                                            <?= $t['entrega_nota'] !== null ? ' · Nota: ' . htmlspecialchars($t['entrega_nota']) : '' ?>
+                                        </span>
+                                    <?php elseif (!empty($t['leccion_titulo'])): ?>
+                                        <span class="tarea-lesson-ref">Asociada a: <?= htmlspecialchars($t['leccion_titulo']) ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if (!empty($t['fecha_limite'])): ?>
@@ -853,8 +908,14 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
+
+                        <?php if (!$estaMatriculado): ?>
+                            <p style="font-size:.8rem;color:var(--mc-muted);margin-top:.5rem;text-align:center">
+                                Matricúlate para ver tu progreso en las tareas.
+                            </p>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
 
             </div><!-- /tab-content -->
         </div><!-- /columna principal -->

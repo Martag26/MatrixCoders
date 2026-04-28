@@ -76,6 +76,59 @@ class Notificacion
             );
         }
 
+        // Tareas vencidas sin entregar (aviso único por tarea)
+        $stmtVen = $this->db->prepare("
+            SELECT t.id, t.titulo, t.fecha_limite, c.titulo AS curso
+            FROM matricula m
+            JOIN curso c ON c.id = m.curso_id
+            JOIN tarea t ON t.curso_id = c.id
+            LEFT JOIN entrega e ON e.tarea_id = t.id AND e.usuario_id = m.usuario_id
+            LEFT JOIN notificacion n ON n.usuario_id = ? AND n.tipo = 'tarea_vencida' AND n.ref_id = t.id
+            WHERE m.usuario_id = ?
+              AND e.id IS NULL
+              AND n.id IS NULL
+              AND t.fecha_limite < date('now')
+        ");
+        $stmtVen->execute([$usuario_id, $usuario_id]);
+        foreach ($stmtVen->fetchAll(PDO::FETCH_ASSOC) as $t) {
+            $this->insertar(
+                $usuario_id,
+                'tarea_vencida',
+                'Tarea vencida: ' . $t['titulo'],
+                'Curso: ' . $t['curso'] . ' · Venció el ' . substr($t['fecha_limite'], 0, 10),
+                BASE_URL . '/index.php?url=calendario',
+                (int)$t['id']
+            );
+        }
+
+        // Eventos personales del calendario con recordatorio mañana o pasado
+        $stmtEv = $this->db->prepare("
+            SELECT ev.id, ev.titulo, ev.fecha_inicio, ev.tipo
+            FROM evento_usuario ev
+            LEFT JOIN notificacion n ON n.usuario_id = ? AND n.tipo = 'evento_calendario' AND n.ref_id = ev.id
+            WHERE ev.usuario_id = ?
+              AND n.id IS NULL
+              AND ev.fecha_inicio BETWEEN date('now', '+1 day') AND date('now', '+2 days')
+        ");
+        $stmtEv->execute([$usuario_id, $usuario_id]);
+        foreach ($stmtEv->fetchAll(PDO::FETCH_ASSOC) as $ev) {
+            $tipoLabel = match($ev['tipo'] ?? '') {
+                'sesion'       => 'Sesión de estudio',
+                'hito'         => 'Hito personal',
+                'recordatorio' => 'Recordatorio',
+                'bloqueo'      => 'Bloqueo de tiempo',
+                default        => 'Evento',
+            };
+            $this->insertar(
+                $usuario_id,
+                'evento_calendario',
+                $tipoLabel . ': ' . $ev['titulo'],
+                'Programado para el ' . substr($ev['fecha_inicio'], 0, 10),
+                BASE_URL . '/index.php?url=calendario',
+                (int)$ev['id']
+            );
+        }
+
         // Cursos que expiran en los próximos 7 días
         $stmt2 = $this->db->prepare("
             SELECT m.id AS matricula_id, c.titulo,
