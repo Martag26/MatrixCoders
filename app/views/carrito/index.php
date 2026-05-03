@@ -291,11 +291,14 @@ $hayAhorro     = $ahorro > 0.001;
                             <form method="POST" action="<?= BASE_URL ?>/index.php?url=pagar" id="formPago">
                                 <button type="submit"
                                     class="btn-stripe"
-                                    id="btnStripe"
-                                    <?= ($total <= 0) ? 'disabled' : '' ?>>
+                                    id="btnStripe">
                                     <div class="spinner"></div>
-                                    <span class="stripe-logo">stripe</span>
-                                    <span class="btn-label">Pagar <?= number_format($total, 2) ?>€ de forma segura</span>
+                                    <?php if ($total <= 0): ?>
+                                        <span class="btn-label">Obtener gratis</span>
+                                    <?php else: ?>
+                                        <span class="stripe-logo">stripe</span>
+                                        <span class="btn-label">Pagar <?= number_format($total, 2) ?>€ de forma segura</span>
+                                    <?php endif; ?>
                                 </button>
                             </form>
                         <?php endif; ?>

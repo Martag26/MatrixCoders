@@ -6,38 +6,79 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit40aa654f2e66c20881ae0572fe987a10
 {
+    public static $files = array (
+        '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+    );
+
+    public static $prefixLengthsPsr4 = array (
+        'S' =>
+        array (
+            'Symfony\\Polyfill\\Php80\\' => 23,
+            'Symfony\\Polyfill\\Mbstring\\' => 26,
+            'Symfony\\Polyfill\\Ctype\\' => 23,
+            'Stripe\\' => 7,
+        ),
+        'P' =>
+        array (
+            'PhpOption\\' => 10,
+        ),
+        'G' =>
+        array (
+            'GrahamCampbell\\ResultType\\' => 26,
+        ),
+        'D' =>
+        array (
+            'Dotenv\\' => 7,
+        ),
+    );
+
+    public static $prefixDirsPsr4 = array (
+        'Symfony\\Polyfill\\Php80\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
+        ),
+        'Symfony\\Polyfill\\Mbstring\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
+        ),
+        'Symfony\\Polyfill\\Ctype\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
+        ),
+        'Stripe\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/stripe/stripe-php/lib',
+        ),
+        'PhpOption\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
+        ),
+        'GrahamCampbell\\ResultType\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/graham-campbell/result-type/src',
+        ),
+        'Dotenv\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
+        ),
+    );
+
     public static $classMap = array (
+        'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Stripe' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Stripe.php',
-        'Stripe_Account' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Account.php',
-        'Stripe_ApiConnectionError' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/ApiConnectionError.php',
-        'Stripe_ApiError' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/ApiError.php',
-        'Stripe_ApiRequestor' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/ApiRequestor.php',
-        'Stripe_ApiResource' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/ApiResource.php',
-        'Stripe_AuthenticationError' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/AuthenticationError.php',
-        'Stripe_CardError' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/CardError.php',
-        'Stripe_Charge' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Charge.php',
-        'Stripe_Coupon' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Coupon.php',
-        'Stripe_Customer' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Customer.php',
-        'Stripe_Error' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Error.php',
-        'Stripe_Event' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Event.php',
-        'Stripe_InvalidRequestError' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/InvalidRequestError.php',
-        'Stripe_Invoice' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Invoice.php',
-        'Stripe_InvoiceItem' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/InvoiceItem.php',
-        'Stripe_List' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/List.php',
-        'Stripe_Object' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Object.php',
-        'Stripe_Plan' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Plan.php',
-        'Stripe_Recipient' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Recipient.php',
-        'Stripe_SingletonApiResource' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/SingletonApiResource.php',
-        'Stripe_Token' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Token.php',
-        'Stripe_Transfer' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Transfer.php',
-        'Stripe_Util' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Util.php',
-        'Stripe_Util_Set' => __DIR__ . '/..' . '/stripe/stripe-php/lib/Stripe/Util/Set.php',
+        'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
+        'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
+        'UnhandledMatchError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
+        'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
+            $loader->prefixLengthsPsr4 = ComposerStaticInit40aa654f2e66c20881ae0572fe987a10::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit40aa654f2e66c20881ae0572fe987a10::$prefixDirsPsr4;
             $loader->classMap = ComposerStaticInit40aa654f2e66c20881ae0572fe987a10::$classMap;
 
         }, null, ClassLoader::class);
