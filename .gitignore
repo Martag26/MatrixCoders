@@ -3,3 +3,4 @@
 storage/logs/*
 .claude/
 BATERIA_PRUEBAS.md
+vendor/
