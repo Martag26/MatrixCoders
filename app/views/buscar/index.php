@@ -9,6 +9,10 @@ $filtroNiveles    = $filtroNiveles    ?? [];
 $filtroCategorias = $filtroCategorias ?? [];
 $hayFiltros       = $hayFiltros       ?? false;
 $ordenar          = $ordenar          ?? 'popular';
+$total            = $total            ?? 0;
+$totalPaginas     = $totalPaginas     ?? 1;
+$pagina           = $pagina           ?? 1;
+$matriculasUsuario = $matriculasUsuario ?? [];
 
 function nivelLabel(string $nivel): array
 {
@@ -28,7 +32,7 @@ function buildUrl(array $overrides = []): string
     $params['url']    = 'buscar';
     $params['q']      = $overrides['q']      ?? $q;
     $params['precio'] = $overrides['precio'] ?? $filtroPrecio;
-    $params['orden']  = $overrides['orden']  ?? ($ordenar !== 'popular' ? $ordenar : '');
+    $params['orden']  = array_key_exists('orden', $overrides) ? $overrides['orden'] : $ordenar;
     $params['p']      = $overrides['p']      ?? $pagina;
     // Arrays
     $params['nivel']     = $overrides['nivel']     ?? $filtroNiveles;
@@ -847,12 +851,11 @@ function buildUrl(array $overrides = []): string
                     <?php foreach ($filtroNiveles as $n): ?><input type="hidden" name="nivel[]" value="<?= htmlspecialchars($n) ?>"><?php endforeach; ?>
                     <?php foreach ($filtroCategorias as $c): ?><input type="hidden" name="categoria[]" value="<?= htmlspecialchars($c) ?>"><?php endforeach; ?>
                     <?php if ($ordenar !== 'popular'): ?><input type="hidden" name="orden" value="<?= htmlspecialchars($ordenar) ?>"><?php endif; ?>
-                    <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
-                    <input type="text" name="q" id="searchInput"
+                    <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
+                    <input class="form-control w-100" type="text" name="q" id="searchInput"
                         value="<?= htmlspecialchars($q) ?>"
                         placeholder="Busca el curso que desees…"
                         autocomplete="off">
-                    <button type="submit">Buscar</button>
                 </form>
                 <ul id="sugerencias"></ul>
             </div>
@@ -886,15 +889,7 @@ function buildUrl(array $overrides = []): string
                 </div>
             <?php endif; ?>
 
-            <?php if (!$hayFiltros && empty($q)): ?>
-                <!-- Sin búsqueda activa: mostrar destacados -->
-                <div class="resultados-header">
-                    <div>
-                        <h2 class="seccion-titulo" style="margin:0 0 2px;">Cursos Destacados</h2>
-                        <p class="seccion-sub" style="margin:0;">Los más populares de la plataforma</p>
-                    </div>
-                </div>
-            <?php elseif (empty($cursos)): ?>
+            <?php if (empty($cursos)): ?>
                 <div class="empty-state">
                     <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24" style="color:#d1d5db;margin-bottom:4px"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
                     <h3>Sin resultados<?= $q !== '' ? ' para "' . htmlspecialchars($q) . '"' : '' ?></h3>
@@ -903,7 +898,11 @@ function buildUrl(array $overrides = []): string
                 </div>
             <?php else: ?>
                 <div class="resultados-header">
-                    <h2><?= $total ?> resultado<?= $total !== 1 ? 's' : '' ?><?= $q !== '' ? ' para <em>"' . htmlspecialchars($q) . '"</em>' : '' ?></h2>
+                    <?php if ($hayFiltros || $q !== ''): ?>
+                        <h2><?= $total ?> resultado<?= $total !== 1 ? 's' : '' ?><?= $q !== '' ? ' para <em>"' . htmlspecialchars($q) . '"</em>' : '' ?></h2>
+                    <?php else: ?>
+                        <h2><em><?= $total ?></em> curso<?= $total !== 1 ? 's' : '' ?> disponible<?= $total !== 1 ? 's' : '' ?></h2>
+                    <?php endif; ?>
                     <div class="sort-wrap">
                         <label class="sort-label" for="sortSelect">Ordenar:</label>
                         <select id="sortSelect" class="sort-select" onchange="location.href=this.value">
@@ -940,17 +939,6 @@ function buildUrl(array $overrides = []): string
                                     <img src="<?= htmlspecialchars($img) ?>" class="course-thumb"
                                         alt="<?= htmlspecialchars($titulo) ?>"
                                         onerror="this.src='<?= htmlspecialchars($imgFallback) ?>'">
-
-                                    <?php if ($precio <= 0 || $descuento > 0): ?>
-                                        <div class="course-badges-corner">
-                                            <?php if ($precio <= 0): ?>
-                                                <span class="course-badge-corner course-badge-free">Gratis</span>
-                                            <?php endif; ?>
-                                            <?php if ($descuento > 0): ?>
-                                                <span class="course-badge-corner course-badge-discount">-<?= round($descuento) ?>%</span>
-                                            <?php endif; ?>
-                                        </div>
-                                    <?php endif; ?>
                                 </div>
 
                                 <div class="card-body-inner">
@@ -1000,11 +988,18 @@ function buildUrl(array $overrides = []): string
                                                 <span class="course-price"><?= number_format($precio, 2) ?>€</span>
                                             <?php endif; ?>
                                         </div>
-                                        <button class="btn-carrito" title="Añadir al carrito"
-                                            onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precioFinal ?>, <?= $precio ?>, <?= (float)($descuento ?? 0) ?>, '<?= htmlspecialchars(addslashes($img)) ?>')">
-                                            <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="">
-                                            <span>Añadir</span>
-                                        </button>
+                                        <?php if (in_array($curso['id'], $matriculasUsuario)): ?>
+                                            <button class="btn-course-enrolled" onclick="event.stopPropagation();">
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                                Matriculado
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="btn-carrito" title="Añadir al carrito"
+                                                onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precioFinal ?>, <?= $precio ?>, <?= (float)($descuento ?? 0) ?>, '<?= htmlspecialchars(addslashes($img)) ?>')">
+                                                <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="">
+                                                <span>Añadir</span>
+                                            </button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>

@@ -146,14 +146,9 @@
                                             alt="<?= htmlspecialchars($titulo) ?>"
                                             onerror="this.src='<?= htmlspecialchars($imgFallback) ?>'">
 
-                                        <?php if ($precio <= 0 || $descuento > 0): ?>
+                                        <?php if ($descuento > 0): ?>
                                             <div class="course-badges-corner">
-                                                <?php if ($precio <= 0): ?>
-                                                    <span class="course-badge-corner course-badge-free">Gratis</span>
-                                                <?php endif; ?>
-                                                <?php if ($descuento > 0): ?>
-                                                    <span class="course-badge-corner course-badge-discount">-<?= round($descuento) ?>%</span>
-                                                <?php endif; ?>
+                                                <span class="course-badge-corner course-badge-discount">-<?= round($descuento) ?>%</span>
                                             </div>
                                         <?php endif; ?>
                                     </div>

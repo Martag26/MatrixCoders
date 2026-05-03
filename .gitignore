@@ -2,3 +2,4 @@
 .env.local
 storage/logs/*
 .claude/
+BATERIA_PRUEBAS.md

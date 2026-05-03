@@ -33,6 +33,15 @@ class BuscarController
         $ordenar = in_array($_GET['orden'] ?? '', ['popular', 'recientes', 'precio_asc', 'precio_desc'])
             ? $_GET['orden'] : 'popular';
 
+        // Matrículas del usuario activo
+        $matriculasUsuario = [];
+        $usuarioId = $_SESSION['usuario_id'] ?? null;
+        if ($usuarioId) {
+            $stmtM = $db->prepare('SELECT curso_id FROM matricula WHERE usuario_id = ?');
+            $stmtM->execute([(int)$usuarioId]);
+            $matriculasUsuario = $stmtM->fetchAll(PDO::FETCH_COLUMN);
+        }
+
         $cursoModel = new Curso($db);
 
         // Categorías disponibles
@@ -68,22 +77,11 @@ class BuscarController
 
         $where[] = 'COALESCE(c.activo, 1) = 1';
         $whereSQL   = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $hayFiltros = ($q !== '' || $filtroPrecio !== '' || !empty($filtroNiveles) || !empty($filtroCategorias) || $ordenar !== 'popular');
+        $hayFiltros = ($q !== '' || $filtroPrecio !== '' || !empty($filtroNiveles) || !empty($filtroCategorias));
 
-        // Sin filtros → destacados
-        if (!$hayFiltros) {
-            $cursos       = $cursoModel->obtenerDestacados(9);
-            $total        = count($cursos);
-            $totalPaginas = 1;
-            $pagina       = 1;
-            $pageTitle    = 'Buscar cursos';
-            require __DIR__ . '/../views/buscar/index.php';
-            return;
-        }
-
-        // Total
+        // Total (subquery con GROUP BY para evitar duplicados por JOIN con matricula)
         $stmtCount = $db->prepare(
-            "SELECT COUNT(*) FROM curso c LEFT JOIN matricula m ON m.curso_id = c.id $whereSQL"
+            "SELECT COUNT(*) FROM (SELECT c.id FROM curso c LEFT JOIN matricula m ON m.curso_id = c.id $whereSQL GROUP BY c.id) AS sub"
         );
         $stmtCount->execute($params);
         $total        = (int)$stmtCount->fetchColumn();
