@@ -103,6 +103,7 @@ class CrmController
             'ALTER TABLE examen        ADD COLUMN fecha_entrega TEXT    DEFAULT NULL',
             'ALTER TABLE examen        ADD COLUMN modo_entrega  TEXT    NOT NULL DEFAULT "cualquiera"',
             'ALTER TABLE notificacion  ADD COLUMN url_accion    TEXT    DEFAULT NULL',
+            'ALTER TABLE resultado_examen ADD COLUMN intentos   INTEGER NOT NULL DEFAULT 0',
         ] as $sql) {
             try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
         }
@@ -1171,7 +1172,7 @@ class CrmController
     /* ── CRM exam results ── */
     private function apiGetResultadosCurso(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $cursoId = (int)($_GET['curso_id'] ?? 0);
         if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
 
@@ -1222,7 +1223,7 @@ class CrmController
 
     private function apiGetEntregasAlumno(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $alumnoId = (int)($_GET['alumno_id'] ?? 0);
         $cursoId  = (int)($_GET['curso_id']  ?? 0);
         if (!$alumnoId || !$cursoId) return ['ok' => false, 'error' => 'Parámetros inválidos'];
@@ -1243,7 +1244,7 @@ class CrmController
 
     private function apiRevisarPractica(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d        = $this->input();
         $entregaId = (int)($d['entrega_id'] ?? 0);
         $nota     = $d['nota'] !== '' && $d['nota'] !== null ? (float)$d['nota'] : null;

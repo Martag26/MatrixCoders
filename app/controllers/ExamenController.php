@@ -83,6 +83,9 @@ $stmtR = $db->prepare("SELECT * FROM resultado_examen WHERE usuario_id=? AND exa
 $stmtR->execute([$usuarioId, $examen['id']]);
 $resultadoPrevio = $stmtR->fetch(PDO::FETCH_ASSOC);
 
+$maxIntentos    = 2;
+$intentosUsados = (int)($resultadoPrevio['intentos'] ?? 0);
+
 // Certificado previo
 $certificado = null;
 if ($resultadoPrevio && $resultadoPrevio['aprobado']) {
@@ -92,7 +95,9 @@ if ($resultadoPrevio && $resultadoPrevio['aprobado']) {
 }
 
 // ── Procesar envío del examen ────────────────────────────────────
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !($resultadoPrevio && $resultadoPrevio['aprobado'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST'
+    && !($resultadoPrevio && $resultadoPrevio['aprobado'])
+    && $intentosUsados < $maxIntentos) {
     $stmtP = $db->prepare("SELECT * FROM pregunta WHERE examen_id=? ORDER BY orden");
     $stmtP->execute([$examen['id']]);
     $preguntas = $stmtP->fetchAll(PDO::FETCH_ASSOC);
@@ -112,12 +117,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !($resultadoPrevio && $resultadoPre
     $nota     = $total > 0 ? round(($correctas / $total) * 10, 1) : 0.0;
     $aprobado = $nota >= (float)$examen['nota_minima'] ? 1 : 0;
 
-    // Guardar o actualizar resultado (no sobrescribir si ya aprobó)
-    $stmtSave = $db->prepare("
-        INSERT OR REPLACE INTO resultado_examen (usuario_id, examen_id, nota, aprobado, realizado_en)
-        VALUES (?, ?, ?, ?, datetime('now'))
-    ");
-    $stmtSave->execute([$usuarioId, $examen['id'], $nota, $aprobado]);
+    // Guardar o actualizar resultado incrementando el contador de intentos
+    if ($resultadoPrevio) {
+        $db->prepare("
+            UPDATE resultado_examen
+            SET nota=?, aprobado=?, realizado_en=datetime('now'), intentos=intentos+1
+            WHERE usuario_id=? AND examen_id=?
+        ")->execute([$nota, $aprobado, $usuarioId, $examen['id']]);
+    } else {
+        $db->prepare("
+            INSERT INTO resultado_examen (usuario_id, examen_id, nota, aprobado, realizado_en, intentos)
+            VALUES (?,?,?,?,datetime('now'),1)
+        ")->execute([$usuarioId, $examen['id'], $nota, $aprobado]);
+    }
+    // Recargar para tener el contador actualizado
+    $stmtR2 = $db->prepare("SELECT * FROM resultado_examen WHERE usuario_id=? AND examen_id=?");
+    $stmtR2->execute([$usuarioId, $examen['id']]);
+    $resultadoPrevio = $stmtR2->fetch(PDO::FETCH_ASSOC);
+    $intentosUsados  = (int)($resultadoPrevio['intentos'] ?? 0);
 
     // Generar certificado si aprueba
     if ($aprobado) {

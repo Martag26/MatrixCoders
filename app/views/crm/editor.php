@@ -114,10 +114,6 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>
     Evaluación
   </button>
-  <button class="crm-editor-tab" data-tab="apuntes" onclick="switchTab('apuntes')">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-    Apuntes
-  </button>
   <button class="crm-editor-tab" data-tab="resultados" onclick="switchTab('resultados'); cargarResultados()">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     Resultados
@@ -370,7 +366,166 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
       </div>
     </div>
   </div>
+
+<!-- Panel: Recursos por lección (antes en tab Apuntes) -->
+<?php
+$tipoIconsMap = ['pdf'=>'📄','doc'=>'📝','zip'=>'🗜️','link'=>'🔗','actividad'=>'✏️','video'=>'▶️'];
+$tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>'Enlace','actividad'=>'Actividad','video'=>'Vídeo'];
+?>
+<div class="crm-editor-panel" style="margin-top:20px">
+  <div class="crm-editor-panel-header">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+    <h3>Recursos por lección</h3>
+    <span style="font-size:11.5px;color:var(--crm-muted);margin-left:6px">Material visible en la plataforma</span>
+  </div>
+  <div class="crm-editor-panel-body" style="padding:14px">
+    <div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12.5px;color:var(--crm-text);display:flex;gap:10px;align-items:flex-start">
+      <svg width="16" height="16" fill="none" stroke="var(--crm-primary)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div>Los recursos añadidos aquí aparecerán en la pestaña <strong>Recursos</strong> de cada lección en la plataforma. Pueden ser PDFs, documentos, enlaces, actividades o vídeos.</div>
+    </div>
+    <?php foreach ($unidades as $u):
+      if (empty($u['lecciones'])) continue;
+    ?>
+    <div class="crm-apuntes-unidad" style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;color:var(--crm-primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;padding:0 2px">
+        <?= htmlspecialchars($u['titulo']) ?>
+      </div>
+      <?php foreach ($u['lecciones'] as $lec):
+        $recursos = $lec['recursos'] ?? [];
+      ?>
+      <div class="crm-apuntes-leccion" style="border:1px solid var(--crm-border);border-radius:10px;margin-bottom:8px;overflow:hidden">
+        <div class="crm-apuntes-lec-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--crm-bg);user-select:none" onclick="toggleApuntesLec(this)">
+          <svg class="apuntes-chevron" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="transition:transform .2s;flex-shrink:0"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
+          <span style="font-size:13px;font-weight:600;flex:1"><?= htmlspecialchars($lec['titulo']) ?></span>
+          <span class="apuntes-rec-count" style="font-size:11px;color:var(--crm-muted);background:var(--crm-border);padding:1px 8px;border-radius:99px"><?= count($recursos) ?> recurso<?= count($recursos)===1?'':'s' ?></span>
+        </div>
+        <div class="crm-apuntes-lec-body" style="display:none;padding:12px 14px;border-top:1px solid var(--crm-border)">
+          <div class="rec-list-<?= $lec['id'] ?>" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+            <?php foreach ($recursos as $r): ?>
+            <div class="crm-recurso-row" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:8px;font-size:12.5px">
+              <span><?= $tipoIconsMap[$r['tipo']] ?? '📎' ?></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($r['nombre']) ?></div>
+                <?php if ($r['descripcion']): ?><div style="font-size:11px;color:var(--crm-muted)"><?= htmlspecialchars($r['descripcion']) ?></div><?php endif; ?>
+              </div>
+              <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--crm-border);color:var(--crm-muted);flex-shrink:0"><?= strtoupper($r['tipo']) ?></span>
+              <a href="<?= htmlspecialchars($r['url_o_ruta']) ?>" target="_blank" class="crm-btn-icon" title="Abrir recurso">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
+              <button class="crm-btn-icon danger" title="Eliminar recurso" onclick="eliminarRecursoApunte(<?= $r['id'] ?>, this)">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($recursos)): ?>
+            <div class="rec-empty-<?= $lec['id'] ?>" style="font-size:12px;color:var(--crm-muted);text-align:center;padding:12px">Sin recursos todavía.</div>
+            <?php endif; ?>
+          </div>
+          <div id="addRecForm-<?= $lec['id'] ?>" style="display:none;background:var(--crm-bg-alt,rgba(0,0,0,.02));border:1px solid var(--crm-border);border-radius:9px;padding:12px">
+            <div style="display:grid;grid-template-columns:1fr 140px;gap:8px;margin-bottom:8px">
+              <input type="text" class="crm-input rec-add-nombre" placeholder="Nombre del recurso *">
+              <select class="crm-select rec-add-tipo" onchange="toggleAddRecUrl(this)">
+                <?php foreach ($tipoLabelMap as $tv => $tl): ?>
+                <option value="<?= $tv ?>"><?= $tl ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="rec-add-url-wrap" style="margin-bottom:8px">
+              <input type="url" class="crm-input rec-add-url" placeholder="URL / Enlace *">
+            </div>
+            <div class="rec-add-file-wrap" style="display:none;margin-bottom:8px">
+              <input type="file" class="crm-input rec-add-file" accept=".pdf,.doc,.docx,.zip,.rar,.txt,.png,.jpg,.xlsx,.pptx,.mp4">
+            </div>
+            <input type="text" class="crm-input rec-add-desc" placeholder="Descripción (opcional)" style="margin-bottom:8px">
+            <div style="display:flex;gap:6px">
+              <button class="crm-btn crm-btn-primary crm-btn-sm" onclick="subirRecursoApunte(<?= $lec['id'] ?>, this)">Añadir recurso</button>
+              <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById('addRecForm-<?= $lec['id'] ?>').style.display='none'">Cancelar</button>
+            </div>
+          </div>
+          <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById('addRecForm-<?= $lec['id'] ?>').style.display='block';this.style.display='none'">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            Añadir recurso
+          </button>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <?php endforeach; ?>
+    <?php if (empty(array_filter($unidades, fn($u) => !empty($u['lecciones'])))): ?>
+    <div style="text-align:center;padding:40px;color:var(--crm-muted)">
+      <p style="font-size:13px">Añade lecciones al curso para gestionar sus recursos aquí.</p>
+    </div>
+    <?php endif; ?>
+  </div>
 </div>
+
+<!-- Panel: Tareas prácticas -->
+<div class="crm-editor-panel" style="margin-top:20px">
+  <div class="crm-editor-panel-header">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+    <h3>Tareas prácticas</h3>
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="agregarTarea()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+      Añadir tarea
+    </button>
+  </div>
+  <div class="crm-editor-panel-body">
+    <div id="puntosResumen" class="crm-pts-summary" style="margin-bottom:16px">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+      Total: <span id="puntosTotal">0</span> puntos — <span id="tareasTotal">0</span> tareas
+    </div>
+    <div id="tareasList">
+      <?php foreach ($tareasPracticas as $ti => $t):
+        $tipoClass = ['proyecto'=>'crm-tarea-tipo-proyecto','codigo'=>'crm-tarea-tipo-codigo','diseno'=>'crm-tarea-tipo-diseno','texto'=>'crm-tarea-tipo-texto'][$t['tipo']??'texto'] ?? 'crm-tarea-tipo-texto';
+      ?>
+      <div class="crm-tarea-card" data-tarea="<?= $ti ?>">
+        <div class="crm-tarea-card-head">
+          <div class="crm-tarea-num"><?= $ti+1 ?></div>
+          <input type="text" class="crm-input" style="flex:1;min-width:0" value="<?= htmlspecialchars($t['titulo']) ?>" placeholder="Título de la tarea">
+          <select class="crm-select tarea-tipo-sel" style="width:195px;flex-shrink:0" onchange="updateTipoVisual(this)">
+            <?php foreach ($tiposTarea as $tv => $tl): ?>
+            <option value="<?= $tv ?>" <?= ($t['tipo']??'texto')===$tv?'selected':'' ?>><?= $tl ?></option>
+            <?php endforeach; ?>
+          </select>
+          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+            <input type="number" class="crm-input tarea-pts-input" style="width:76px;text-align:center" value="<?= $t['puntos'] ?? 10 ?>" min="0.5" max="100" step="0.5" title="Puntos" oninput="actualizarPuntosTotales()">
+            <span style="font-size:11px;color:var(--crm-muted);font-weight:600">pts</span>
+          </div>
+          <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)" title="Eliminar tarea">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="crm-tarea-body">
+          <div class="crm-form-group">
+            <label class="crm-label">Enunciado</label>
+            <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno..."><?= htmlspecialchars($t['enunciado'] ?? '') ?></textarea>
+          </div>
+          <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
+          <div class="crm-proyecto-extra">
+          <?php endif; ?>
+          <div class="crm-form-group">
+            <label class="crm-label" style="display:flex;align-items:center;gap:6px">
+              Rúbrica de evaluación
+              <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span>
+            </label>
+            <textarea class="crm-textarea tarea-criterios" rows="3" placeholder="Ej: Funcionalidad (40%) — cumple todos los requisitos&#10;Código limpio (25%)..."><?= htmlspecialchars($t['criterios'] ?? '') ?></textarea>
+            <p style="font-size:11px;color:var(--crm-muted);margin-top:4px">Una línea por criterio. Incluye el peso en % si aplica.</p>
+          </div>
+          <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
+          </div>
+          <?php endif; ?>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTarea()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+      Añadir tarea práctica
+    </button>
+  </div>
+</div>
+
+</div><!-- cierre tab-contenido -->
 
 <!-- ================================================================ -->
 <!-- TAB 3: EVALUACIÓN                                                 -->
@@ -500,62 +655,10 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
           </div>
         </div>
 
-        <!-- Points summary -->
-        <div id="puntosResumen" class="crm-pts-summary" style="margin-bottom:16px">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-          Total: <span id="puntosTotal">0</span> puntos — <span id="tareasTotal">0</span> tareas
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 16px;font-size:13px;color:#166534;display:flex;align-items:center;gap:10px">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Las tareas prácticas se gestionan en la pestaña <strong>Contenido</strong>.
         </div>
-
-        <div id="tareasList">
-          <?php foreach ($tareasPracticas as $ti => $t):
-            $tipoClass = ['proyecto'=>'crm-tarea-tipo-proyecto','codigo'=>'crm-tarea-tipo-codigo','diseno'=>'crm-tarea-tipo-diseno','texto'=>'crm-tarea-tipo-texto'][$t['tipo']??'texto'] ?? 'crm-tarea-tipo-texto';
-          ?>
-          <div class="crm-tarea-card" data-tarea="<?= $ti ?>">
-            <div class="crm-tarea-card-head">
-              <div class="crm-tarea-num"><?= $ti+1 ?></div>
-              <input type="text" class="crm-input" style="flex:1;min-width:0" value="<?= htmlspecialchars($t['titulo']) ?>" placeholder="Título de la tarea">
-              <select class="crm-select tarea-tipo-sel" style="width:195px;flex-shrink:0" onchange="updateTipoVisual(this)">
-                <?php foreach ($tiposTarea as $tv => $tl): ?>
-                <option value="<?= $tv ?>" <?= ($t['tipo']??'texto')===$tv?'selected':'' ?>><?= $tl ?></option>
-                <?php endforeach; ?>
-              </select>
-              <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-                <input type="number" class="crm-input tarea-pts-input" style="width:76px;text-align:center" value="<?= $t['puntos'] ?? 10 ?>" min="0.5" max="100" step="0.5" title="Puntos" oninput="actualizarPuntosTotales()">
-                <span style="font-size:11px;color:var(--crm-muted);font-weight:600">pts</span>
-              </div>
-              <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)" title="Eliminar tarea">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div class="crm-tarea-body">
-              <div class="crm-form-group">
-                <label class="crm-label">Enunciado</label>
-                <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno, requisitos funcionales, tecnologías a usar..."><?= htmlspecialchars($t['enunciado'] ?? '') ?></textarea>
-              </div>
-              <!-- Proyecto-specific fields -->
-              <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
-              <div class="crm-proyecto-extra">
-              <?php endif; ?>
-              <div class="crm-form-group">
-                <label class="crm-label" style="display:flex;align-items:center;gap:6px">
-                  Rúbrica de evaluación
-                  <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span>
-                </label>
-                <textarea class="crm-textarea tarea-criterios" rows="3" placeholder="Ej: Funcionalidad (40%) — cumple todos los requisitos&#10;Código limpio (25%) — legible, comentado, sin repeticiones&#10;Documentación (20%) — README, instrucciones de instalación&#10;Diseño UI/UX (15%) — interfaz intuitiva y responsive"><?= htmlspecialchars($t['criterios'] ?? '') ?></textarea>
-                <p style="font-size:11px;color:var(--crm-muted);margin-top:4px">Una línea por criterio. Incluye el peso en % si aplica.</p>
-              </div>
-              <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
-              </div>
-              <?php endif; ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-        </div>
-
-        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTarea()">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-          Añadir tarea práctica
-        </button>
       </div>
     </div>
   </div>
@@ -563,107 +666,6 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 <style>
 @media(max-width:800px){.crm-prac-header-grid{grid-template-columns:1fr!important}}
 </style>
-
-<!-- ================================================================ -->
-<!-- TAB 4: APUNTES / RECURSOS POR LECCIÓN                            -->
-<!-- ================================================================ -->
-<div id="tab-apuntes" class="crm-tab-panel">
-  <div class="crm-editor-panel">
-    <div class="crm-editor-panel-header">
-      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-      <h3>Recursos por lección</h3>
-      <span style="font-size:11.5px;color:var(--crm-muted);margin-left:6px">Material visible en la plataforma</span>
-    </div>
-    <div class="crm-editor-panel-body" style="padding:14px">
-      <div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12.5px;color:var(--crm-text);display:flex;gap:10px;align-items:flex-start">
-        <svg width="16" height="16" fill="none" stroke="var(--crm-primary)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <div>Los recursos que añadas aquí aparecerán directamente en la pestaña <strong>Recursos</strong> de cada lección en la plataforma. Pueden ser PDFs, documentos, enlaces, actividades o vídeos de cualquier tipo.</div>
-      </div>
-
-      <?php
-      $tipoIconsMap = ['pdf'=>'📄','doc'=>'📝','zip'=>'🗜️','link'=>'🔗','actividad'=>'✏️','video'=>'▶️'];
-      $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>'Enlace','actividad'=>'Actividad','video'=>'Vídeo'];
-      foreach ($unidades as $u):
-        if (empty($u['lecciones'])) continue;
-      ?>
-      <div class="crm-apuntes-unidad" style="margin-bottom:18px">
-        <div style="font-size:11px;font-weight:700;color:var(--crm-primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;padding:0 2px">
-          <?= htmlspecialchars($u['titulo']) ?>
-        </div>
-        <?php foreach ($u['lecciones'] as $lec):
-          $recursos = $lec['recursos'] ?? [];
-        ?>
-        <div class="crm-apuntes-leccion" style="border:1px solid var(--crm-border);border-radius:10px;margin-bottom:8px;overflow:hidden">
-          <!-- Lesson header (toggle) -->
-          <div class="crm-apuntes-lec-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--crm-bg);user-select:none" onclick="toggleApuntesLec(this)">
-            <svg class="apuntes-chevron" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="transition:transform .2s;flex-shrink:0"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
-            <span style="font-size:13px;font-weight:600;flex:1"><?= htmlspecialchars($lec['titulo']) ?></span>
-            <span class="apuntes-rec-count" style="font-size:11px;color:var(--crm-muted);background:var(--crm-border);padding:1px 8px;border-radius:99px"><?= count($recursos) ?> recurso<?= count($recursos)===1?'':'s' ?></span>
-          </div>
-          <!-- Lesson body (resources) -->
-          <div class="crm-apuntes-lec-body" style="display:none;padding:12px 14px;border-top:1px solid var(--crm-border)">
-            <div class="rec-list-<?= $lec['id'] ?>" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
-              <?php foreach ($recursos as $r): ?>
-              <div class="crm-recurso-row" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:8px;font-size:12.5px">
-                <span><?= $tipoIconsMap[$r['tipo']] ?? '📎' ?></span>
-                <div style="flex:1;min-width:0">
-                  <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($r['nombre']) ?></div>
-                  <?php if ($r['descripcion']): ?><div style="font-size:11px;color:var(--crm-muted)"><?= htmlspecialchars($r['descripcion']) ?></div><?php endif; ?>
-                </div>
-                <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--crm-border);color:var(--crm-muted);flex-shrink:0"><?= strtoupper($r['tipo']) ?></span>
-                <a href="<?= htmlspecialchars($r['url_o_ruta']) ?>" target="_blank" class="crm-btn-icon" title="Abrir recurso">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                </a>
-                <button class="crm-btn-icon danger" title="Eliminar recurso" onclick="eliminarRecursoApunte(<?= $r['id'] ?>, this)">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-              </div>
-              <?php endforeach; ?>
-              <?php if (empty($recursos)): ?>
-              <div class="rec-empty-<?= $lec['id'] ?>" style="font-size:12px;color:var(--crm-muted);text-align:center;padding:12px">Sin recursos todavía.</div>
-              <?php endif; ?>
-            </div>
-            <!-- Add resource form (inline) -->
-            <div id="addRecForm-<?= $lec['id'] ?>" style="display:none;background:var(--crm-bg-alt,rgba(0,0,0,.02));border:1px solid var(--crm-border);border-radius:9px;padding:12px">
-              <div style="display:grid;grid-template-columns:1fr 140px;gap:8px;margin-bottom:8px">
-                <input type="text" class="crm-input rec-add-nombre" placeholder="Nombre del recurso *">
-                <select class="crm-select rec-add-tipo" onchange="toggleAddRecUrl(this)">
-                  <?php foreach ($tipoLabelMap as $tv => $tl): ?>
-                  <option value="<?= $tv ?>"><?= $tl ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="rec-add-url-wrap" style="margin-bottom:8px">
-                <input type="url" class="crm-input rec-add-url" placeholder="URL / Enlace *">
-              </div>
-              <div class="rec-add-file-wrap" style="display:none;margin-bottom:8px">
-                <input type="file" class="crm-input rec-add-file" accept=".pdf,.doc,.docx,.zip,.rar,.txt,.png,.jpg,.xlsx,.pptx,.mp4">
-              </div>
-              <input type="text" class="crm-input rec-add-desc" placeholder="Descripción (opcional)" style="margin-bottom:8px">
-              <div style="display:flex;gap:6px">
-                <button class="crm-btn crm-btn-primary crm-btn-sm" onclick="subirRecursoApunte(<?= $lec['id'] ?>, this)">Añadir recurso</button>
-                <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById('addRecForm-<?= $lec['id'] ?>').style.display='none'">Cancelar</button>
-              </div>
-            </div>
-            <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById('addRecForm-<?= $lec['id'] ?>').style.display='block';this.style.display='none'">
-              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-              Añadir recurso
-            </button>
-          </div>
-        </div>
-        <?php endforeach; ?>
-      </div>
-      <?php endforeach; ?>
-
-      <?php if (empty(array_filter($unidades, fn($u) => !empty($u['lecciones'])))): ?>
-      <div style="text-align:center;padding:40px;color:var(--crm-muted)">
-        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M12 6.253v13"/></svg>
-        <p style="font-size:13px">Añade lecciones al curso para gestionar sus recursos aquí.</p>
-      </div>
-      <?php endif; ?>
-    </div>
-  </div>
-</div>
 
 <!-- ================================================================ -->
 <!-- TAB 5: RESULTADOS                                                 -->
