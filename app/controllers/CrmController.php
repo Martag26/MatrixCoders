@@ -846,18 +846,20 @@ class CrmController
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
 
-        $titulo      = trim($d['titulo'] ?? '');
-        $descripcion = trim($d['descripcion'] ?? '');
-        $precio      = (float)($d['precio'] ?? 0);
-        $nivel       = $d['nivel'] ?? null;
-        $categoria   = $d['categoria'] ?? null;
-        $destacado   = (int)($d['destacado'] ?? 0);
-        $activoVal   = isset($d['activo']) ? (int)$d['activo'] : null;
+        $titulo         = trim($d['titulo'] ?? '');
+        $descripcion    = trim($d['descripcion'] ?? '');
+        $infoExtra      = trim($d['info_extra'] ?? '');
+        $queAprenderas  = trim($d['que_aprenderas'] ?? '');
+        $precio         = (float)($d['precio'] ?? 0);
+        $nivel          = $d['nivel'] ?? null;
+        $categoria      = $d['categoria'] ?? null;
+        $destacado      = (int)($d['destacado'] ?? 0);
+        $activoVal      = isset($d['activo']) ? (int)$d['activo'] : null;
 
         if (!$titulo) return ['ok' => false, 'error' => 'El título es obligatorio'];
 
-        $sql = "UPDATE curso SET titulo=?,descripcion=?,precio=?,nivel=?,categoria=?,destacado=?";
-        $params = [$titulo, $descripcion, $precio, $nivel, $categoria, $destacado];
+        $sql = "UPDATE curso SET titulo=?,descripcion=?,info_extra=?,que_aprenderas=?,precio=?,nivel=?,categoria=?,destacado=?";
+        $params = [$titulo, $descripcion, $infoExtra, $queAprenderas, $precio, $nivel, $categoria, $destacado];
         if ($activoVal !== null) { $sql .= ',activo=?'; $params[] = $activoVal; }
         $sql .= ' WHERE id=?';
         $params[] = $id;
@@ -1287,7 +1289,13 @@ class CrmController
             }
         }
 
-        $enviados = $this->notificarUsuarios($titulo, $cuerpo, $id, $audiencia, $diasReg);
+        // URL de la notificación: primer curso vinculado o búsqueda general
+        $urlAccion = BASE_URL . '/index.php?url=buscar';
+        foreach ($cursos as $cid) {
+            if ((int)$cid) { $urlAccion = BASE_URL . '/index.php?url=detallecurso&id=' . (int)$cid; break; }
+        }
+
+        $enviados = $this->notificarUsuarios($titulo, $cuerpo, $id, $audiencia, $diasReg, $urlAccion);
 
         $this->logActividad("Campaña creada: $titulo", 'info');
         return ['ok' => true, 'id' => $id, 'mensaje' => "Campaña creada y notificación enviada a $enviados usuario(s)"];
@@ -1645,7 +1653,7 @@ class CrmController
         return ['ok' => true];
     }
 
-    private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId, string $audiencia = 'todos', ?int $diasRegistro = null): int
+    private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId, string $audiencia = 'todos', ?int $diasRegistro = null, ?string $urlAccion = null): int
     {
         $audienciaFilter = '';
         $params = [$campanaId];
@@ -1653,7 +1661,7 @@ class CrmController
         if ($audiencia === 'nuevos' && $diasRegistro !== null) {
             $audienciaFilter = "AND u.creado_en >= date('now','-{$diasRegistro} days')";
         } elseif ($audiencia === 'matriculados') {
-            $audienciaFilter = "AND EXISTS (SELECT 1 FROM matricula m WHERE m.usuario_id=u.id AND m.estado='activa')";
+            $audienciaFilter = "AND EXISTS (SELECT 1 FROM matricula m WHERE m.usuario_id=u.id)";
         }
 
         $stmt = $this->db->prepare("
@@ -1666,9 +1674,9 @@ class CrmController
         $stmt->execute($params);
         $usuarios = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-        $ins = $this->db->prepare("INSERT OR IGNORE INTO notificacion (usuario_id,tipo,titulo,cuerpo,ref_id) VALUES(?,?,?,?,?)");
+        $ins = $this->db->prepare("INSERT OR IGNORE INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)");
         foreach ($usuarios as $uid) {
-            $ins->execute([$uid, 'crm', $titulo, $cuerpo, $campanaId]);
+            $ins->execute([$uid, 'crm', $titulo, $cuerpo, $urlAccion, $campanaId]);
         }
         return count($usuarios);
     }

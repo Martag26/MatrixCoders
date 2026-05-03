@@ -158,6 +158,14 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
             <label class="crm-label">Descripción</label>
             <textarea class="crm-textarea" id="cDesc" rows="4" placeholder="Describe el curso, qué aprenderán los alumnos..."><?= htmlspecialchars($curso['descripcion'] ?? '') ?></textarea>
           </div>
+          <div class="crm-form-group">
+            <label class="crm-label">Información adicional <span style="font-weight:400;color:var(--crm-muted)">(visible en la ficha del curso)</span></label>
+            <textarea class="crm-textarea" id="cInfoExtra" rows="3" placeholder="Requisitos previos, público objetivo, detalles del formato…"><?= htmlspecialchars($curso['info_extra'] ?? '') ?></textarea>
+          </div>
+          <div class="crm-form-group">
+            <label class="crm-label">¿Qué aprenderás? <span style="font-weight:400;color:var(--crm-muted)">(un punto por línea)</span></label>
+            <textarea class="crm-textarea" id="cQueAprenderas" rows="5" placeholder="Aprenderás a crear APIs REST&#10;Dominarás Docker y contenedores&#10;Implementarás CI/CD en proyectos reales"><?= htmlspecialchars($curso['que_aprenderas'] ?? '') ?></textarea>
+          </div>
           <div class="crm-form-row">
             <div class="crm-form-group">
               <label class="crm-label">Precio (€)</label>
@@ -1461,8 +1469,10 @@ async function guardarTodo() {
   // 1. Basic info
   const r1 = await CRM.api('actualizar_curso', {
     id:          CURSO_ID,
-    titulo:      document.getElementById('cTitulo').value,
-    descripcion: document.getElementById('cDesc').value,
+    titulo:          document.getElementById('cTitulo').value,
+    descripcion:     document.getElementById('cDesc').value,
+    info_extra:      document.getElementById('cInfoExtra').value,
+    que_aprenderas:  document.getElementById('cQueAprenderas').value,
     precio:      parseFloat(document.getElementById('cPrecio').value) || 0,
     nivel:       document.getElementById('cNivel').value,
     categoria:   document.getElementById('cCategoria').value,

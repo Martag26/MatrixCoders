@@ -379,16 +379,21 @@ function buildUrl(array $overrides = []): string
         .sort-select {
             border: 1px solid var(--mc-border);
             border-radius: 10px;
-            padding: 6px 28px 6px 10px;
+            padding: 7px 32px 7px 11px;
             font-family: 'Saira', sans-serif;
-            font-size: .78rem;
+            font-size: .8rem;
             font-weight: 600;
             color: var(--mc-dark);
-            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
             -webkit-appearance: none;
+            appearance: none;
             cursor: pointer;
             outline: none;
             transition: border-color .15s, box-shadow .15s;
+        }
+
+        .sort-select:hover {
+            border-color: rgba(107,143,113,.45);
         }
 
         .sort-select:focus {
@@ -1379,6 +1384,7 @@ function buildUrl(array $overrides = []): string
             clearTimeout(t._hideTimer);
             t._hideTimer = setTimeout(() => t.classList.remove('show'), 4000);
         }
+
     </script>
 </body>
 

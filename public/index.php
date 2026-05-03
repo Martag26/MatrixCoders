@@ -183,6 +183,10 @@ switch ($url) {
         require_once "../app/controllers/NotificacionesPageController.php";
         break;
 
+    case 'buzon':
+        require_once "../app/controllers/BuzonController.php";
+        break;
+
     case 'api-notificaciones':
         require_once "../app/controllers/NotificacionController.php";
         break;
