@@ -13,6 +13,7 @@ $examenTest     = $examenTest     ?? null;
 $examenPractico = $examenPractico ?? null;
 $preguntas      = $preguntas      ?? [];
 $tareasPracticas = $tareasPracticas ?? [];
+$tareasCurso     = $tareasCurso     ?? [];
 $apuntes        = $apuntes        ?? [];
 $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programación','diseno'=>'Diseño / Maquetación','proyecto'=>'Proyecto completo'];
 ?>
@@ -276,14 +277,15 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
           $numUnidades  = count($unidades);
           $numLecciones = array_sum(array_map(fn($u) => count($u['lecciones']), $unidades));
           $numPreguntas = count($preguntas);
-          $numTareas    = count($tareasPracticas);
+          $numTareasPrac = count($tareasPracticas);
+          $numTareasCurso = count($tareasCurso);
           $numApuntes   = count($apuntes);
           $stats = [
             ['label'=>'Unidades', 'val'=>$numUnidades, 'color'=>'var(--crm-primary)'],
             ['label'=>'Lecciones / Videos', 'val'=>$numLecciones, 'color'=>'var(--crm-info)'],
             ['label'=>'Preguntas test', 'val'=>$numPreguntas, 'color'=>'var(--crm-warning)'],
-            ['label'=>'Tareas prácticas', 'val'=>$numTareas, 'color'=>'var(--crm-danger)'],
-            ['label'=>'Secciones apuntes', 'val'=>$numApuntes, 'color'=>'var(--crm-success)'],
+            ['label'=>'Tareas entregables', 'val'=>$numTareasCurso, 'color'=>'var(--crm-success)'],
+            ['label'=>'Tareas examen práctico', 'val'=>$numTareasPrac, 'color'=>'var(--crm-danger)'],
           ];
           foreach ($stats as $s): ?>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--crm-border)">
@@ -316,9 +318,9 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
       <span class="ctab-badge"><?= array_sum(array_map(fn($u) => array_sum(array_map(fn($l) => count($l['recursos'] ?? []), $u['lecciones'])), $unidades)) ?></span>
     </button>
     <button class="crm-contenido-subtab" data-ctab="tareas" onclick="switchContenidoTab('tareas')">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-      Tareas
-      <span class="ctab-badge"><?= count($tareasPracticas) ?></span>
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>
+      Tareas Entregables
+      <span class="ctab-badge"><?= count($tareasCurso) ?></span>
     </button>
   </div>
   <!-- Acciones contextuales por sub-tab -->
@@ -329,7 +331,7 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     </button>
   </div>
   <div id="ctab-action-tareas" style="display:none">
-    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="agregarTarea()">
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="agregarTareaEntregable()">
       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
       Añadir tarea
     </button>
@@ -505,66 +507,52 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
 </div>
 </div><!-- cierre ctab-recursos -->
 
-<!-- ── Sub-tab: TAREAS ── -->
+<!-- ── Sub-tab: TAREAS ENTREGABLES ── -->
 <div id="ctab-tareas" class="crm-ctab-panel">
 <div class="crm-editor-panel">
   <div class="crm-editor-panel-header">
-    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-    <h3>Tareas prácticas</h3>
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>
+    <h3>Tareas Entregables</h3>
+    <span style="margin-left:8px;font-size:11px;color:var(--crm-muted)">Actividades de entrega del curso (no son el examen práctico)</span>
   </div>
   <div class="crm-editor-panel-body">
-    <div id="puntosResumen" class="crm-pts-summary" style="margin-bottom:16px">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-      Total: <span id="puntosTotal">0</span> puntos — <span id="tareasTotal">0</span> tareas
+    <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:#065f46;display:flex;gap:10px;align-items:flex-start">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div>Las tareas entregables son actividades de cada unidad que el alumno debe completar <strong>antes de acceder al examen teórico</strong>. Son diferentes al examen práctico final, que se configura en la pestaña <strong>Evaluación</strong>.</div>
     </div>
-    <div id="tareasList">
-      <?php foreach ($tareasPracticas as $ti => $t):
-        $tipoClass = ['proyecto'=>'crm-tarea-tipo-proyecto','codigo'=>'crm-tarea-tipo-codigo','diseno'=>'crm-tarea-tipo-diseno','texto'=>'crm-tarea-tipo-texto'][$t['tipo']??'texto'] ?? 'crm-tarea-tipo-texto';
-      ?>
-      <div class="crm-tarea-card" data-tarea="<?= $ti ?>">
-        <div class="crm-tarea-card-head">
-          <div class="crm-tarea-num"><?= $ti+1 ?></div>
-          <input type="text" class="crm-input" style="flex:1;min-width:0" value="<?= htmlspecialchars($t['titulo']) ?>" placeholder="Título de la tarea">
-          <select class="crm-select tarea-tipo-sel" style="width:195px;flex-shrink:0" onchange="updateTipoVisual(this)">
-            <?php foreach ($tiposTarea as $tv => $tl): ?>
-            <option value="<?= $tv ?>" <?= ($t['tipo']??'texto')===$tv?'selected':'' ?>><?= $tl ?></option>
+    <div id="tarasEntList">
+      <?php foreach ($tareasCurso as $te): ?>
+      <div class="crm-te-row" data-te-id="<?= $te['id'] ?>">
+        <input type="hidden" class="te-id" value="<?= $te['id'] ?>">
+        <div style="display:grid;grid-template-columns:1fr 200px 160px 36px;gap:8px;align-items:center;padding:10px 12px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:10px;margin-bottom:8px">
+          <input type="text" class="crm-input te-titulo" value="<?= htmlspecialchars($te['titulo']) ?>" placeholder="Título de la tarea *">
+          <select class="crm-select te-unidad">
+            <option value="">Sin unidad asignada</option>
+            <?php foreach ($unidades as $u): ?>
+            <option value="<?= $u['id'] ?>" <?= ($te['unidad_id']==$u['id'])?'selected':'' ?>><?= htmlspecialchars($u['titulo']) ?></option>
             <?php endforeach; ?>
           </select>
-          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-            <input type="number" class="crm-input tarea-pts-input" style="width:76px;text-align:center" value="<?= $t['puntos'] ?? 10 ?>" min="0.5" max="100" step="0.5" title="Puntos" oninput="actualizarPuntosTotales()">
-            <span style="font-size:11px;color:var(--crm-muted);font-weight:600">pts</span>
-          </div>
-          <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)" title="Eliminar tarea">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          <input type="date" class="crm-input te-fecha" value="<?= htmlspecialchars($te['fecha_limite'] ?? '') ?>" title="Fecha límite (opcional)">
+          <button class="crm-btn-icon danger crm-btn-sm" onclick="this.closest('.crm-te-row').remove()" title="Eliminar">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-        <div class="crm-tarea-body">
-          <div class="crm-form-group">
-            <label class="crm-label">Enunciado</label>
-            <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno..."><?= htmlspecialchars($t['enunciado'] ?? '') ?></textarea>
-          </div>
-          <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
-          <div class="crm-proyecto-extra">
-          <?php endif; ?>
-          <div class="crm-form-group">
-            <label class="crm-label" style="display:flex;align-items:center;gap:6px">
-              Rúbrica de evaluación
-              <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span>
-            </label>
-            <textarea class="crm-textarea tarea-criterios" rows="3" placeholder="Ej: Funcionalidad (40%) — cumple todos los requisitos&#10;Código limpio (25%)..."><?= htmlspecialchars($t['criterios'] ?? '') ?></textarea>
-            <p style="font-size:11px;color:var(--crm-muted);margin-top:4px">Una línea por criterio. Incluye el peso en % si aplica.</p>
-          </div>
-          <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
-          </div>
-          <?php endif; ?>
+        <div style="padding:0 12px 10px;margin-top:-4px">
+          <textarea class="crm-textarea te-desc" rows="2" placeholder="Descripción de la tarea (opcional)"><?= htmlspecialchars($te['descripcion'] ?? '') ?></textarea>
         </div>
       </div>
       <?php endforeach; ?>
     </div>
-    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTarea()">
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTareaEntregable()">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-      Añadir tarea práctica
+      Añadir tarea entregable
     </button>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end">
+      <button type="button" class="crm-btn crm-btn-primary crm-btn-sm" onclick="guardarTareasEntregables(this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+        Guardar tareas entregables
+      </button>
+    </div>
   </div>
 </div>
 </div><!-- cierre ctab-tareas -->
@@ -584,8 +572,8 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
     </button>
     <button class="crm-exam-subtab" data-etab="practico" onclick="switchExamTab('practico')">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:5px"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-      Examen Práctico
-      <?php if (count($tareasPracticas) > 0): ?><span style="margin-left:6px;background:rgba(239,68,68,.15);color:var(--crm-danger);font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px"><?= count($tareasPracticas) ?></span><?php endif; ?>
+      Examen Práctico Final
+      <?php if (count($tareasPracticas) > 0): ?><span style="margin-left:6px;background:rgba(239,68,68,.15);color:var(--crm-danger);font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px"><?= count($tareasPracticas) ?> prác.</span><?php endif; ?>
     </button>
   </div>
 
@@ -699,10 +687,63 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
           </div>
         </div>
 
-        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 16px;font-size:13px;color:#166534;display:flex;align-items:center;gap:10px">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Las tareas prácticas se gestionan en la pestaña <strong>Contenido</strong>.
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 16px;font-size:12.5px;color:#92400e;display:flex;align-items:flex-start;gap:10px;margin-bottom:16px">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>El <strong>Examen Práctico Final</strong> se desbloquea al alumno cuando aprueba el examen teórico. Es diferente a las <strong>Tareas Entregables</strong> del curso (que se configuran en Contenido → Tareas Entregables).</div>
         </div>
+
+        <!-- Tareas del examen práctico -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="crm-pts-summary" style="margin:0">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+            Total: <span id="puntosTotal">0</span> pts — <span id="tareasTotal">0</span> tareas
+          </div>
+          <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="agregarTarea()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            Añadir tarea
+          </button>
+        </div>
+        <div id="tareasList">
+          <?php foreach ($tareasPracticas as $ti => $t):
+            $tipoClass = ['proyecto'=>'crm-tarea-tipo-proyecto','codigo'=>'crm-tarea-tipo-codigo','diseno'=>'crm-tarea-tipo-diseno','texto'=>'crm-tarea-tipo-texto'][$t['tipo']??'texto'] ?? 'crm-tarea-tipo-texto';
+          ?>
+          <div class="crm-tarea-card" data-tarea="<?= $ti ?>">
+            <div class="crm-tarea-card-head">
+              <div class="crm-tarea-num"><?= $ti+1 ?></div>
+              <input type="text" class="crm-input" style="flex:1;min-width:0" value="<?= htmlspecialchars($t['titulo']) ?>" placeholder="Título de la tarea">
+              <select class="crm-select tarea-tipo-sel" style="width:195px;flex-shrink:0" onchange="updateTipoVisual(this)">
+                <?php foreach ($tiposTarea as $tv => $tl): ?>
+                <option value="<?= $tv ?>" <?= ($t['tipo']??'texto')===$tv?'selected':'' ?>><?= $tl ?></option>
+                <?php endforeach; ?>
+              </select>
+              <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+                <input type="number" class="crm-input tarea-pts-input" style="width:76px;text-align:center" value="<?= $t['puntos'] ?? 10 ?>" min="0.5" max="100" step="0.5" title="Puntos" oninput="actualizarPuntosTotales()">
+                <span style="font-size:11px;color:var(--crm-muted);font-weight:600">pts</span>
+              </div>
+              <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)" title="Eliminar tarea">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="crm-tarea-body">
+              <div class="crm-form-group">
+                <label class="crm-label">Enunciado</label>
+                <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno..."><?= htmlspecialchars($t['enunciado'] ?? '') ?></textarea>
+              </div>
+              <div class="crm-form-group">
+                <label class="crm-label" style="display:flex;align-items:center;gap:6px">
+                  Rúbrica de evaluación
+                  <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span>
+                </label>
+                <textarea class="crm-textarea tarea-criterios" rows="3" placeholder="Ej: Funcionalidad (40%)&#10;Código limpio (25%)..."><?= htmlspecialchars($t['criterios'] ?? '') ?></textarea>
+              </div>
+            </div>
+          </div>
+          <?php endforeach; ?>
+        </div>
+        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTarea()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+          Añadir tarea al examen
+        </button>
       </div>
     </div>
   </div>
@@ -1009,7 +1050,7 @@ async function switchContenidoTab(name) {
   document.querySelector(`[data-ctab="${name}"]`).classList.add('active');
   ['lecciones','tareas'].forEach(k => {
     const el = document.getElementById('ctab-action-' + k);
-    if (el) el.style.display = (k === name) ? '' : 'none';
+    if (el) el.style.display = (k === name) ? 'block' : 'none';
   });
 }
 
@@ -1450,6 +1491,47 @@ function actualizarPuntosTotales() {
 async function pedirEliminarTarea(btn) {
   const ok = await CRM.confirm('¿Eliminar esta tarea?', { title: 'Eliminar tarea', okLabel: 'Eliminar' });
   if (ok) { btn.closest('.crm-tarea-card').remove(); actualizarPuntosTotales(); }
+}
+
+/* ===== Tareas Entregables (por unidad) ===== */
+const UNIDADES_OPTIONS = `<?php foreach ($unidades as $u): ?><option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['titulo'], ENT_QUOTES) ?></option><?php endforeach; ?>`;
+
+function agregarTareaEntregable() {
+  const div = document.createElement('div');
+  div.className = 'crm-te-row';
+  div.innerHTML = `
+    <input type="hidden" class="te-id" value="0">
+    <div style="display:grid;grid-template-columns:1fr 200px 160px 36px;gap:8px;align-items:center;padding:10px 12px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:10px;margin-bottom:8px">
+      <input type="text" class="crm-input te-titulo" placeholder="Título de la tarea *">
+      <select class="crm-select te-unidad">
+        <option value="">Sin unidad asignada</option>
+        ${UNIDADES_OPTIONS}
+      </select>
+      <input type="date" class="crm-input te-fecha" title="Fecha límite (opcional)">
+      <button class="crm-btn-icon danger crm-btn-sm" onclick="this.closest('.crm-te-row').remove()" title="Eliminar">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div style="padding:0 12px 10px;margin-top:-4px">
+      <textarea class="crm-textarea te-desc" rows="2" placeholder="Descripción de la tarea (opcional)"></textarea>
+    </div>`;
+  document.getElementById('tarasEntList').appendChild(div);
+  div.querySelector('.te-titulo').focus();
+}
+
+async function guardarTareasEntregables(btn) {
+  btn.disabled = true;
+  const tareas = [...document.querySelectorAll('.crm-te-row')].map(r => ({
+    id:          parseInt(r.querySelector('.te-id')?.value) || 0,
+    titulo:      r.querySelector('.te-titulo')?.value?.trim() || '',
+    unidad_id:   r.querySelector('.te-unidad')?.value || '',
+    fecha_limite:r.querySelector('.te-fecha')?.value || '',
+    descripcion: r.querySelector('.te-desc')?.value || '',
+  })).filter(t => t.titulo);
+  const res = await CRM.api('guardar_tareas_curso', { curso_id: CURSO_ID, tareas });
+  btn.disabled = false;
+  if (res.ok) CRM.toast('✓ Tareas entregables guardadas', 'success');
+  else CRM.toast(res.error || 'Error al guardar', 'error');
 }
 
 // Initialize totals and snapshot on page load

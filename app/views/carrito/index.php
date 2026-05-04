@@ -56,12 +56,12 @@ $hayAhorro     = $ahorro > 0.001;
         .carrito-flash.error{background:#fff7ed;border:1px solid #fdba74;color:#9a3412}
 
         /* Empty state */
-        .carrito-empty-state{text-align:center;padding:48px 20px}
-        .empty-icon{font-size:4rem;margin-bottom:16px}
-        .empty-title{font-size:1.25rem;font-weight:800;color:#1B2336;margin-bottom:8px}
-        .empty-sub{font-size:.9rem;color:#6b7280;margin-bottom:24px}
-        .btn-explorar{display:inline-flex;align-items:center;gap:8px;background:#6B8F71;color:#fff;border:none;border-radius:12px;padding:12px 24px;font-size:.9rem;font-weight:700;font-family:'Saira',sans-serif;text-decoration:none;cursor:pointer;transition:background .15s}
-        .btn-explorar:hover{background:#4a6b50;color:#fff}
+        .carrito-empty-state{text-align:center;padding:56px 32px}
+        .empty-icon-wrap{width:88px;height:88px;border-radius:24px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;display:flex;align-items:center;justify-content:center;margin:0 auto 22px}
+        .empty-title{font-size:1.3rem;font-weight:900;color:#1B2336;margin:0 0 8px}
+        .empty-sub{font-size:.9rem;color:#6b7280;margin:0 0 28px;line-height:1.6}
+        .btn-explorar{display:inline-flex;align-items:center;gap:8px;background:#6B8F71;color:#fff;border:none;border-radius:12px;padding:13px 28px;font-size:.9rem;font-weight:700;font-family:'Saira',sans-serif;text-decoration:none;cursor:pointer;transition:background .15s,transform .15s;box-shadow:0 4px 14px rgba(107,143,113,.35)}
+        .btn-explorar:hover{background:#4a6b50;color:#fff;transform:translateY(-1px)}
 
         /* Resumen */
         .resumen-linea{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;font-size:.9rem}
@@ -121,14 +121,19 @@ $hayAhorro     = $ahorro > 0.001;
                 <!-- ── ESTADO VACÍO ── -->
                 <div class="carrito-cesta" style="max-width:520px;margin:0 auto;">
                     <div class="carrito-empty-state">
-                        <div class="empty-icon">🛒</div>
+                        <div class="empty-icon-wrap">
+                            <svg width="40" height="40" fill="none" stroke="#6B8F71" stroke-width="1.8" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
                         <h2 class="empty-title">Tu carrito está vacío</h2>
                         <p class="empty-sub">
                             Aún no has añadido ningún curso.<br>
-                            ¡Explora nuestro catálogo y encuentra el que más te inspire!
+                            Explora el catálogo y encuentra el que más te inspire.
                         </p>
                         <a class="btn-explorar" href="<?= BASE_URL ?>/index.php?url=buscar">
-                            🔍 Explorar cursos
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+                            Explorar cursos
                         </a>
                     </div>
                 </div>

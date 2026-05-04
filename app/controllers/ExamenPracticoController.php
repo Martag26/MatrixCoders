@@ -8,6 +8,10 @@ if (empty($_SESSION['usuario_id'])) {
     header('Location: ' . BASE_URL . '/index.php?url=login');
     exit;
 }
+if (($_SESSION['usuario_rol'] ?? '') !== 'USUARIO') {
+    header('Location: ' . BASE_URL . '/index.php?url=crm');
+    exit;
+}
 
 $usuarioId = (int)$_SESSION['usuario_id'];
 $db        = (new Database())->connect();
@@ -25,6 +29,22 @@ if (!(int)$stmtM->fetchColumn()) {
     header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
     exit;
 }
+
+// The theory exam must be passed before accessing the practical exam
+try {
+    $stmtTh = $db->prepare("SELECT id FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
+    $stmtTh->execute([$cursoId]);
+    $theoryId = $stmtTh->fetchColumn();
+    if ($theoryId) {
+        $stmtTRes = $db->prepare("SELECT aprobado FROM resultado_examen WHERE usuario_id=? AND examen_id=?");
+        $stmtTRes->execute([$usuarioId, $theoryId]);
+        $resTest = $stmtTRes->fetch(PDO::FETCH_ASSOC);
+        if (!$resTest || !$resTest['aprobado']) {
+            header('Location: ' . BASE_URL . '/index.php?url=examen&curso=' . $cursoId . '&pendiente_teoria=1');
+            exit;
+        }
+    }
+} catch (Exception $e) {}
 
 // Load course
 $stmtC = $db->prepare("SELECT * FROM curso WHERE id=?");

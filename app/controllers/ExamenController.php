@@ -8,6 +8,10 @@ if (empty($_SESSION['usuario_id'])) {
     header('Location: ' . BASE_URL . '/index.php?url=login');
     exit;
 }
+if (($_SESSION['usuario_rol'] ?? '') !== 'USUARIO') {
+    header('Location: ' . BASE_URL . '/index.php?url=crm');
+    exit;
+}
 
 $usuarioId = (int)$_SESSION['usuario_id'];
 $db        = (new Database())->connect();
@@ -26,7 +30,13 @@ if (!(int)$stmtM->fetchColumn()) {
     exit;
 }
 
-// Verificar que el alumno ha completado todas las lecciones
+// Verificar que el alumno ha completado todas las lecciones y tareas entregables
+$progresoExamen    = 100;
+$leccionesVistas   = 0;
+$totalLecciones    = 0;
+$tareasRestantes   = 0;
+$totalTareasEnt    = 0;
+
 try {
     $stmtTotalLec = $db->prepare("
         SELECT COUNT(l.id) FROM leccion l
@@ -46,13 +56,57 @@ try {
         $leccionesVistas = (int)$stmtVistas->fetchColumn();
 
         if ($leccionesVistas < $totalLecciones) {
-            $progresoExamen  = round(($leccionesVistas / $totalLecciones) * 100);
+            $progresoExamen     = round(($leccionesVistas / $totalLecciones) * 100);
             $leccionesRestantes = $totalLecciones - $leccionesVistas;
             require __DIR__ . '/../views/examen/bloqueado.php';
             exit;
         }
     }
 } catch (Exception $e) { /* tabla no existe todavía — permitir acceso */ }
+
+// Verificar tareas entregables completadas
+try {
+    $stmtTotTE = $db->prepare("SELECT COUNT(*) FROM tarea_entregable WHERE curso_id=?");
+    $stmtTotTE->execute([$cursoId]);
+    $totalTareasEnt = (int)$stmtTotTE->fetchColumn();
+
+    if ($totalTareasEnt > 0) {
+        $stmtPendTE = $db->prepare("
+            SELECT COUNT(*) FROM tarea_entregable te
+            LEFT JOIN entrega_entregable ee ON ee.tarea_id=te.id AND ee.alumno_id=?
+            WHERE te.curso_id=? AND ee.id IS NULL
+        ");
+        $stmtPendTE->execute([$usuarioId, $cursoId]);
+        $tareasRestantes = (int)$stmtPendTE->fetchColumn();
+
+        if ($tareasRestantes > 0) {
+            $progresoExamen     = round(($leccionesVistas / max($totalLecciones, 1)) * 100);
+            $leccionesRestantes = 0;
+            require __DIR__ . '/../views/examen/bloqueado.php';
+            exit;
+        }
+    }
+} catch (Exception $e) { /* tabla no existe todavía */ }
+
+// Crear notificación "examen teórico disponible" si aún no existe
+try {
+    $stmtExId = $db->prepare("SELECT id FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
+    $stmtExId->execute([$cursoId]);
+    $exIdForNotif = (int)($stmtExId->fetchColumn() ?: 0);
+    if ($exIdForNotif) {
+        $stmtChkNotif = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='examen_teorico' AND ref_id=?");
+        $stmtChkNotif->execute([$usuarioId, $exIdForNotif]);
+        if (!(int)$stmtChkNotif->fetchColumn()) {
+            $tituloCursoNotif = $curso['titulo'] ?? '';
+            $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
+               ->execute([$usuarioId, 'examen_teorico',
+                   '¡Ya puedes hacer el examen teórico! — ' . $tituloCursoNotif,
+                   'Has completado todas las lecciones y tareas. Accede al examen cuando estés listo.',
+                   BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
+                   $exIdForNotif]);
+        }
+    }
+} catch (Exception $e) {}
 
 // Cargar examen tipo test del curso
 $stmtEx = $db->prepare("SELECT * FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
@@ -136,14 +190,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
     $resultadoPrevio = $stmtR2->fetch(PDO::FETCH_ASSOC);
     $intentosUsados  = (int)($resultadoPrevio['intentos'] ?? 0);
 
-    // Generar certificado si aprueba
+    // Generar certificado si aprueba y el curso NO tiene examen práctico
+    // (si tiene práctico, el certificado se emite tras la corrección)
     if ($aprobado) {
-        $codigo = strtoupper(substr(md5($usuarioId . '-' . $cursoId . '-' . microtime()), 0, 12));
-        $stmtCertIns = $db->prepare("
-            INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo)
-            VALUES (?, ?, datetime('now'), ?)
-        ");
-        $stmtCertIns->execute([$usuarioId, $cursoId, $codigo]);
+        $stmtHasPrac = $db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
+        $stmtHasPrac->execute([$cursoId]);
+        $tieneExamenPractico = (int)$stmtHasPrac->fetchColumn() > 0;
+
+        if (!$tieneExamenPractico) {
+            $codigo = strtoupper(substr(md5($usuarioId . '-' . $cursoId . '-' . microtime()), 0, 12));
+            $db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
+               ->execute([$usuarioId, $cursoId, $codigo]);
+        } else {
+            // Notificar que el examen práctico ya está disponible
+            try {
+                $stmtChkPracNotif = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='examen_practico' AND ref_id=?");
+                $stmtChkPracNotif->execute([$usuarioId, $cursoId]);
+                if (!(int)$stmtChkPracNotif->fetchColumn()) {
+                    $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
+                       ->execute([$usuarioId, 'examen_practico',
+                           '¡Ya puedes hacer el examen práctico! — ' . ($curso['titulo'] ?? ''),
+                           'Has aprobado el examen teórico. El examen práctico final ya está disponible.',
+                           BASE_URL . '/index.php?url=examen-practico&curso=' . $cursoId,
+                           $cursoId]);
+                }
+            } catch (Exception $e) {}
+        }
 
         $stmtCert = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
         $stmtCert->execute([$usuarioId, $cursoId]);

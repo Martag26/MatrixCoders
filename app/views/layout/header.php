@@ -25,64 +25,65 @@ $nombreMenu = function_exists('mb_convert_case')
 ?>
 
 <style>
-/* ── Campana ── */
+/* ── Bell button ── */
 .notif-bell-wrap{position:relative;display:inline-flex}
-.notif-bell-btn{width:34px;height:34px;border-radius:10px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;color:#374151;padding:0}
-.notif-bell-btn:hover{background:#f3f4f6}
-.notif-bell-badge{position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:17px;height:17px;border-radius:99px;padding:0 4px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;line-height:1;opacity:0;transform:scale(0);transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1)}
+.notif-bell-btn{width:36px;height:36px;border-radius:10px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;color:#6b7280;padding:0}
+.notif-bell-btn:hover{background:#f3f4f6;color:#374151}
+.notif-bell-badge{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:18px;height:18px;border-radius:99px;padding:0 4px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;line-height:1;opacity:0;transform:scale(0);transition:opacity .2s,transform .25s cubic-bezier(.34,1.56,.64,1)}
 .notif-bell-badge.visible{opacity:1;transform:scale(1)}
 
-/* ── Dropdown (mismo estilo que user-dropdown-menu) ── */
-.notif-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:320px;background:#fff;border-radius:16px;border:1px solid #e5e7eb;box-shadow:0 16px 40px rgba(15,23,42,.13);z-index:9999;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .18s ease,transform .18s ease;overflow:hidden;display:flex;flex-direction:column}
+/* ── Dropdown ── */
+.notif-dropdown{position:absolute;top:calc(100% + 10px);right:0;width:348px;background:#fff;border-radius:18px;border:1px solid #e5e7eb;box-shadow:0 20px 50px rgba(15,23,42,.14);z-index:9999;opacity:0;pointer-events:none;transform:translateY(-8px);transition:opacity .18s ease,transform .18s ease;display:flex;flex-direction:column;overflow:hidden}
 .notif-dropdown.open{opacity:1;pointer-events:auto;transform:translateY(0)}
 
-/* ── Cabecera simple ── */
-.nd-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;border-bottom:1px solid #e5e7eb}
-.nd-head-title{font-size:14px;font-weight:700;color:#1B2336;margin:0}
+/* ── Header ── */
+.nd-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 14px;border-bottom:1px solid #f3f4f6}
+.nd-head-title{font-size:15px;font-weight:800;color:#111827;margin:0}
 .nd-head-right{display:flex;align-items:center;gap:8px}
-.nd-unread-pill{background:#ef4444;color:#fff;font-size:.6rem;font-weight:800;border-radius:99px;padding:2px 7px;display:none}
+.nd-unread-pill{background:#ef4444;color:#fff;font-size:.62rem;font-weight:800;border-radius:99px;padding:2px 8px;display:none;letter-spacing:.2px}
 .nd-unread-pill.on{display:inline-block}
-.nd-mark-all{font-size:.72rem;font-weight:600;color:#6b7280;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;transition:color .13s,background .13s}
-.nd-mark-all:hover{color:#1B2336;background:#f3f4f6}
+.nd-mark-all{font-size:.72rem;font-weight:700;color:#6b7280;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:7px;transition:color .12s,background .12s}
+.nd-mark-all:hover{color:#111827;background:#f3f4f6}
 
-/* ── Lista ── */
-.nd-list{max-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#e5e7eb transparent}
+/* ── List ── */
+.nd-list{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#e5e7eb transparent;max-height:340px}
 .nd-list::-webkit-scrollbar{width:3px}
 .nd-list::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:99px}
 
-/* Separador de sección */
-.nd-section{padding:8px 14px 3px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#9ca3af}
+/* Section label */
+.nd-section{padding:10px 16px 4px;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#9ca3af}
 
 /* ── Item ── */
-.nd-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background .12s;text-decoration:none;color:inherit;position:relative}
+.nd-item{display:flex;align-items:flex-start;gap:11px;padding:11px 16px;cursor:pointer;transition:background .12s;text-decoration:none;color:inherit;position:relative;border-bottom:1px solid #f9fafb}
 .nd-item:last-child{border-bottom:none}
 .nd-item:hover{background:#f9fafb;color:inherit}
-.nd-item.unread{background:#fafbff}
-.nd-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--mc-green,#6B8F71);border-radius:0 2px 2px 0}
-.nd-item.unread:hover{background:#f3f6f4}
+.nd-item.unread{background:#f8fdf9}
+.nd-item.unread::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:#6B8F71;border-radius:0 3px 3px 0}
+.nd-item.unread:hover{background:#f0faf1}
 
-/* Dot de tipo */
-.nd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+/* Icon chip */
+.nd-icon-chip{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
-/* Cuerpo */
-.nd-body{flex:1;min-width:0}
-.nd-title{font-size:13px;font-weight:600;color:#111827;line-height:1.4;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Body */
+.nd-body{flex:1;min-width:0;padding-top:1px}
+.nd-title{font-size:13px;font-weight:600;color:#111827;line-height:1.4;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nd-item:not(.unread) .nd-title{font-weight:500;color:#4b5563}
-.nd-sub{font-size:.72rem;color:#6b7280;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nd-time{font-size:.68rem;color:#9ca3af;white-space:nowrap;margin-top:3px;display:block}
+.nd-sub{font-size:.72rem;color:#6b7280;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 3px}
+.nd-time{font-size:.67rem;color:#9ca3af;display:block}
 
-/* ── Vacío ── */
-.nd-empty{padding:28px 20px;text-align:center}
-.nd-empty-title{font-size:.88rem;font-weight:700;color:#374151;margin:0 0 3px}
-.nd-empty-sub{font-size:.75rem;color:#9ca3af;margin:0}
+/* ── Empty state ── */
+.nd-empty{padding:36px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
+.nd-empty-icon{width:56px;height:56px;border-radius:16px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.nd-empty-title{font-size:.9rem;font-weight:800;color:#111827;margin:0 0 4px}
+.nd-empty-sub{font-size:.75rem;color:#9ca3af;margin:0;line-height:1.5}
 
 /* ── Footer ── */
-.nd-footer{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #e5e7eb}
-.nd-footer-link{display:flex;align-items:center;justify-content:center;gap:5px;padding:11px 10px;font-size:13.5px;font-weight:700;color:#6b7280;text-decoration:none;transition:background .13s,color .13s}
-.nd-footer-link:first-child{border-right:1px solid #e5e7eb}
-.nd-footer-link:hover{background:#f5f5f5;color:#1B2336}
-.nd-footer-link.primary{color:#1B2336;font-weight:800}
-.nd-footer-link.primary:hover{background:#f3f6f4;color:var(--mc-green,#6B8F71)}
+.nd-footer{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #f3f4f6;background:#fafafa}
+.nd-footer-link{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 10px;font-size:13px;font-weight:700;color:#6b7280;text-decoration:none;transition:background .12s,color .12s}
+.nd-footer-link:first-child{border-right:1px solid #f3f4f6}
+.nd-footer-link:hover{background:#f3f4f6;color:#111827}
+.nd-footer-link.primary{color:#6B8F71}
+.nd-footer-link.primary:hover{background:#f0fdf4;color:#4a6b50}
 </style>
 
 <header>
@@ -123,6 +124,9 @@ $nombreMenu = function_exists('mb_convert_case')
                         </div>
                         <div class="nd-list" id="notifList">
                             <div class="nd-empty">
+                                <div class="nd-empty-icon">
+                                    <svg width="24" height="24" fill="none" stroke="#6B8F71" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17H9m3.5 3.5a2 2 0 01-3 0M18 8A6 6 0 106 8c0 5-3 7-3 7h18s-3-2-3-7"/></svg>
+                                </div>
                                 <p class="nd-empty-title">Cargando…</p>
                                 <p class="nd-empty-sub">Obteniendo tus notificaciones</p>
                             </div>
@@ -318,6 +322,9 @@ $nombreMenu = function_exists('mb_convert_case')
     if (!items.length) {
       list.innerHTML = `
         <div class="nd-empty">
+          <div class="nd-empty-icon">
+            <svg width="26" height="26" fill="none" stroke="#6B8F71" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17H9m3.5 3.5a2 2 0 01-3 0M18 8A6 6 0 106 8c0 5-3 7-3 7h18s-3-2-3-7"/></svg>
+          </div>
           <p class="nd-empty-title">Todo al día</p>
           <p class="nd-empty-sub">No tienes notificaciones pendientes</p>
         </div>`;
@@ -351,7 +358,9 @@ $nombreMenu = function_exists('mb_convert_case')
       <a class="nd-item ${!n.leido ? 'unread' : ''}"
          href="javascript:void(0)"
          onclick="leerNotif(${n.id},'${url}')">
-        <span class="nd-dot" style="background:${t.color}"></span>
+        <div class="nd-icon-chip" style="background:${t.bg};border:1px solid ${t.border}">
+          <svg width="15" height="15" fill="none" stroke="${t.color}" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="${t.icon}"/></svg>
+        </div>
         <div class="nd-body">
           <div class="nd-title">${esc(titulo)}</div>
           ${n.cuerpo && n.cuerpo !== titulo ? `<div class="nd-sub">${esc(n.cuerpo)}</div>` : ''}

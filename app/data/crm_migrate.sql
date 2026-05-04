@@ -111,6 +111,34 @@ CREATE TABLE IF NOT EXISTS tarea_practica (
     creado_en TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Tareas entregables del curso (asignadas a una unidad, no al examen práctico)
+CREATE TABLE IF NOT EXISTS tarea_entregable (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    curso_id     INTEGER NOT NULL,
+    unidad_id    INTEGER DEFAULT NULL,
+    titulo       TEXT    NOT NULL,
+    descripcion  TEXT    DEFAULT NULL,
+    fecha_limite TEXT    DEFAULT NULL,
+    creado_en    TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (curso_id)  REFERENCES curso(id)  ON DELETE CASCADE,
+    FOREIGN KEY (unidad_id) REFERENCES unidad(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS entrega_entregable (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    tarea_id     INTEGER NOT NULL,
+    alumno_id    INTEGER NOT NULL,
+    respuesta    TEXT    DEFAULT NULL,
+    archivo      TEXT    DEFAULT NULL,
+    nota         REAL    DEFAULT NULL,
+    feedback     TEXT    DEFAULT NULL,
+    revisado     INTEGER NOT NULL DEFAULT 0,
+    entregado_en TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(tarea_id, alumno_id),
+    FOREIGN KEY (tarea_id)  REFERENCES tarea_entregable(id) ON DELETE CASCADE,
+    FOREIGN KEY (alumno_id) REFERENCES usuario(id) ON DELETE CASCADE
+);
+
 -- Log de actividad CRM (para el feed del dashboard)
 CREATE TABLE IF NOT EXISTS crm_actividad (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

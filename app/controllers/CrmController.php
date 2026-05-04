@@ -183,16 +183,7 @@ class CrmController
 
         // Usuarios: solo ADMINISTRADOR
         if ($sec === 'usuarios' && !$this->esAdmin) $sec = 'sin_permisos';
-        // Campañas: ADMINISTRADOR o MODERADOR (instructores no)
-        if ($sec === 'campanas' && !$this->esAdmin && !$this->esModerador) {
-            $sec = $this->esInstructor ? 'cursos' : 'comunicacion';
-        }
-        // INSTRUCTOR: cursos/editor, comunicacion, logs, perfil, ajustes
-        if ($this->esInstructor && !$this->esAdmin
-            && !in_array($sec, ['cursos', 'editor', 'comunicacion', 'logs', 'perfil', 'ajustes'], true)) {
-            $sec = 'cursos';
-        }
-        // MODERADOR: acceso a todo excepto usuarios (ya bloqueado arriba)
+        // MODERADOR e INSTRUCTOR: acceso a todo excepto usuarios (ya bloqueado arriba)
 
         $titulos = [
             'dashboard'    => 'Dashboard',
@@ -271,6 +262,7 @@ class CrmController
             'subir_recurso_leccion'     => $this->apiSubirRecursoLeccion(),
             'eliminar_recurso'          => $this->apiEliminarRecurso(),
             'get_recursos_leccion'      => $this->apiGetRecursosLeccion(),
+            'guardar_tareas_curso'      => $this->apiGuardarTareasCurso(),
             'get_resultados_curso'      => $this->apiGetResultadosCurso(),
             'get_entregas_alumno'       => $this->apiGetEntregasAlumno(),
             'revisar_practica'          => $this->apiRevisarPractica(),
@@ -638,7 +630,15 @@ class CrmController
         $stmtIns->execute([$cursoId]);
         $instructoresAsignados = $stmtIns->fetchAll(PDO::FETCH_COLUMN);
 
-        return compact('curso','unidades','examenTest','examenPractico','preguntas','tareasPracticas','apuntes','instructores','instructoresAsignados');
+        // Tareas entregables del curso (no son del examen práctico)
+        $tareasCurso = [];
+        try {
+            $stmt = $this->db->prepare('SELECT t.*, u.titulo AS unidad_titulo FROM tarea_entregable t LEFT JOIN unidad u ON u.id=t.unidad_id WHERE t.curso_id=? ORDER BY t.unidad_id, t.id');
+            $stmt->execute([$cursoId]);
+            $tareasCurso = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $tareasCurso = []; }
+
+        return compact('curso','unidades','examenTest','examenPractico','preguntas','tareasPracticas','tareasCurso','apuntes','instructores','instructoresAsignados');
     }
 
     private function getCampanasData(): array
@@ -784,7 +784,7 @@ class CrmController
 
     private function apiCrearUsuario(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin) { return ['ok' => false, 'error' => 'Sin permisos']; }
         $d = $this->input();
         $nombre = trim($d['nombre'] ?? '');
         $email  = trim($d['email'] ?? '');
@@ -818,7 +818,7 @@ class CrmController
 
     private function apiEditarUsuario(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin) { return ['ok' => false, 'error' => 'Sin permisos']; }
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -857,7 +857,7 @@ class CrmController
 
     private function apiEliminarUsuario(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin) { return ['ok' => false, 'error' => 'Sin permisos']; }
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -875,7 +875,7 @@ class CrmController
 
     private function apiToggleCurso(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -892,7 +892,7 @@ class CrmController
 
     private function apiToggleAllCursos(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d      = $this->input();
         $activo = isset($d['activo']) ? (int)(bool)$d['activo'] : null;
         if ($activo === null) return ['ok' => false, 'error' => 'Valor no especificado'];
@@ -905,7 +905,7 @@ class CrmController
 
     private function apiActualizarCurso(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -934,7 +934,7 @@ class CrmController
 
     private function apiAsignarInstructor(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d = $this->input();
         $cursoId     = (int)($d['curso_id'] ?? 0);
         if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
@@ -956,7 +956,7 @@ class CrmController
 
     private function apiGuardarUnidades(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d = $this->input();
         $unidades = $d['unidades'] ?? [];
         foreach ($unidades as $idx => $u) {
@@ -970,7 +970,7 @@ class CrmController
 
     private function apiCrearUnidad(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d = $this->input();
         $cursoId = (int)($d['curso_id'] ?? 0);
         $titulo  = trim($d['titulo'] ?? '');
@@ -985,7 +985,7 @@ class CrmController
 
     private function apiEliminarUnidad(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -995,7 +995,7 @@ class CrmController
 
     private function apiCrearLeccion(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d        = $this->input();
         $unidadId = (int)($d['unidad_id'] ?? 0);
         $titulo   = trim($d['titulo'] ?? '');
@@ -1011,7 +1011,7 @@ class CrmController
 
     private function apiEditarLeccion(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d = $this->input();
         $id       = (int)($d['id'] ?? 0);
         $titulo   = trim($d['titulo'] ?? '');
@@ -1024,7 +1024,7 @@ class CrmController
 
     private function apiEliminarLeccion(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -1034,7 +1034,7 @@ class CrmController
 
     private function apiGuardarExamen(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d       = $this->input();
         $cursoId = (int)($d['curso_id'] ?? 0);
         $titulo  = trim($d['titulo'] ?? '');
@@ -1074,7 +1074,7 @@ class CrmController
 
     private function apiGuardarExamenPractico(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d            = $this->input();
         $cursoId      = (int)($d['curso_id'] ?? 0);
         $titulo       = trim($d['titulo'] ?? '');
@@ -1116,7 +1116,7 @@ class CrmController
 
     private function apiSubirImagenCurso(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $cursoId = (int)($_POST['curso_id'] ?? 0);
         if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
         if (empty($_FILES['imagen']) || $_FILES['imagen']['error'] !== UPLOAD_ERR_OK) {
@@ -1143,7 +1143,7 @@ class CrmController
 
     private function apiGuardarApuntes(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d       = $this->input();
         $cursoId = (int)($d['curso_id'] ?? 0);
         $apuntes = $d['apuntes'] ?? [];
@@ -1155,7 +1155,7 @@ class CrmController
     /* ── Lesson resources ── */
     private function apiGuardarApuntesLeccion(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d        = $this->input();
         $id       = (int)($d['leccion_id'] ?? 0);
         $apuntes  = trim($d['apuntes'] ?? '');
@@ -1179,7 +1179,7 @@ class CrmController
 
     private function apiSubirRecursoLeccion(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $leccionId  = (int)($_POST['leccion_id'] ?? 0);
         $nombre     = trim($_POST['nombre'] ?? '');
         $tipoRec    = $_POST['tipo'] ?? 'link';
@@ -1224,7 +1224,7 @@ class CrmController
 
     private function apiEliminarRecurso(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -1307,12 +1307,18 @@ class CrmController
 
     private function apiRevisarPractica(): array
     {
-        if (!$this->esAdmin && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
-        $d        = $this->input();
+        if (!$this->esAdmin && !$this->esInstructor && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d         = $this->input();
         $entregaId = (int)($d['entrega_id'] ?? 0);
-        $nota     = $d['nota'] !== '' && $d['nota'] !== null ? (float)$d['nota'] : null;
-        $feedback = trim($d['feedback'] ?? '');
+        $nota      = ($d['nota'] !== '' && $d['nota'] !== null) ? (float)$d['nota'] : null;
+        $feedback  = trim($d['feedback'] ?? '');
         if (!$entregaId) return ['ok' => false, 'error' => 'ID de entrega inválido'];
+
+        // Load submission before updating
+        $stmtE = $this->db->prepare("SELECT ep.*, c.titulo AS curso_titulo FROM entrega_practica ep JOIN curso c ON c.id=ep.curso_id WHERE ep.id=?");
+        $stmtE->execute([$entregaId]);
+        $entrega = $stmtE->fetch(PDO::FETCH_ASSOC);
+        if (!$entrega) return ['ok' => false, 'error' => 'Entrega no encontrada'];
 
         $this->db->prepare("
             UPDATE entrega_practica
@@ -1320,12 +1326,68 @@ class CrmController
             WHERE id=?
         ")->execute([$nota, $feedback, (int)$this->usuario['id'], $entregaId]);
 
-        return ['ok' => true, 'mensaje' => 'Entrega calificada correctamente'];
+        $alumnoId    = (int)$entrega['alumno_id'];
+        $cursoId     = (int)$entrega['curso_id'];
+        $tituloCurso = $entrega['curso_titulo'];
+        $urlPrac     = BASE_URL . '/index.php?url=examen-practico&curso=' . $cursoId;
+
+        // Check if ALL tasks for this student/course are now reviewed
+        $stmtTotal = $this->db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
+        $stmtTotal->execute([$cursoId]);
+        $totalTareas = (int)$stmtTotal->fetchColumn();
+
+        $stmtRev = $this->db->prepare("SELECT COUNT(*) FROM entrega_practica WHERE alumno_id=? AND curso_id=? AND revisado=1");
+        $stmtRev->execute([$alumnoId, $cursoId]);
+        $revisadas = (int)$stmtRev->fetchColumn();
+
+        $todasRevisadas = ($totalTareas > 0 && $revisadas >= $totalTareas);
+
+        if ($todasRevisadas) {
+            // Calculate average grade
+            $stmtAvg = $this->db->prepare("SELECT AVG(nota) FROM entrega_practica WHERE alumno_id=? AND curso_id=? AND nota IS NOT NULL");
+            $stmtAvg->execute([$alumnoId, $cursoId]);
+            $mediaNotas = (float)$stmtAvg->fetchColumn();
+
+            $stmtMin = $this->db->prepare("SELECT nota_minima FROM examen WHERE curso_id=? AND tipo='practico' LIMIT 1");
+            $stmtMin->execute([$cursoId]);
+            $notaMinima  = (float)($stmtMin->fetchColumn() ?: 5.0);
+            $aprobado    = $mediaNotas >= $notaMinima;
+
+            if ($aprobado) {
+                $codigo = strtoupper(substr(md5($alumnoId . '-' . $cursoId . '-prac-' . microtime()), 0, 12));
+                try {
+                    $this->db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
+                             ->execute([$alumnoId, $cursoId, $codigo]);
+                } catch (Exception $e) {}
+                $notifTitulo = '🎓 ¡Examen práctico aprobado!';
+                $notifCuerpo = "Tu examen práctico de \"$tituloCurso\" ha sido calificado. Nota media: " . number_format($mediaNotas, 1) . "/10. ¡Ya puedes descargar tu certificado!";
+            } else {
+                $notifTitulo = '📋 Examen práctico calificado';
+                $notifCuerpo = "Tu examen práctico de \"$tituloCurso\" ha sido calificado. Nota media: " . number_format($mediaNotas, 1) . "/10. Consulta el feedback de cada tarea.";
+            }
+            try {
+                $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
+                         ->execute([$alumnoId, 'crm', $notifTitulo, $notifCuerpo, $urlPrac]);
+            } catch (Exception $e) {}
+        } else {
+            // Individual task notification
+            $notifCuerpo = $nota !== null
+                ? "Tu entrega ha recibido una nota de " . number_format($nota, 1) . "/10 en \"$tituloCurso\"."
+                : "Una de tus entregas de \"$tituloCurso\" ha sido revisada.";
+            if ($feedback) $notifCuerpo .= " Feedback: $feedback";
+            try {
+                $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
+                         ->execute([$alumnoId, 'crm', '📋 Entrega revisada', $notifCuerpo, $urlPrac]);
+            } catch (Exception $e) {}
+        }
+
+        $this->logActividad("Práctica revisada (entrega #$entregaId)", 'info');
+        return ['ok' => true, 'mensaje' => 'Entrega calificada correctamente', 'todas_revisadas' => $todasRevisadas];
     }
 
     private function apiCrearCampana(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d         = $this->input();
         $titulo    = trim($d['titulo'] ?? '');
         $cuerpo    = trim($d['cuerpo'] ?? '');
@@ -1367,7 +1429,7 @@ class CrmController
 
     private function apiEditarCampana(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d         = $this->input();
         $id        = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -1401,7 +1463,7 @@ class CrmController
 
     private function apiEliminarCampana(): array
     {
-        if (!$this->esAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
         $d  = $this->input();
         $id = (int)($d['id'] ?? 0);
         if (!$id) return ['ok' => false, 'error' => 'ID inválido'];
@@ -1715,6 +1777,44 @@ class CrmController
             $this->db->prepare("UPDATE notificacion SET leido=1 WHERE usuario_id=?")->execute([(int)$this->usuario['id']]);
         } catch (Exception $e) {}
         return ['ok' => true];
+    }
+
+    private function apiGuardarTareasCurso(): array
+    {
+        if (!$this->esAdmin && !$this->esModerador && !$this->esInstructor) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d       = $this->input();
+        $cursoId = (int)($d['curso_id'] ?? 0);
+        $tareas  = $d['tareas'] ?? [];
+        if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
+
+        // Delete removed tasks (keep IDs present in payload)
+        $keepIds = array_filter(array_map(fn($t) => (int)($t['id'] ?? 0), $tareas));
+        if ($keepIds) {
+            $placeholders = implode(',', array_fill(0, count($keepIds), '?'));
+            $this->db->prepare("DELETE FROM tarea_entregable WHERE curso_id=? AND id NOT IN ($placeholders)")
+                     ->execute(array_merge([$cursoId], $keepIds));
+        } else {
+            $this->db->prepare("DELETE FROM tarea_entregable WHERE curso_id=?")->execute([$cursoId]);
+        }
+
+        $ins = $this->db->prepare("INSERT INTO tarea_entregable (curso_id,unidad_id,titulo,descripcion,fecha_limite) VALUES(?,?,?,?,?)");
+        $upd = $this->db->prepare("UPDATE tarea_entregable SET unidad_id=?,titulo=?,descripcion=?,fecha_limite=? WHERE id=? AND curso_id=?");
+
+        foreach ($tareas as $t) {
+            $id          = (int)($t['id'] ?? 0);
+            $titulo      = trim($t['titulo'] ?? '');
+            if (!$titulo) continue;
+            $unidadId    = ($t['unidad_id'] ?? '') !== '' ? (int)$t['unidad_id'] : null;
+            $descripcion = trim($t['descripcion'] ?? '');
+            $fechaLimite = !empty($t['fecha_limite']) ? $t['fecha_limite'] : null;
+
+            if ($id) {
+                $upd->execute([$unidadId, $titulo, $descripcion, $fechaLimite, $id, $cursoId]);
+            } else {
+                $ins->execute([$cursoId, $unidadId, $titulo, $descripcion, $fechaLimite]);
+            }
+        }
+        return ['ok' => true, 'mensaje' => 'Tareas del curso guardadas correctamente'];
     }
 
     private function notificarUsuarios(string $titulo, string $cuerpo, int $campanaId, string $audiencia = 'todos', ?int $diasRegistro = null, ?string $urlAccion = null): int
