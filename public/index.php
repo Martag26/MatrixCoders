@@ -213,6 +213,12 @@ switch ($url) {
         $controller->guardar();
         break;
 
+    case 'cambiar-password':
+        require_once "../app/controllers/PerfilController.php";
+        $controller = new PerfilController();
+        $controller->cambiarPassword();
+        break;
+
     case 'ajustes':
         require_once "../app/controllers/AjustesController.php";
         $controller = new AjustesController();

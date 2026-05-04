@@ -180,6 +180,77 @@
 
                     </div><!-- /.perfil-card -->
 
+                    <div class="perfil-card">
+                        <div class="perfil-editar-section">
+                            <h3 class="perfil-section-title">Cursos matriculados</h3>
+
+                            <?php if (empty($cursosMatriculados)): ?>
+                                <div class="sv-empty">
+                                    <div>
+                                        <p class="sv-empty-title">No estás matriculado en ningún curso todavía.</p>
+                                    </div>
+                                </div>
+                            <?php else: ?>
+                                <div class="perfil-datos">
+                                    <?php foreach ($cursosMatriculados as $curso): ?>
+                                        <div class="perfil-campo">
+                                            <span class="perfil-campo-label">Curso</span>
+                                            <span class="perfil-campo-valor">
+                                                <a href="<?= BASE_URL ?>/index.php?url=curso&id=<?= (int)$curso['id'] ?>">
+                                                    <?= htmlspecialchars($curso['titulo']) ?>
+                                                </a>
+                                            </span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="perfil-card">
+                        <div class="perfil-editar-section">
+                            <h3 class="perfil-section-title">Cambiar contraseña</h3>
+
+                            <form method="post"
+                                  action="<?= BASE_URL ?>/index.php?url=cambiar-password"
+                                  class="perfil-form"
+                                  novalidate>
+
+                                <div class="perfil-form-group">
+                                    <label for="password_actual">Contraseña actual</label>
+                                    <input type="password"
+                                           id="password_actual"
+                                           name="password_actual"
+                                           required>
+                                </div>
+
+                                <div class="perfil-form-group">
+                                    <label for="password_nueva">Nueva contraseña</label>
+                                    <input type="password"
+                                           id="password_nueva"
+                                           name="password_nueva"
+                                           minlength="8"
+                                           required>
+                                </div>
+
+                                <div class="perfil-form-group">
+                                    <label for="password_confirmar">Confirmar nueva contraseña</label>
+                                    <input type="password"
+                                           id="password_confirmar"
+                                           name="password_confirmar"
+                                           minlength="8"
+                                           required>
+                                </div>
+
+                                <div class="perfil-form-actions">
+                                    <button type="submit" class="btn-panel-submit">
+                                        Actualizar contraseña
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                 </section>
             </div>
         </div>

@@ -21,6 +21,11 @@ $documentosRecientes = is_array($documentosRecientes ?? null) ? $documentosRecie
 $flash = $flash ?? null;
 $diasConTareas = is_array($diasConTareas ?? null) ? $diasConTareas : [];
 $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
+$proximasTareas = array_values(array_filter(
+    $tareasUsuario,
+    static fn($tarea) => in_array($tarea['estado_visual'] ?? '', ['pendiente', 'proxima'], true)
+));
+$proximasTareas = array_slice($proximasTareas, 0, 5);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -34,6 +39,51 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/dashboard.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/sidebar.css">
+    <style>
+        .task-dot {
+            display: block;
+            width: 6px;
+            height: 6px;
+            margin: 4px auto 0;
+            border-radius: 50%;
+            background: #f97316;
+        }
+
+        .tareas-dashboard-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .tarea-dashboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: #fff;
+        }
+
+        .tarea-dashboard-item h3 {
+            margin: 0 0 4px;
+            font-size: 1rem;
+        }
+
+        .tarea-dashboard-item p {
+            margin: 0;
+            color: #64748b;
+        }
+
+        .tarea-dashboard-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            text-align: right;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 
 <body>
@@ -97,6 +147,38 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                                             <?php endif; ?>
                                         </div>
                                     </a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="documentos">
+                        <div class="dashboard-section-head">
+                            <h2>Próximas tareas</h2>
+                            <a class="section-link" href="<?= BASE_URL ?>/index.php?url=tareas">Ver todas</a>
+                        </div>
+                        <?php if (count($proximasTareas) === 0): ?>
+                            <div class="sv-empty">
+                                <div>
+                                    <p class="sv-empty-title">No tienes tareas pendientes</p>
+                                    <p class="sv-empty-sub">Cuando tengas nuevas entregas, aparecerán aquí para ayudarte a organizarte.</p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="tareas-dashboard-list">
+                                <?php foreach ($proximasTareas as $tarea): ?>
+                                    <div class="tarea-dashboard-item">
+                                        <div>
+                                            <h3><?= htmlspecialchars($tarea['titulo']) ?></h3>
+                                            <p><?= htmlspecialchars($tarea['curso']) ?></p>
+                                        </div>
+                                        <div class="tarea-dashboard-meta">
+                                            <span><?= htmlspecialchars(date('d M Y', strtotime($tarea['fecha_limite']))) ?></span>
+                                            <?php if (($tarea['estado_visual'] ?? '') === 'proxima'): ?>
+                                                <span class="badge text-bg-warning text-danger-emphasis">¡Vence pronto!</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
@@ -191,7 +273,7 @@ $tareasUsuario = is_array($tareasUsuario ?? null) ? $tareasUsuario : [];
                                 $isToday = ($calYear === $todayY && $calMonth === $todayM && $d === $todayD);
                                 $hasTask = in_array($d, $diasConTareas, true);
                                 $cls = 'dia' . ($isToday ? ' seleccionado' : '') . ($hasTask ? ' marcado' : '');
-                                echo '<span class="' . $cls . '">' . $d . '</span>';
+                                echo '<span class="' . $cls . '">' . $d . ($hasTask ? '<span class="task-dot"></span>' : '') . '</span>';
                             }
                             ?>
                         </div>
