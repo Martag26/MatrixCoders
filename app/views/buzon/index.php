@@ -14,7 +14,8 @@ function buzonTimeAgo(?string $str): string {
 function buzonRolLabel(string $rol): array {
     return match($rol) {
         'ADMINISTRADOR' => ['Administrador', '#7c3aed', '#f5f3ff'],
-        'EDITOR'        => ['Editor',        '#2563eb', '#dbeafe'],
+        'INSTRUCTOR'    => ['Instructor',    '#2563eb', '#dbeafe'],
+        'MODERADOR'     => ['Moderador',     '#0891b2', '#e0f2fe'],
         default         => ['Usuario',       '#6b7280', '#f3f4f6'],
     };
 }

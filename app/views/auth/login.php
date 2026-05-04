@@ -31,6 +31,7 @@
 
                     $ok = $_SESSION['register_ok'] ?? '';
                     unset($_SESSION['register_ok']);
+
                     ?>
 
                     <?php if ($ok): ?>

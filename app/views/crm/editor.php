@@ -216,7 +216,7 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
         </div>
         <div class="crm-editor-panel-body" style="padding:12px">
           <?php if (empty($instructores)): ?>
-            <p style="font-size:13px;color:var(--crm-muted);text-align:center;padding:12px">No hay instructores (rol EDITOR) registrados.</p>
+            <p style="font-size:13px;color:var(--crm-muted);text-align:center;padding:12px">No hay instructores (rol INSTRUCTOR) registrados.</p>
           <?php else: ?>
             <div id="instructoresAsignadosList" style="display:flex;flex-direction:column;gap:6px">
               <?php foreach ($instructoresAsignados as $iid):

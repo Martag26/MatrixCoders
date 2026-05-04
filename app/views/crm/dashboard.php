@@ -1,5 +1,8 @@
 <?php
 $colores = ['#7c3aed','#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+$diasEs  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+$mesesEs = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+$fechaEs = $diasEs[date('w')] . ', ' . date('d') . ' de ' . $mesesEs[(int)date('n') - 1] . ' de ' . date('Y');
 $rolLabel = match(true) {
   ($esSuperAdmin) => 'Superadmin',
   ($esAdmin)      => 'Administrador',
@@ -17,7 +20,7 @@ $rolLabel = match(true) {
   <div class="crm-page-actions">
     <span style="font-size:12px;color:var(--crm-muted);background:var(--crm-bg);border:1px solid var(--crm-border);padding:6px 14px;border-radius:8px;display:flex;align-items:center;gap:6px">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      <?= date('l, d \d\e F Y') ?>
+      <?= $fechaEs ?>
     </span>
   </div>
 </div>
@@ -290,8 +293,8 @@ $rolLabel = match(true) {
           $rolRu = match(true) {
             !empty($ru['es_superadmin']) => ['label'=>'Superadmin','class'=>'superadmin'],
             $ru['rol']==='ADMINISTRADOR' => ['label'=>'Admin','class'=>'admin'],
-            !empty($ru['es_moderador'])  => ['label'=>'Moderador','class'=>'moderador'],
-            $ru['rol']==='EDITOR'        => ['label'=>'Instructor','class'=>'instructor'],
+            $ru['rol']==='MODERADOR'     => ['label'=>'Moderador','class'=>'moderador'],
+            $ru['rol']==='INSTRUCTOR'    => ['label'=>'Instructor','class'=>'instructor'],
             default                      => ['label'=>'Alumno','class'=>'alumno'],
           };
         ?>

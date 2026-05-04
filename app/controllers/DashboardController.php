@@ -33,6 +33,13 @@ class DashboardController
             exit;
         }
 
+        // Solo USUARIO puede acceder al espacio de trabajo
+        $rolSesion = $_SESSION['usuario_rol'] ?? 'USUARIO';
+        if ($rolSesion !== 'USUARIO') {
+            header("Location: " . BASE_URL . "/index.php?url=crm");
+            exit;
+        }
+
         // Obtener el ID del usuario de la sesión y forzar tipo entero
         $usuario_id = (int)$_SESSION['usuario_id'];
 

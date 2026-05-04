@@ -9,12 +9,48 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="<?= BASE_URL ?>/css/crm.css">
 <style>
-.crm-notif-item:hover{background:rgba(124,58,237,.06)!important;border-color:rgba(124,58,237,.15)!important}
-#notifPanel{display:none}
-#notifPanel.open{display:flex!important}
-@keyframes notif-slide-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-#notifPanel[style*="flex"]{animation:notif-slide-in .15s ease}
-.crm-notif-btn{position:relative}
+/* ── Notif button ── */
+.crm-notif-btn{position:relative;width:36px;height:36px;border-radius:10px;border:1px solid var(--crm-border);background:var(--crm-card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--crm-muted);transition:background .15s,color .15s}
+.crm-notif-btn:hover{background:var(--crm-bg);color:var(--crm-text)}
+
+/* ── Notif panel ── */
+#notifPanel{display:none;position:absolute;right:0;top:calc(100% + 8px);width:380px;background:var(--crm-card);border:1px solid var(--crm-border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.22);z-index:1050;flex-direction:column;overflow:hidden}
+#notifPanel.open{display:flex;animation:notif-slide-in .15s ease}
+@keyframes notif-slide-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Notif panel header ── */
+.crm-np-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--crm-border)}
+.crm-np-header h3{font-size:14px;font-weight:700;color:var(--crm-text);margin:0}
+.crm-np-mark-all{font-size:12px;font-weight:600;color:var(--crm-primary);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s}
+.crm-np-mark-all:hover{background:rgba(124,58,237,.08)}
+
+/* ── Notif list ── */
+#notifList{overflow-y:auto;max-height:400px;padding:8px}
+#notifList::-webkit-scrollbar{width:4px}
+#notifList::-webkit-scrollbar-track{background:transparent}
+#notifList::-webkit-scrollbar-thumb{background:var(--crm-border);border-radius:4px}
+
+/* ── Section label ── */
+.crm-np-label{font-size:10px;font-weight:700;color:var(--crm-muted);text-transform:uppercase;letter-spacing:.7px;padding:8px 10px 4px;margin-top:4px}
+.crm-np-label:first-child{margin-top:0}
+
+/* ── Notif item ── */
+.crm-ni{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s;text-decoration:none;color:inherit}
+.crm-ni:hover{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.14)}
+.crm-ni.unread{background:rgba(124,58,237,.05);border-color:rgba(124,58,237,.12)}
+.crm-ni.unread:hover{background:rgba(124,58,237,.09)}
+.crm-ni-icon{font-size:17px;flex-shrink:0;line-height:1;margin-top:2px}
+.crm-ni-body{flex:1;min-width:0}
+.crm-ni-title{font-size:13px;font-weight:500;color:var(--crm-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-ni.unread .crm-ni-title{font-weight:700}
+.crm-ni-sub{font-size:11.5px;color:var(--crm-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crm-ni-time{font-size:10.5px;color:var(--crm-muted);margin-top:4px}
+.crm-ni-dot{width:7px;height:7px;border-radius:50%;background:var(--crm-primary);flex-shrink:0;margin-top:5px}
+
+/* ── Empty state ── */
+.crm-np-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:var(--crm-muted)}
+.crm-np-empty svg{opacity:.35;margin-bottom:10px}
+.crm-np-empty p{font-size:13px;margin:0}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -48,32 +84,34 @@
     <div class="crm-sidebar__section">
       <div class="crm-sidebar__section-label">Principal</div>
 
+      <?php if (!$esInstructor || $esAdmin): ?>
       <a href="<?= $crmBase ?>dashboard"
          class="crm-sidebar__link <?= $seccion==='dashboard'?'active':'' ?>"
          data-tooltip="Dashboard">
         <svg class="crm-sl-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         <span class="crm-sl-label">Dashboard</span>
       </a>
+      <?php endif; ?>
 
       <?php if ($esAdmin): ?>
       <a href="<?= $crmBase ?>usuarios"
-         class="crm-sidebar__link <?= $seccion==='usuarios'?'active':'' ?>"
+         class="crm-sidebar__link <?= in_array($seccion,['usuarios','sin_permisos'])?'active':'' ?>"
          data-tooltip="Usuarios">
         <svg class="crm-sl-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/></svg>
         <span class="crm-sl-label">Usuarios</span>
       </a>
       <?php endif; ?>
 
-      <?php if ($esAdmin || $esInstructor): ?>
+      <?php if ($esAdmin || $esModerador || $esInstructor): ?>
       <a href="<?= $crmBase ?>cursos"
          class="crm-sidebar__link <?= in_array($seccion,['cursos','editor'])?'active':'' ?>"
          data-tooltip="Cursos">
         <svg class="crm-sl-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-        <span class="crm-sl-label">Mis Cursos</span>
+        <span class="crm-sl-label">Cursos</span>
       </a>
       <?php endif; ?>
 
-      <?php if ($esAdmin): ?>
+      <?php if ($esAdmin || $esModerador): ?>
       <a href="<?= $crmBase ?>campanas"
          class="crm-sidebar__link <?= $seccion==='campanas'?'active':'' ?>"
          data-tooltip="Campañas">
@@ -95,12 +133,14 @@
     <div class="crm-sidebar__section">
       <div class="crm-sidebar__section-label">Cuenta</div>
 
+      <?php if ($esAdmin || $esModerador || $esInstructor): ?>
       <a href="<?= $crmBase ?>logs"
          class="crm-sidebar__link <?= $seccion==='logs'?'active':'' ?>"
          data-tooltip="Logs de actividad">
         <svg class="crm-sl-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
         <span class="crm-sl-label">Logs</span>
       </a>
+      <?php endif; ?>
 
     </div>
 
@@ -138,21 +178,20 @@
 
     <div class="crm-header__right">
       <!-- Notification bell -->
-      <div class="dropdown" style="position:relative">
-        <button class="crm-notif-btn" id="notifBellBtn" title="Notificaciones" onclick="toggleNotifPanel()" style="position:relative">
+      <div style="position:relative">
+        <button class="crm-notif-btn" id="notifBellBtn" title="Notificaciones" onclick="toggleNotifPanel()">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17H9m3.5 3.5a2 2 0 01-3 0M18 8A6 6 0 106 8c0 5-3 7-3 7h18s-3-2-3-7"/></svg>
-          <span id="notifBadge" style="display:none;position:absolute;top:-3px;right:-3px;min-width:16px;height:16px;background:var(--crm-danger,#ef4444);color:#fff;font-size:9px;font-weight:800;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1"></span>
+          <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;background:var(--crm-danger,#ef4444);color:#fff;font-size:9px;font-weight:800;border-radius:99px;align-items:center;justify-content:center;padding:0 3px;line-height:1"></span>
         </button>
-        <!-- Notification panel -->
-        <div id="notifPanel" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:360px;max-height:480px;background:var(--crm-card);border:1px solid var(--crm-border);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.25);z-index:1050;overflow:hidden;display:none;flex-direction:column">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--crm-border)">
-            <span style="font-size:13.5px;font-weight:700">Notificaciones</span>
-            <button onclick="marcarTodasLeidas()" style="font-size:11.5px;color:var(--crm-primary);background:none;border:none;cursor:pointer;font-weight:600">Marcar todas leídas</button>
+        <div id="notifPanel">
+          <div class="crm-np-header">
+            <h3>Notificaciones</h3>
+            <button class="crm-np-mark-all" onclick="marcarTodasLeidas()">Marcar todas leídas</button>
           </div>
-          <div id="notifList" style="overflow-y:auto;max-height:380px;padding:6px">
-            <div style="text-align:center;padding:28px;color:var(--crm-muted)">
-              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;display:block;margin:0 auto 8px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
-              Cargando…
+          <div id="notifList">
+            <div class="crm-np-empty">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+              <p>Cargando…</p>
             </div>
           </div>
         </div>
@@ -200,12 +239,40 @@
   </header>
 
   <!-- CONTENT -->
+  <?php if (!empty($_SESSION['crm_bienvenida'])): unset($_SESSION['crm_bienvenida']); ?>
+  <div id="crmPortalBanner" style="background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
+    <span style="font-size:13.5px;flex:1">
+      El portal de estudiantes es solo para alumnos. Has iniciado sesión como <strong><?= htmlspecialchars($rolLabel) ?></strong>, así que te hemos traído directamente al CRM.
+    </span>
+    <button onclick="document.getElementById('crmPortalBanner').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap">Entendido</button>
+  </div>
+  <?php endif; ?>
   <main class="crm-content">
+    <?php if ($seccion === 'sin_permisos'): ?>
+      <div style="display:flex;align-items:center;justify-content:center;min-height:340px">
+        <div style="text-align:center;max-width:420px;padding:40px 32px;background:var(--crm-card);border:1px solid var(--crm-border);border-radius:18px;box-shadow:var(--crm-shadow)">
+          <div style="width:56px;height:56px;background:#fee2e2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
+            <svg width="26" height="26" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg>
+          </div>
+          <h2 style="font-size:18px;font-weight:700;color:var(--crm-text);margin:0 0 10px">Acceso restringido</h2>
+          <p style="font-size:13.5px;color:var(--crm-muted);margin:0 0 22px;line-height:1.6">
+            Tu rol de <strong><?= htmlspecialchars($rolLabel) ?></strong> no tiene permisos para acceder al módulo de gestión de usuarios.<br>
+            Contacta con un Administrador si necesitas acceso.
+          </p>
+          <a href="<?= $crmBase ?>dashboard" class="crm-btn crm-btn-secondary" style="font-size:13px">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 19l-7-7 7-7"/></svg>
+            Volver al Dashboard
+          </a>
+        </div>
+      </div>
+    <?php else: ?>
     <?php
       $viewFile = __DIR__ . "/../{$seccion}.php";
       if (file_exists($viewFile)) include $viewFile;
       else echo '<div class="crm-empty"><h3>Sección no encontrada</h3></div>';
     ?>
+    <?php endif; ?>
   </main>
 
 </div>
@@ -244,8 +311,7 @@ let notifLoaded    = false;
 
 function toggleNotifPanel() {
   notifPanelOpen = !notifPanelOpen;
-  const panel = document.getElementById('notifPanel');
-  panel.style.display = notifPanelOpen ? 'flex' : 'none';
+  document.getElementById('notifPanel').classList.toggle('open', notifPanelOpen);
   if (notifPanelOpen && !notifLoaded) loadNotifs();
 }
 
@@ -254,7 +320,7 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('#notifBellBtn') && !e.target.closest('#notifPanel')) {
     if (notifPanelOpen) {
       notifPanelOpen = false;
-      document.getElementById('notifPanel').style.display = 'none';
+      document.getElementById('notifPanel').classList.remove('open');
     }
   }
 });
@@ -285,39 +351,39 @@ function renderNotifs(alerts, notifs, unread) {
   const list = document.getElementById('notifList');
   let html = '';
 
-  // Admin alerts (system-generated, no id to mark as read)
   if (alerts.length) {
-    html += '<div style="font-size:10px;font-weight:700;color:var(--crm-muted);text-transform:uppercase;letter-spacing:.6px;padding:6px 8px 4px">Alertas del sistema</div>';
+    html += '<div class="crm-np-label">Alertas del sistema</div>';
     html += alerts.map(a => `
-      <a href="${a.url_accion || '#'}" style="display:flex;align-items:flex-start;gap:10px;padding:10px 10px;border-radius:9px;text-decoration:none;color:inherit;background:rgba(124,58,237,.05);margin-bottom:4px;border:1px solid rgba(124,58,237,.12)" onclick="toggleNotifPanel()">
-        <span style="font-size:16px;flex-shrink:0;margin-top:1px">${NOTIF_TIPO_ICONS[a.tipo] || 'ℹ️'}</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12.5px;font-weight:700;color:var(--crm-text)">${escHtml(a.titulo)}</div>
-          ${a.cuerpo ? `<div style="font-size:11.5px;color:var(--crm-muted);margin-top:2px">${escHtml(a.cuerpo)}</div>` : ''}
+      <a href="${a.url_accion || '#'}" class="crm-ni unread" onclick="toggleNotifPanel()">
+        <span class="crm-ni-icon">${NOTIF_TIPO_ICONS[a.tipo] || 'ℹ️'}</span>
+        <div class="crm-ni-body">
+          <div class="crm-ni-title">${escHtml(a.titulo)}</div>
+          ${a.cuerpo ? `<div class="crm-ni-sub">${escHtml(a.cuerpo)}</div>` : ''}
         </div>
-        ${a.badge ? `<span style="width:8px;height:8px;border-radius:50%;background:${NOTIF_BADGE_COLORS[a.badge]||'var(--crm-info)'};flex-shrink:0;margin-top:4px"></span>` : ''}
+        ${a.badge ? `<span style="width:8px;height:8px;border-radius:50%;background:${NOTIF_BADGE_COLORS[a.badge]||'var(--crm-info)'};flex-shrink:0;margin-top:5px"></span>` : ''}
       </a>`).join('');
   }
 
-  // User notifications from DB
   if (notifs.length) {
-    html += '<div style="font-size:10px;font-weight:700;color:var(--crm-muted);text-transform:uppercase;letter-spacing:.6px;padding:6px 8px 4px;margin-top:4px">Mis notificaciones</div>';
+    html += '<div class="crm-np-label">Mis notificaciones</div>';
     html += notifs.map(n => `
-      <div class="crm-notif-item ${n.leido ? '' : 'unread'}" data-id="${n.id}"
-        style="display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:9px;cursor:pointer;margin-bottom:2px;background:${n.leido ? 'transparent' : 'rgba(124,58,237,.04)'};border:1px solid ${n.leido ? 'transparent' : 'rgba(124,58,237,.1)'}"
+      <div class="crm-ni ${n.leido ? '' : 'unread'}" data-id="${n.id}"
         onclick="notifClick(${n.id}, '${(n.url_accion||'').replace(/'/g,"\\'")}')">
-        <span style="font-size:15px;flex-shrink:0;margin-top:1px">${NOTIF_TIPO_ICONS[n.tipo] || 'ℹ️'}</span>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12.5px;font-weight:${n.leido ? '500' : '700'};color:var(--crm-text)">${escHtml(n.titulo)}</div>
-          ${n.cuerpo ? `<div style="font-size:11.5px;color:var(--crm-muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(n.cuerpo)}</div>` : ''}
-          <div style="font-size:10.5px;color:var(--crm-muted);margin-top:3px">${fmtNotifDate(n.creado_en)}</div>
+        <span class="crm-ni-icon">${NOTIF_TIPO_ICONS[n.tipo] || 'ℹ️'}</span>
+        <div class="crm-ni-body">
+          <div class="crm-ni-title">${escHtml(n.titulo)}</div>
+          ${n.cuerpo ? `<div class="crm-ni-sub">${escHtml(n.cuerpo)}</div>` : ''}
+          <div class="crm-ni-time">${fmtNotifDate(n.creado_en)}</div>
         </div>
-        ${!n.leido ? '<span style="width:7px;height:7px;border-radius:50%;background:var(--crm-primary);flex-shrink:0;margin-top:5px"></span>' : ''}
+        ${!n.leido ? '<span class="crm-ni-dot"></span>' : ''}
       </div>`).join('');
   }
 
   if (!alerts.length && !notifs.length) {
-    html = '<div style="text-align:center;padding:32px 16px;color:var(--crm-muted)"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;opacity:.4"><path stroke-linecap="round" d="M15 17H9m3.5 3.5a2 2 0 01-3 0M18 8A6 6 0 106 8c0 5-3 7-3 7h18s-3-2-3-7"/></svg><p style="font-size:13px;margin:0">Sin notificaciones nuevas</p></div>';
+    html = `<div class="crm-np-empty">
+      <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17H9m3.5 3.5a2 2 0 01-3 0M18 8A6 6 0 106 8c0 5-3 7-3 7h18s-3-2-3-7"/></svg>
+      <p>Sin notificaciones nuevas</p>
+    </div>`;
   }
 
   list.innerHTML = html;
@@ -329,15 +395,15 @@ async function notifClick(id, url) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id })
   });
-  const el = document.querySelector(`.crm-notif-item[data-id="${id}"]`);
-  if (el) { el.style.background = 'transparent'; el.style.border = '1px solid transparent'; el.querySelector('span:last-child')?.remove(); }
+  const el = document.querySelector(`.crm-ni[data-id="${id}"]`);
+  if (el) { el.classList.remove('unread'); el.querySelector('.crm-ni-dot')?.remove(); }
   updateNotifBadge(-1);
   if (url) { toggleNotifPanel(); window.location.href = url; }
 }
 
 async function marcarTodasLeidas() {
   await fetch(`${window.CRM_API_URL}&action=marcar_todas_leidas`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
-  document.querySelectorAll('.crm-notif-item.unread').forEach(el => {
+  document.querySelectorAll('.crm-ni.unread').forEach(el => {
     el.classList.remove('unread');
     el.style.background = 'transparent'; el.style.border = '1px solid transparent';
     el.querySelector('span:last-child')?.remove();

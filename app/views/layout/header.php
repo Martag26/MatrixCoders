@@ -14,7 +14,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Determinar si el usuario ha iniciado sesión y obtener su nombre
-$logged = !empty($_SESSION['usuario_id']);
+$logged = !empty($_SESSION['usuario_id']) && ($_SESSION['usuario_rol'] ?? '') === 'USUARIO';
 $nombre = trim((string)($_SESSION['usuario_nombre'] ?? 'Usuario'));
 if ($nombre === '') {
     $nombre = 'Usuario';

@@ -164,7 +164,7 @@ class Notificacion
         }
     }
 
-    // ── Mensajes de usuarios con rol superior (EDITOR o ADMINISTRADOR) ──────────
+    // ── Mensajes de usuarios con rol superior (INSTRUCTOR, MODERADOR o ADMINISTRADOR) ──────────
     private function syncMensajes(int $uid): void
     {
         $stmt = $this->db->prepare("
@@ -175,11 +175,16 @@ class Notificacion
             WHERE msg.receptor_id = ?
               AND msg.leido = 0
               AND n.id IS NULL
-              AND u.rol IN ('EDITOR', 'ADMINISTRADOR')
+              AND u.rol IN ('INSTRUCTOR', 'MODERADOR', 'ADMINISTRADOR')
         ");
         $stmt->execute([$uid, $uid]);
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $msg) {
-            $rolLabel = $msg['rol_emisor'] === 'ADMINISTRADOR' ? 'Administrador' : 'Editor';
+            $rolLabel = match($msg['rol_emisor']) {
+                'ADMINISTRADOR' => 'Administrador',
+                'INSTRUCTOR'    => 'Instructor',
+                'MODERADOR'     => 'Moderador',
+                default         => 'Staff',
+            };
             $this->insertar($uid, 'mensaje',
                 'Mensaje de ' . $rolLabel . ': ' . ($msg['asunto'] ?: 'Sin asunto'),
                 'De: ' . $msg['emisor'] . ' — ' . mb_substr($msg['cuerpo_msg'] ?? '', 0, 80),
