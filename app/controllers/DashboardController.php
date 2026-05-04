@@ -284,6 +284,113 @@ class DashboardController
         require __DIR__ . '/../views/dashboard/documento_compartido.php';
     }
 
+    public function nubeApi(): void
+    {
+        header('Content-Type: application/json');
+        if (empty($_SESSION['usuario_id'])) {
+            echo json_encode(['ok' => false, 'error' => 'No autenticado']); exit;
+        }
+        $uid = (int)$_SESSION['usuario_id'];
+
+        // Detect action from multipart (file upload) or JSON body
+        $action = $_POST['nube_action'] ?? null;
+        if (!$action) {
+            $body   = json_decode(file_get_contents('php://input'), true) ?? [];
+            $action = $body['nube_action'] ?? '';
+        } else {
+            $body = $_POST;
+        }
+
+        $database = new Database();
+        $db = $database->connect();
+
+        switch ($action) {
+
+            // ── Upload file ──────────────────────────────────────────────
+            case 'subir_archivo':
+                if (empty($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
+                    echo json_encode(['ok' => false, 'error' => 'No se recibió el archivo o hubo un error en la subida.']); exit;
+                }
+                $file    = $_FILES['archivo'];
+                $maxSize = 50 * 1024 * 1024;
+                if ($file['size'] > $maxSize) {
+                    echo json_encode(['ok' => false, 'error' => 'El archivo supera 50 MB.']); exit;
+                }
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $allowed = ['pdf','doc','docx','zip','rar','txt','png','jpg','jpeg','gif','webp','mp4','mp3','wav','xlsx','pptx','csv'];
+                if (!in_array($ext, $allowed, true)) {
+                    echo json_encode(['ok' => false, 'error' => 'Tipo de archivo no permitido.']); exit;
+                }
+                $destDir = __DIR__ . '/../../public/uploads/documentos/';
+                if (!is_dir($destDir)) mkdir($destDir, 0755, true);
+                $safeOrig = preg_replace('/[^a-z0-9_\-\.]/i', '_', basename($file['name']));
+                $fname    = 'u' . $uid . '_' . uniqid() . '.' . $ext;
+                $destPath = $destDir . $fname;
+                if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+                    echo json_encode(['ok' => false, 'error' => 'No se pudo guardar el archivo.']); exit;
+                }
+                $nombre    = trim($body['nombre'] ?? '') ?: pathinfo($file['name'], PATHINFO_FILENAME);
+                $carpetaId = !empty($body['carpeta_id']) ? (int)$body['carpeta_id'] : null;
+                $rutaPub   = '/uploads/documentos/' . $fname;
+                $contenido = "Archivo original: {$safeOrig}\nRuta del archivo: {$rutaPub}\nTipo de archivo: {$ext}";
+                $stmt = $db->prepare("INSERT INTO documento (usuario_id, carpeta_id, titulo, contenido) VALUES (?,?,?,?)");
+                $ok   = $stmt->execute([$uid, $carpetaId, $nombre, $contenido]);
+                echo json_encode(['ok' => $ok, 'error' => $ok ? null : 'Error al registrar el archivo.']);
+                break;
+
+            // ── Move document to folder ──────────────────────────────────
+            case 'mover_documento':
+                $id        = (int)($body['id'] ?? 0);
+                $carpetaId = isset($body['carpeta_id']) && $body['carpeta_id'] !== '' ? (int)$body['carpeta_id'] : null;
+                if (!$id) { echo json_encode(['ok' => false, 'error' => 'ID inválido.']); exit; }
+                // Verify ownership
+                $chk = $db->prepare("SELECT id FROM documento WHERE id = ? AND usuario_id = ?");
+                $chk->execute([$id, $uid]);
+                if (!$chk->fetch()) { echo json_encode(['ok' => false, 'error' => 'Documento no encontrado.']); exit; }
+                $stmt = $db->prepare("UPDATE documento SET carpeta_id = ? WHERE id = ? AND usuario_id = ?");
+                $ok   = $stmt->execute([$carpetaId, $id, $uid]);
+                echo json_encode(['ok' => $ok]);
+                break;
+
+            // ── Delete document ──────────────────────────────────────────
+            case 'eliminar_documento':
+                $id = (int)($body['id'] ?? 0);
+                if (!$id) { echo json_encode(['ok' => false, 'error' => 'ID inválido.']); exit; }
+                $chk = $db->prepare("SELECT contenido FROM documento WHERE id = ? AND usuario_id = ?");
+                $chk->execute([$id, $uid]);
+                $doc = $chk->fetch(PDO::FETCH_ASSOC);
+                if (!$doc) { echo json_encode(['ok' => false, 'error' => 'Documento no encontrado.']); exit; }
+                // Delete physical file if exists
+                if (preg_match('/Ruta del archivo:\s*(\S+)/i', $doc['contenido'], $m)) {
+                    $abs = __DIR__ . '/../../public/' . ltrim($m[1], '/');
+                    if (file_exists($abs)) @unlink($abs);
+                }
+                $stmt = $db->prepare("DELETE FROM documento WHERE id = ? AND usuario_id = ?");
+                $ok   = $stmt->execute([$id, $uid]);
+                echo json_encode(['ok' => $ok]);
+                break;
+
+            // ── Delete folder ────────────────────────────────────────────
+            case 'eliminar_carpeta':
+                $id = (int)($body['id'] ?? 0);
+                if (!$id) { echo json_encode(['ok' => false, 'error' => 'ID inválido.']); exit; }
+                // Verify ownership
+                $chk = $db->prepare("SELECT id FROM carpeta WHERE id = ? AND usuario_id = ?");
+                $chk->execute([$id, $uid]);
+                if (!$chk->fetch()) { echo json_encode(['ok' => false, 'error' => 'Carpeta no encontrada.']); exit; }
+                // Unassign documents (don't delete them)
+                $db->prepare("UPDATE documento SET carpeta_id = NULL WHERE carpeta_id = ? AND usuario_id = ?")->execute([$id, $uid]);
+                $stmt = $db->prepare("DELETE FROM carpeta WHERE id = ? AND usuario_id = ?");
+                $ok   = $stmt->execute([$id, $uid]);
+                echo json_encode(['ok' => $ok]);
+                break;
+
+            default:
+                echo json_encode(['ok' => false, 'error' => 'Acción desconocida.']);
+        }
+        exit;
+    }
+
     private function buildShareToken(array $documento): string
     {
         return hash('sha256', $documento['id'] . '|' . ($documento['usuario_id'] ?? '') . '|mc_share_secret');

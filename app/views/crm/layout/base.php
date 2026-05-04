@@ -27,7 +27,7 @@
 <!-- ================================================================ -->
 <!-- SIDEBAR                                                            -->
 <!-- ================================================================ -->
-<aside class="crm-sidebar" id="crmSidebar">
+<aside class="crm-sidebar no-transition" id="crmSidebar">
 
   <!-- Brand -->
   <div class="crm-sidebar__brand">
@@ -119,7 +119,7 @@
 <!-- ================================================================ -->
 <!-- MAIN                                                               -->
 <!-- ================================================================ -->
-<div class="crm-main" id="crmMain">
+<div class="crm-main no-transition" id="crmMain">
 
   <!-- HEADER -->
   <header class="crm-header">

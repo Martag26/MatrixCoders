@@ -54,6 +54,12 @@ switch ($url) {
         $controller->documentos();
         break;
 
+    case 'nube-api':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->nubeApi();
+        break;
+
     case 'documento':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();

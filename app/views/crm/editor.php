@@ -24,6 +24,16 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 .crm-editor-tab.active{background:var(--crm-primary);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.35)}
 .crm-editor-tab svg{flex-shrink:0}
 
+/* ── Contenido sub-tabs ── */
+.crm-contenido-subtabs-nav{display:flex;gap:2px;padding:4px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:11px;margin-bottom:18px;width:fit-content}
+.crm-contenido-subtab{display:flex;align-items:center;gap:6px;padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;color:var(--crm-muted);background:transparent;transition:all .15s;white-space:nowrap}
+.crm-contenido-subtab:hover{background:rgba(255,255,255,.06);color:var(--crm-text)}
+.crm-contenido-subtab.active{background:var(--crm-primary);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.3)}
+.crm-contenido-subtab .ctab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(255,255,255,.25);color:inherit}
+.crm-contenido-subtab:not(.active) .ctab-badge{background:var(--crm-border);color:var(--crm-muted)}
+.crm-ctab-panel{display:none}
+.crm-ctab-panel.active{display:block}
+
 /* ── Unit collapse ── */
 .crm-unit-lessons{overflow:hidden;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s;}
 .crm-unit-lessons.collapsed{max-height:0!important;opacity:0;pointer-events:none;}
@@ -288,18 +298,51 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 </div>
 
 <!-- ================================================================ -->
-<!-- TAB 2: CONTENIDO (VÍDEOS)                                         -->
+<!-- TAB 2: CONTENIDO                                                   -->
 <!-- ================================================================ -->
 <div id="tab-contenido" class="crm-tab-panel">
+
+<!-- Sub-tabs nav -->
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+  <div class="crm-contenido-subtabs-nav">
+    <button class="crm-contenido-subtab active" data-ctab="lecciones" onclick="switchContenidoTab('lecciones')">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Lecciones
+      <span class="ctab-badge"><?= $numLecciones ?></span>
+    </button>
+    <button class="crm-contenido-subtab" data-ctab="recursos" onclick="switchContenidoTab('recursos')">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+      Recursos
+      <span class="ctab-badge"><?= array_sum(array_map(fn($u) => array_sum(array_map(fn($l) => count($l['recursos'] ?? []), $u['lecciones'])), $unidades)) ?></span>
+    </button>
+    <button class="crm-contenido-subtab" data-ctab="tareas" onclick="switchContenidoTab('tareas')">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+      Tareas
+      <span class="ctab-badge"><?= count($tareasPracticas) ?></span>
+    </button>
+  </div>
+  <!-- Acciones contextuales por sub-tab -->
+  <div id="ctab-action-lecciones">
+    <button type="button" class="crm-btn crm-btn-primary crm-btn-sm" onclick="openModalNuevaUnidad()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+      Nueva unidad
+    </button>
+  </div>
+  <div id="ctab-action-tareas" style="display:none">
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="agregarTarea()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+      Añadir tarea
+    </button>
+  </div>
+</div>
+
+<!-- ── Sub-tab: LECCIONES ── -->
+<div id="ctab-lecciones" class="crm-ctab-panel active">
   <div class="crm-editor-panel">
     <div class="crm-editor-panel-header">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      <h3>Contenido del curso</h3>
+      <h3>Lecciones</h3>
       <span style="font-size:11px;color:var(--crm-muted);margin-left:4px"><?= $numUnidades ?> unidades · <?= $numLecciones ?> lecciones</span>
-      <button type="button" class="crm-btn crm-btn-primary crm-btn-sm" style="margin-left:auto" onclick="openModalNuevaUnidad()">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-        Unidad
-      </button>
     </div>
     <div class="crm-editor-panel-body" style="padding:14px">
       <div class="crm-curriculum" id="curriculum">
@@ -366,13 +409,15 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
       </div>
     </div>
   </div>
+</div><!-- cierre ctab-lecciones -->
 
-<!-- Panel: Recursos por lección (antes en tab Apuntes) -->
+<!-- ── Sub-tab: RECURSOS ── -->
 <?php
 $tipoIconsMap = ['pdf'=>'📄','doc'=>'📝','zip'=>'🗜️','link'=>'🔗','actividad'=>'✏️','video'=>'▶️'];
 $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>'Enlace','actividad'=>'Actividad','video'=>'Vídeo'];
 ?>
-<div class="crm-editor-panel" style="margin-top:20px">
+<div id="ctab-recursos" class="crm-ctab-panel">
+<div class="crm-editor-panel">
   <div class="crm-editor-panel-header">
     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
     <h3>Recursos por lección</h3>
@@ -458,16 +503,14 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
     <?php endif; ?>
   </div>
 </div>
+</div><!-- cierre ctab-recursos -->
 
-<!-- Panel: Tareas prácticas -->
-<div class="crm-editor-panel" style="margin-top:20px">
+<!-- ── Sub-tab: TAREAS ── -->
+<div id="ctab-tareas" class="crm-ctab-panel">
+<div class="crm-editor-panel">
   <div class="crm-editor-panel-header">
     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
     <h3>Tareas prácticas</h3>
-    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="agregarTarea()">
-      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-      Añadir tarea
-    </button>
   </div>
   <div class="crm-editor-panel-body">
     <div id="puntosResumen" class="crm-pts-summary" style="margin-bottom:16px">
@@ -524,6 +567,7 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
     </button>
   </div>
 </div>
+</div><!-- cierre ctab-tareas -->
 
 </div><!-- cierre tab-contenido -->
 
@@ -915,15 +959,62 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
 const CURSO_ID  = <?= $curso['id'] ?>;
 const INSTR_MAP = <?= json_encode($instructoresMap, JSON_UNESCAPED_UNICODE) ?>;
 
+/* ===== Unsaved-changes guard ===== */
+const _FIELDS_INFO = ['cTitulo','cDesc','cInfoExtra','cQueAprenderas','cPrecio','cNivel','cCategoria','cDestacado','cActivo'];
+const _FIELDS_EXAM_TEST = ['exTitulo','exDesc','exNota'];
+const _FIELDS_EXAM_PRAC = ['exPracTitulo','exPracDesc','exPracNota','exPracFecha','exPracModo'];
+
+let _savedSnapshot = null;
+
+function _takeSnapshot() {
+  const get  = id => { const el = document.getElementById(id); if (!el) return ''; return el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value; };
+  const qtxt = sel => [...document.querySelectorAll(sel)].map(e => e.value).join('||');
+  return JSON.stringify({
+    info:      _FIELDS_INFO.map(get).join('|'),
+    examTest:  _FIELDS_EXAM_TEST.map(get).join('|') + '||' + qtxt('.crm-exam-question input[type=text]') + qtxt('.crm-exam-question input[type=radio]:checked'),
+    examPrac:  _FIELDS_EXAM_PRAC.map(get).join('|') + '||' + qtxt('.crm-tarea-card input[type=text]') + qtxt('.crm-tarea-card textarea') + qtxt('.crm-tarea-card .tarea-pts-input'),
+  });
+}
+
+function _markSaved() { _savedSnapshot = _takeSnapshot(); }
+
+function _hasUnsaved() {
+  if (_savedSnapshot === null) return false;
+  return _savedSnapshot !== _takeSnapshot();
+}
+
+async function _confirmLeave() {
+  if (!_hasUnsaved()) return true;
+  return CRM.confirm(
+    'Tienes cambios sin guardar que se perderán si continúas. ¿Quieres salir de todas formas?',
+    { title: 'Cambios sin guardar', okLabel: 'Salir sin guardar', cancelLabel: 'Quedarme aquí' }
+  );
+}
+
 /* ===== Tabs ===== */
-function switchTab(name) {
+async function switchTab(name) {
+  if (!await _confirmLeave()) return;
   document.querySelectorAll('.crm-tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.crm-editor-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
 }
 
-function switchExamTab(name) {
+/* ===== Contenido sub-tabs ===== */
+async function switchContenidoTab(name) {
+  if (!await _confirmLeave()) return;
+  document.querySelectorAll('.crm-ctab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.crm-contenido-subtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ctab-' + name).classList.add('active');
+  document.querySelector(`[data-ctab="${name}"]`).classList.add('active');
+  ['lecciones','tareas'].forEach(k => {
+    const el = document.getElementById('ctab-action-' + k);
+    if (el) el.style.display = (k === name) ? '' : 'none';
+  });
+}
+
+async function switchExamTab(name) {
+  if (!await _confirmLeave()) return;
   document.querySelectorAll('.crm-exam-subpanel').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.crm-exam-subtab').forEach(t => t.classList.remove('active'));
   document.getElementById('etab-' + name).style.display = '';
@@ -1361,8 +1452,26 @@ async function pedirEliminarTarea(btn) {
   if (ok) { btn.closest('.crm-tarea-card').remove(); actualizarPuntosTotales(); }
 }
 
-// Initialize totals on page load
-document.addEventListener('DOMContentLoaded', actualizarPuntosTotales);
+// Initialize totals and snapshot on page load
+document.addEventListener('DOMContentLoaded', () => {
+  actualizarPuntosTotales();
+  _markSaved();
+
+  // Warn before browser navigation (close tab, refresh, back button)
+  window.addEventListener('beforeunload', e => {
+    if (_hasUnsaved()) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  // Intercept in-page links (sidebar, "Volver a Cursos", etc.)
+  document.addEventListener('click', async e => {
+    const a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank') return;
+    if (!_hasUnsaved()) return;
+    e.preventDefault();
+    const ok = await _confirmLeave();
+    if (ok) { _savedSnapshot = null; window.location.href = a.href; }
+  });
+});
 
 /* ===== Apuntes / Recursos por lección ===== */
 function toggleApuntesLec(header) {
@@ -1538,7 +1647,7 @@ async function guardarTodo() {
 
   btn.disabled = false;
   btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Guardar todo';
-  if (r1.ok) CRM.toast('✓ Todos los cambios guardados correctamente', 'success');
+  if (r1.ok) { _markSaved(); CRM.toast('✓ Todos los cambios guardados correctamente', 'success'); }
   else CRM.toast(r1.error || 'Error al guardar', 'error');
 }
 

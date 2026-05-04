@@ -57,6 +57,9 @@ body.crm-body {
   transition: width var(--crm-transition);
   overflow: hidden;
 }
+.crm-sidebar.no-transition,
+.crm-sidebar.no-transition *,
+.crm-main.no-transition { transition: none !important; }
 
 .crm-sidebar.collapsed { width: var(--crm-sidebar-w-col); }
 
