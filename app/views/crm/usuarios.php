@@ -3,8 +3,8 @@
 function crmRolLabel(array $u): string {
   if (!empty($u['es_superadmin'])) return 'superadmin';
   if ($u['rol'] === 'ADMINISTRADOR') return 'admin';
-  if (!empty($u['es_moderador'])) return 'moderador';
-  if ($u['rol'] === 'EDITOR') return 'instructor';
+  if ($u['rol'] === 'MODERADOR') return 'moderador';
+  if ($u['rol'] === 'INSTRUCTOR') return 'instructor';
   return 'alumno';
 }
 function crmRolDisplay(string $rolKey): string {

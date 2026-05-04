@@ -11,19 +11,7 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/dashboard.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/sidebar.css">
-    <!-- Aplicar estado del sidebar ANTES del primer render para evitar flash -->
-    <script>
-    (function(){
-        if(localStorage.getItem('mc_sidebar_col')==='1'){
-            document.documentElement.setAttribute('data-sb','collapsed');
-        }
-    })();
-    </script>
     <style>
-        /* Flash-prevention: aplica el estado colapsado antes del JS del sidebar */
-        html[data-sb="collapsed"] .cal-page{grid-template-columns:1fr 280px!important}
-        html[data-sb="collapsed"] .right-panel{opacity:1!important;pointer-events:auto!important;overflow:visible!important}
-
         :root {
             --mc-green:#6B8F71; --mc-green-d:#4a6b50; --mc-green-lt:#f0f5f1;
             --mc-dark:#1B2336; --mc-border:#e5e7eb; --mc-soft:#f8fafc;
@@ -53,14 +41,29 @@
         .contenedor-dashboard-content.sidebar--collapsed .right-panel{
             opacity:1;
             pointer-events:auto;
-            overflow:visible;
+            overflow-y:auto;
+            overflow-x:hidden;
         }
+        /* ── Scrollbar panel derecho ── */
+        .right-panel::-webkit-scrollbar{width:5px}
+        .right-panel::-webkit-scrollbar-track{background:transparent;margin:6px 0}
+        .right-panel::-webkit-scrollbar-thumb{
+            background:linear-gradient(180deg,#c7d2da 0%,#d1d5db 100%);
+            border-radius:99px;
+            border:1px solid rgba(255,255,255,.6);
+        }
+        .right-panel::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#9ca3af 0%,#b0b7c0 100%)}
+        /* Firefox */
+        .right-panel{scrollbar-width:thin;scrollbar-color:#d1d5db transparent}
 
         /* Right-panel: invisible cuando el grid-column es 0 */
         .right-panel{
-            display:grid;gap:16px;min-width:0;
+            display:grid;gap:12px;min-width:0;
             opacity:0;pointer-events:none;overflow:hidden;
             transition:opacity .18s ease .05s;
+            position:sticky;top:16px;
+            max-height:calc(100vh - 100px);
+            align-self:start;
         }
 
         @media(max-width:768px){
@@ -90,13 +93,6 @@
         }
         .cal-stat-pill span{color:var(--mc-muted);font-weight:500}
         .cal-stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-        .btn-nuevo-ev{
-            display:inline-flex;align-items:center;gap:7px;padding:9px 18px;
-            background:var(--mc-green);color:#fff;border:none;border-radius:10px;
-            font-family:'Saira',sans-serif;font-size:.83rem;font-weight:700;cursor:pointer;
-            transition:background .15s,transform .1s;white-space:nowrap;box-shadow:0 2px 8px rgba(107,143,113,.35);
-        }
-        .btn-nuevo-ev:hover{background:var(--mc-green-d);transform:translateY(-1px)}
 
         /* ── CALENDAR WRAPPER ── */
         .cal-wrap{
@@ -106,15 +102,65 @@
         }
 
         /* FullCalendar overrides */
-        .fc .fc-toolbar{margin-bottom:14px!important}
+        .fc .fc-toolbar{margin-bottom:14px!important;gap:8px!important;flex-wrap:wrap}
+        .fc .fc-toolbar-chunk{display:flex;align-items:center;gap:4px}
         .fc .fc-toolbar-title{font-family:'Saira',sans-serif;font-size:1.05rem;font-weight:800;color:var(--mc-dark)}
+
+        /* Botones base */
         .fc .fc-button{
-            font-family:'Saira',sans-serif;font-size:.78rem;font-weight:600;
-            padding:5px 11px!important;border-radius:7px!important;
+            font-family:'Saira',sans-serif;font-size:.76rem;font-weight:700;
+            padding:6px 13px!important;border-radius:8px!important;
+            transition:background .15s,box-shadow .15s,transform .1s!important;
+            letter-spacing:.15px;box-shadow:none!important;
         }
         .fc .fc-button-primary{background:var(--mc-dark)!important;border-color:var(--mc-dark)!important}
-        .fc .fc-button-primary:hover{background:var(--mc-green)!important;border-color:var(--mc-green)!important}
-        .fc .fc-button-primary:not(:disabled).fc-button-active{background:var(--mc-green)!important;border-color:var(--mc-green)!important}
+        .fc .fc-button-primary:hover{
+            background:var(--mc-green)!important;border-color:var(--mc-green)!important;
+            transform:translateY(-1px);box-shadow:0 3px 10px rgba(107,143,113,.32)!important;
+        }
+        .fc .fc-button-primary:active{transform:translateY(0)!important;box-shadow:none!important}
+        .fc .fc-button-primary:not(:disabled).fc-button-active{
+            background:var(--mc-green)!important;border-color:var(--mc-green)!important;
+            box-shadow:0 2px 8px rgba(107,143,113,.28)!important;
+        }
+
+        /* Botón Hoy: estilo outlined */
+        .fc .fc-today-button{
+            background:transparent!important;
+            border:1.5px solid var(--mc-dark)!important;
+            color:var(--mc-dark)!important;font-weight:700!important;
+        }
+        .fc .fc-today-button:not(:disabled):hover{
+            background:var(--mc-dark)!important;color:#fff!important;
+            transform:translateY(-1px);box-shadow:0 3px 10px rgba(27,35,54,.2)!important;
+        }
+        .fc .fc-today-button:disabled{
+            background:var(--mc-soft)!important;border-color:var(--mc-border)!important;
+            color:var(--mc-muted)!important;opacity:.55!important;
+        }
+
+        /* Prev/Next: compactos */
+        .fc .fc-prev-button,.fc .fc-next-button{padding:6px 10px!important;border-radius:8px!important}
+
+        /* Selector de vista (derecha): contenedor tipo pill */
+        .fc .fc-toolbar .fc-button-group{
+            background:var(--mc-soft);border:1px solid var(--mc-border);
+            border-radius:10px;padding:3px;gap:2px!important;
+        }
+        .fc .fc-toolbar .fc-button-group .fc-button{
+            background:transparent!important;border:none!important;
+            color:var(--mc-muted)!important;font-size:.74rem!important;
+            padding:5px 12px!important;border-radius:7px!important;
+            transform:none!important;box-shadow:none!important;
+        }
+        .fc .fc-toolbar .fc-button-group .fc-button:hover{
+            background:var(--mc-card)!important;color:var(--mc-dark)!important;
+            box-shadow:0 1px 4px rgba(0,0,0,.08)!important;
+        }
+        .fc .fc-toolbar .fc-button-group .fc-button.fc-button-active{
+            background:var(--mc-card)!important;color:var(--mc-dark)!important;
+            box-shadow:0 1px 5px rgba(0,0,0,.1)!important;font-weight:800!important;
+        }
         .fc .fc-daygrid-day-number{font-size:.8rem;font-weight:600;color:var(--mc-dark);padding:4px 6px!important}
         .fc .fc-col-header-cell-cushion{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--mc-muted);padding:6px 0!important}
         .fc-day-today{background:#f0fdf4!important}
@@ -122,15 +168,103 @@
             background:var(--mc-green);color:#fff;border-radius:50%;
             width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;
         }
-        .fc-event{border-radius:5px!important;font-size:.72rem!important;font-weight:600!important;border:none!important;padding:1px 5px!important}
-        .fc-daygrid-day{cursor:pointer}
-        .fc-daygrid-day:hover{background:#fafafa}
+        /* ── Eventos personales: estilo dot (sin fondo, sin borde, sin sombra) ── */
+        .fc-event-personal,
+        .fc-event-personal.fc-h-event,
+        .fc-event-personal.fc-daygrid-event,
+        .fc-event-personal.fc-daygrid-dot-event{
+            background:transparent!important;
+            background-color:transparent!important;
+            border:none!important;
+            border-color:transparent!important;
+            box-shadow:none!important;
+            padding:1px 2px!important;
+        }
+        .fc-event-personal .fc-event-main,
+        .fc-event-personal .fc-event-main-frame{
+            background:transparent!important;
+            background-color:transparent!important;
+        }
+        .fc-event-personal:hover{
+            background:rgba(0,0,0,.05)!important;
+            border-radius:5px!important;
+        }
+
+        /* ── Eventos del sistema (tareas, expiraciones): pill sólido ── */
+        .fc-daygrid-event{
+            border-radius:6px!important;
+            border:none!important;
+            padding:2px 7px!important;
+            font-size:.71rem!important;
+            font-weight:700!important;
+            letter-spacing:.1px;
+            box-shadow:0 1px 3px rgba(0,0,0,.12)!important;
+            transition:filter .12s,transform .12s!important;
+        }
+        .fc-daygrid-event:hover{
+            filter:brightness(.92)!important;
+            transform:translateY(-1px)!important;
+            box-shadow:0 3px 8px rgba(0,0,0,.16)!important;
+        }
+        .fc-event-title{
+            font-family:'Saira',sans-serif!important;
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+        }
+        .fc-daygrid-block-event .fc-event-title{padding:1px 0!important}
+
+        /* ── Eventos en timeGrid (semana/día) ── */
+        .fc-timegrid-event{
+            border-radius:8px!important;
+            border:none!important;
+            padding:4px 8px!important;
+            box-shadow:0 2px 6px rgba(0,0,0,.13)!important;
+        }
+        .fc-timegrid-event .fc-event-title{
+            font-size:.75rem!important;font-weight:700!important;
+            font-family:'Saira',sans-serif!important;
+        }
+        .fc-timegrid-event .fc-event-time{
+            font-size:.65rem!important;font-weight:600!important;opacity:.82;
+            font-family:'Saira',sans-serif!important;
+        }
+        .fc-timegrid-event:hover{
+            filter:brightness(.92)!important;
+            box-shadow:0 4px 12px rgba(0,0,0,.18)!important;
+        }
+
+        /* ── Vista Lista ── */
+        .fc-list-event{font-family:'Saira',sans-serif!important}
+        .fc-list-event td{padding:9px 14px!important;font-size:.8rem!important}
+        .fc-list-event:hover td{background:#f8fafc!important}
+        .fc-list-event-dot{border-width:6px!important;border-radius:50%!important}
+        .fc-list-event-title a{font-weight:700!important;color:var(--mc-dark)!important;text-decoration:none!important}
+        .fc-list-event-time{color:var(--mc-muted)!important;font-size:.73rem!important;font-weight:600!important}
+        .fc-theme-standard .fc-list-day-cushion{
+            background:var(--mc-soft)!important;
+            font-family:'Saira',sans-serif!important;font-size:.72rem!important;
+            font-weight:800!important;text-transform:uppercase!important;letter-spacing:.5px!important;
+            color:var(--mc-muted)!important;
+        }
+
+        /* ── Celda de día ── */
+        .fc-daygrid-day{cursor:pointer;transition:background .1s}
+        .fc-daygrid-day:hover{background:#f5f7fa!important}
         .fc .fc-scrollgrid{border-radius:10px;overflow:hidden;border-color:var(--mc-border)!important}
         .fc .fc-scrollgrid td,.fc .fc-scrollgrid th{border-color:var(--mc-border)!important}
-        .fc-theme-standard .fc-list-day-cushion{background:var(--mc-soft)!important}
+
+        /* Número del día: hover */
+        .fc-daygrid-day-number:hover{color:var(--mc-green)!important}
+
+        /* Indicador "+N más" */
+        .fc-daygrid-more-link{
+            font-size:.68rem!important;font-weight:800!important;
+            color:var(--mc-muted)!important;padding:0 4px!important;
+            font-family:'Saira',sans-serif!important;
+        }
+        .fc-daygrid-more-link:hover{color:var(--mc-green)!important}
 
         /* Drag ghost */
-        .fc-event-dragging{opacity:.75!important;transform:scale(1.02);box-shadow:0 8px 20px rgba(0,0,0,.18)!important}
+        .fc-event-dragging{opacity:.78!important;transform:scale(1.03) translateY(-2px)!important;box-shadow:0 10px 28px rgba(0,0,0,.2)!important}
 
         /* ── LEYENDA ── */
         .cal-legend{
@@ -141,7 +275,6 @@
         .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 
         /* ── RIGHT PANEL ── */
-        .right-panel{display:grid;gap:18px}
         .rp-card{background:var(--mc-card);border-radius:14px;box-shadow:var(--mc-shadow);overflow:hidden}
         .rp-head{
             padding:12px 16px;font-size:.72rem;font-weight:800;text-transform:uppercase;
@@ -156,20 +289,45 @@
         .rp-head-btn:hover{background:var(--mc-green-d)}
 
         /* Evento items */
-        .ev-item{padding:11px 16px;border-bottom:1px solid var(--mc-border);display:flex;align-items:flex-start;gap:10px}
+        .ev-item{
+            padding:10px 16px;border-bottom:1px solid var(--mc-border);
+            display:flex;align-items:flex-start;gap:10px;
+            transition:background .12s;
+        }
         .ev-item:last-child{border-bottom:none}
-        .ev-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
-        .ev-titulo{font-size:.82rem;font-weight:700;margin:0 0 3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .ev-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-        .ev-tag{display:inline-flex;align-items:center;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:1px 7px;border-radius:20px}
-        .ev-date{font-size:.7rem;color:var(--mc-muted)}
-        .ev-edit-btn{background:transparent;border:none;color:var(--mc-muted);cursor:pointer;padding:0 0 0 4px;font-size:.72rem;line-height:1;transition:color .15s}
+        .ev-item:hover{background:#fafbfc}
+        .ev-dot{
+            width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px;
+            box-shadow:0 0 0 2px rgba(0,0,0,.06);
+        }
+        .ev-titulo{font-size:.81rem;font-weight:700;margin:0 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mc-dark)}
+        .ev-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:2px}
+        .ev-tag{
+            display:inline-flex;align-items:center;
+            font-size:.61rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;
+            padding:2px 8px;border-radius:99px;line-height:1.4;
+        }
+        .ev-date{
+            font-size:.68rem;color:var(--mc-muted);font-weight:600;
+            display:inline-flex;align-items:center;gap:3px;
+        }
+        .ev-date::before{content:'·';opacity:.5}
+        .ev-edit-btn{
+            background:transparent;border:none;color:#c4c9d4;cursor:pointer;
+            padding:0 0 0 2px;font-size:.7rem;line-height:1;
+            transition:color .15s;opacity:0;
+        }
+        .ev-item:hover .ev-edit-btn{opacity:1}
         .ev-edit-btn:hover{color:var(--mc-green)}
-        .empty-rp{padding:22px 16px;text-align:center;color:var(--mc-muted);font-size:.83rem;line-height:1.6}
+        .empty-rp{
+            padding:24px 16px;text-align:center;color:var(--mc-muted);
+            font-size:.8rem;line-height:1.7;
+        }
+        .empty-rp svg{opacity:.25;margin-bottom:4px}
 
         /* Tipo badges */
-        .ev-tipo-sesion      {background:#dcfce7;color:#166534}
-        .ev-tipo-hito        {background:#fef9c3;color:#854d0e}
+        .ev-tipo-sesion      {background:#d1fae5;color:#065f46}
+        .ev-tipo-hito        {background:#fef3c7;color:#92400e}
         .ev-tipo-recordatorio{background:#dbeafe;color:#1e40af}
         .ev-tipo-bloqueo     {background:#f1f5f9;color:#475569}
         .ev-tipo-tarea       {background:#ede9fe;color:#5b21b6}
@@ -250,6 +408,87 @@
             pointer-events:none;
         }
         .cal-toast.show{opacity:1;transform:translateY(0)}
+
+        /* ── SMART SLOTS ── */
+        /* Sugerencia de hueco inteligente: borde punteado, semi-transparente */
+        .fc-event.smart-suggestion{
+            background:rgba(107,143,113,.13)!important;
+            border:1.5px dashed #6B8F71!important;
+            color:#2d5c38!important;
+            font-style:italic;
+            box-shadow:none!important;
+            cursor:default!important;
+        }
+        .fc-event.smart-suggestion .fc-event-title{font-style:italic;opacity:.9}
+        /* Bloque de estudio sugerido: relleno suave con borde punteado */
+        .fc-event.bloque-sugerido{
+            opacity:.72;
+            border-style:dashed!important;
+            border-width:1.5px!important;
+            box-shadow:none!important;
+            cursor:default!important;
+        }
+        .fc-event.bloque-sugerido .fc-event-title{font-style:italic}
+
+        /* Streak badge en el stats strip */
+        .streak-pill{
+            display:inline-flex;align-items:center;gap:6px;
+            border-radius:10px;padding:7px 13px;font-size:.78rem;font-weight:800;
+            box-shadow:0 1px 4px rgba(0,0,0,.07);
+            transition:transform .15s;cursor:default;
+        }
+        .streak-pill:hover{transform:scale(1.04)}
+
+        /* Smart Slots panel in right panel */
+        .ss-row{padding:11px 16px;border-bottom:1px solid var(--mc-border);font-size:.81rem;line-height:1.55}
+        .ss-row:last-child{border-bottom:none}
+        .ss-label{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--mc-muted);margin-bottom:3px}
+        .ss-value{font-weight:700;color:var(--mc-dark)}
+        .ss-sub{font-size:.72rem;color:var(--mc-muted);margin-top:1px}
+        .ss-icon{font-size:1rem;line-height:1;flex-shrink:0}
+
+        /* ── AGENDA TABS ── */
+        .agenda-tabs{display:flex;border-bottom:1px solid var(--mc-border);padding:0 4px}
+        .agenda-tab{
+            flex:1;padding:9px 6px;text-align:center;font-size:.72rem;font-weight:800;
+            text-transform:uppercase;letter-spacing:.5px;color:var(--mc-muted);
+            border:none;background:transparent;cursor:pointer;
+            border-bottom:2px solid transparent;margin-bottom:-1px;
+            font-family:'Saira',sans-serif;transition:color .15s,border-color .15s;
+            display:flex;align-items:center;justify-content:center;gap:5px;
+        }
+        .agenda-tab.active{color:var(--mc-green);border-bottom-color:var(--mc-green)}
+        .agenda-tab:hover:not(.active){color:var(--mc-dark)}
+        .agenda-badge{
+            display:inline-flex;align-items:center;justify-content:center;
+            background:var(--mc-green);color:#fff;border-radius:99px;
+            font-size:.6rem;font-weight:800;padding:1px 6px;min-width:18px;
+        }
+        .agenda-badge.red{background:#ef4444}
+        .agenda-panel{display:none}
+        .agenda-panel.active{display:block}
+
+        /* ── Collapsible rp-card ── */
+        .rp-head{cursor:pointer;user-select:none}
+        .rp-head:hover{background:#fafafa}
+        .rp-toggle{
+            width:20px;height:20px;display:grid;place-items:center;
+            border-radius:5px;flex-shrink:0;
+            transition:background .15s;
+        }
+        .rp-head:hover .rp-toggle{background:#f1f5f9}
+        .rp-toggle svg{transition:transform .22s cubic-bezier(.4,0,.2,1)}
+        .rp-card.collapsed .rp-toggle svg{transform:rotate(-90deg)}
+        .rp-body{
+            overflow:hidden;
+            max-height:600px;
+            transition:max-height .28s cubic-bezier(.4,0,.2,1), opacity .2s ease;
+            opacity:1;
+        }
+        .rp-card.collapsed .rp-body{max-height:0;opacity:0}
+        /* La tarjeta Agenda tiene tabs en el head — no necesita icono toggle separado */
+        .rp-card.agenda-card .rp-head{cursor:default}
+        .rp-card.agenda-card .rp-head:hover{background:transparent}
     </style>
 </head>
 
@@ -270,12 +509,8 @@
             <div class="cal-topbar">
                 <div class="cal-topbar-left">
                     <h1 class="cal-topbar-title">Planificador</h1>
-                    <p class="cal-topbar-sub">Clic en un día para crear · Arrastra eventos para moverlos</p>
+                    <p class="cal-topbar-sub">Arrastra eventos para moverlos · Clic en un día para crear</p>
                 </div>
-                <button class="btn-nuevo-ev" id="btnNuevoEvento">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Nuevo evento
-                </button>
             </div>
 
             <?php
@@ -293,16 +528,39 @@
                     <span class="cal-stat-dot" style="background:#3b82f6"></span>
                     <?= count($evProximos) ?> <span>próximos</span>
                 </div>
+                <?php if (!empty($tareasUrgentes)): ?>
+                <div class="cal-stat-pill" style="border-color:#fde68a;color:#92400e">
+                    <span class="cal-stat-dot" style="background:#f59e0b"></span>
+                    <?= count($tareasUrgentes) ?> <span style="color:#92400e">tarea<?= count($tareasUrgentes) !== 1 ? 's' : '' ?> urgente<?= count($tareasUrgentes) !== 1 ? 's' : '' ?></span>
+                </div>
+                <?php endif; ?>
+                <?php if (!empty($tareasVencidas)): ?>
+                <div class="cal-stat-pill" style="border-color:#fecaca;color:#991b1b">
+                    <span class="cal-stat-dot" style="background:#ef4444"></span>
+                    <?= count($tareasVencidas) ?> <span style="color:#dc2626">vencida<?= count($tareasVencidas) !== 1 ? 's' : '' ?></span>
+                </div>
+                <?php endif; ?>
                 <?php if (count($evVencidos) > 0): ?>
                 <div class="cal-stat-pill" style="border-color:#fecaca;color:#991b1b">
                     <span class="cal-stat-dot" style="background:#ef4444"></span>
-                    <?= count($evVencidos) ?> <span style="color:#dc2626">expirados</span>
+                    <?= count($evVencidos) ?> <span style="color:#dc2626">expirado<?= count($evVencidos) !== 1 ? 's' : '' ?></span>
                 </div>
                 <?php endif; ?>
                 <?php if (!empty($cursosEnProgreso)): ?>
                 <div class="cal-stat-pill">
                     <span class="cal-stat-dot" style="background:#8b5cf6"></span>
                     <?= count($cursosEnProgreso) ?> <span>cursos activos</span>
+                </div>
+                <?php endif; ?>
+                <?php if ($rachaActual >= 1):
+                    $streakEmoji = $rachaActual >= 30 ? '🔥🔥🔥' : ($rachaActual >= 7 ? '🔥🔥' : ($rachaActual >= 3 ? '🔥' : '⚡'));
+                    $streakBg    = $rachaActual >= 7 ? 'background:#fff7ed;border-color:#fed7aa;color:#9a3412'
+                                 : ($rachaActual >= 3 ? 'background:#fffbeb;border-color:#fde68a;color:#78350f'
+                                 : 'background:var(--mc-card);border-color:var(--mc-border);color:var(--mc-dark)');
+                ?>
+                <div class="streak-pill" style="<?= $streakBg ?>" title="Llevas <?= $rachaActual ?> día<?= $rachaActual !== 1 ? 's' : '' ?> seguidos estudiando">
+                    <span><?= $streakEmoji ?></span>
+                    <?= $rachaActual ?> <span><?= $rachaActual === 1 ? 'día' : 'días' ?> seguidos</span>
                 </div>
                 <?php endif; ?>
             </div>
@@ -330,103 +588,248 @@
         <!-- ── PANEL DERECHO ── -->
         <aside class="right-panel">
 
-            <!-- Próximos eventos personales -->
-            <div class="rp-card">
-                <div class="rp-head">
-                    Próximos eventos
-                    <button class="rp-head-btn" id="btnNuevoEvRp">+ Añadir</button>
-                </div>
-                <?php
-                $tipoLabels = ['sesion'=>'Sesión','hito'=>'Hito','recordatorio'=>'Recordatorio','bloqueo'=>'Bloqueo'];
-                $tipoBadges = ['sesion'=>'ev-tipo-sesion','hito'=>'ev-tipo-hito','recordatorio'=>'ev-tipo-recordatorio','bloqueo'=>'ev-tipo-bloqueo'];
-                $evOrdenados = $eventosPersonales;
-                usort($evOrdenados, fn($a,$b) => strcmp($a['fecha_inicio'], $b['fecha_inicio']));
-                $proximos = array_slice(array_values(array_filter($evOrdenados, fn($e) => $e['fecha_inicio'] >= date('Y-m-d'))), 0, 6);
-                ?>
-                <?php if (empty($proximos)): ?>
-                    <div class="empty-rp">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                        Sin eventos planificados.<br>
-                        <button class="rp-head-btn" style="margin-top:10px" onclick="abrirFormNuevo(null)">Crear evento</button>
-                    </div>
-                <?php else: ?>
-                    <?php foreach ($proximos as $ev):
-                        $badgeClass = $tipoBadges[$ev['tipo']] ?? 'ev-tipo-sesion';
-                        $label      = $tipoLabels[$ev['tipo']] ?? 'Evento';
-                        $fecha      = date('d M', strtotime($ev['fecha_inicio']));
-                    ?>
-                        <div class="ev-item">
-                            <span class="ev-dot" style="background:<?= htmlspecialchars($ev['color'] ?? '#6B8F71') ?>"></span>
-                            <div style="flex:1;min-width:0">
-                                <p class="ev-titulo"><?= htmlspecialchars($ev['titulo']) ?>
-                                    <button class="ev-edit-btn" data-ev-id="<?= (int)$ev['id'] ?>" title="Editar">✏</button>
-                                </p>
-                                <div class="ev-meta">
-                                    <span class="ev-tag <?= $badgeClass ?>"><?= $label ?></span>
-                                    <span class="ev-date"><?= $fecha ?></span>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
+            <!-- ── AGENDA: Hoy / Próximos (panel unificado con pestañas) ── -->
+            <?php
+            $tipoLabels = ['sesion'=>'Sesión','hito'=>'Hito','recordatorio'=>'Recordatorio','bloqueo'=>'Bloqueo'];
+            $tipoBadges = ['sesion'=>'ev-tipo-sesion','hito'=>'ev-tipo-hito','recordatorio'=>'ev-tipo-recordatorio','bloqueo'=>'ev-tipo-bloqueo'];
 
-            <!-- Gráfico de telaraña: progreso por curso -->
-            <div class="rp-card">
-                <div class="rp-head">Progreso de cursos</div>
-                <?php
-                $cursosConProgreso = array_filter($cursosEnProgreso ?? [], fn($c) => $c['total_lecciones'] > 0);
-                ?>
-                <div class="chart-wrap">
-                    <?php if (empty($cursosConProgreso)): ?>
-                        <div class="chart-no-data">
-                            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                            Sin cursos matriculados
+            $totalHoy   = count($eventosHoy) + count($eventosPersonalesHoy);
+
+            $evOrdenados = $eventosPersonales;
+            usort($evOrdenados, fn($a,$b) => strcmp($a['fecha_inicio'], $b['fecha_inicio']));
+            $hoyStr   = date('Y-m-d');
+            $proximos = array_slice(array_values(array_filter($evOrdenados, fn($e) => substr($e['fecha_inicio'], 0, 10) > $hoyStr)), 0, 6);
+            ?>
+            <div class="rp-card agenda-card">
+                <div class="rp-head" style="padding-bottom:0;border-bottom:none;align-items:flex-end;cursor:default">
+                    <div class="agenda-tabs" style="width:100%">
+                        <button class="agenda-tab <?= $totalHoy > 0 ? 'active' : (empty($proximos) ? 'active' : '') ?>" data-agenda="hoy">
+                            Hoy
+                            <?php if ($totalHoy > 0): ?><span class="agenda-badge"><?= $totalHoy ?></span><?php endif; ?>
+                        </button>
+                        <button class="agenda-tab <?= $totalHoy === 0 && !empty($proximos) ? 'active' : '' ?>" data-agenda="proximos">
+                            Próximos
+                            <?php if (!empty($proximos)): ?><span class="agenda-badge"><?= count($proximos) ?></span><?php endif; ?>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel Hoy -->
+                <div class="agenda-panel <?= $totalHoy > 0 ? 'active' : (empty($proximos) ? 'active' : '') ?>" id="panelHoy">
+                    <?php if ($totalHoy === 0): ?>
+                        <div class="empty-rp">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Sin actividad hoy.<br><small style="font-size:.72rem">Clic en un día para crear un evento.</small>
                         </div>
                     <?php else: ?>
-                        <div class="chart-canvas-wrap">
-                            <canvas id="radarChart"></canvas>
+                        <?php foreach ($eventosPersonalesHoy as $ep): ?>
+                            <div class="ev-item">
+                                <span class="ev-dot" style="background:<?= htmlspecialchars($ep['color'] ?? '#6B8F71') ?>"></span>
+                                <div style="flex:1;min-width:0">
+                                    <p class="ev-titulo"><?= htmlspecialchars($ep['titulo']) ?>
+                                        <button class="ev-edit-btn" data-ev-id="<?= (int)$ep['id'] ?>" title="Editar">✏</button>
+                                    </p>
+                                    <div class="ev-meta">
+                                        <span class="ev-tag <?= $tipoBadges[$ep['tipo']] ?? 'ev-tipo-sesion' ?>"><?= $tipoLabels[$ep['tipo']] ?? 'Evento' ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        <?php foreach ($eventosHoy as $et): ?>
+                            <div class="ev-item">
+                                <span class="ev-dot" style="background:#f59e0b"></span>
+                                <div style="flex:1;min-width:0">
+                                    <p class="ev-titulo"><?= htmlspecialchars($et['titulo']) ?></p>
+                                    <div class="ev-meta">
+                                        <span class="ev-tag ev-tipo-tarea">Entrega hoy</span>
+                                        <?php if (!empty($et['curso'])): ?>
+                                            <span class="ev-date"><?= htmlspecialchars($et['curso']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Panel Próximos -->
+                <div class="agenda-panel <?= $totalHoy === 0 && !empty($proximos) ? 'active' : '' ?>" id="panelProximos">
+                    <?php if (empty($proximos)): ?>
+                        <div class="empty-rp">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            Sin eventos próximos.<br><small style="font-size:.72rem">Clic en un día para planificar.</small>
                         </div>
+                    <?php else: ?>
+                        <?php foreach ($proximos as $ev):
+                            $badgeClass = $tipoBadges[$ev['tipo']] ?? 'ev-tipo-sesion';
+                            $label      = $tipoLabels[$ev['tipo']] ?? 'Evento';
+                            $fechaTs    = strtotime($ev['fecha_inicio']);
+                            $esManana   = $ev['fecha_inicio'] === date('Y-m-d', strtotime('+1 day'));
+                            $fechaStr   = $esManana ? 'Mañana' : date('d M', $fechaTs);
+                        ?>
+                            <div class="ev-item">
+                                <span class="ev-dot" style="background:<?= htmlspecialchars($ev['color'] ?? '#6B8F71') ?>"></span>
+                                <div style="flex:1;min-width:0">
+                                    <p class="ev-titulo"><?= htmlspecialchars($ev['titulo']) ?>
+                                        <button class="ev-edit-btn" data-ev-id="<?= (int)$ev['id'] ?>" title="Editar">✏</button>
+                                    </p>
+                                    <div class="ev-meta">
+                                        <span class="ev-tag <?= $badgeClass ?>"><?= $label ?></span>
+                                        <span class="ev-date"><?= $fechaStr ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <!-- Expiración de cursos -->
-            <div class="rp-card">
-                <div class="rp-head">Expiración de cursos</div>
-                <?php
-                $eventosExpiracion = array_values(array_filter($fcEvents, fn($e) => ($e['extendedProps']['tipo'] ?? '') === 'expiracion'));
-                usort($eventosExpiracion, fn($a,$b) => strcmp($a['start'], $b['start']));
-                $hoyTs = strtotime(date('Y-m-d'));
-                ?>
-                <?php if (empty($eventosExpiracion)): ?>
-                    <div class="expiry-info">
-                        Sin cursos con fecha de expiración próxima. Sigue así.
-                    </div>
-                <?php else: ?>
-                    <?php foreach (array_slice($eventosExpiracion, 0, 4) as $exp):
-                        $expTs   = strtotime($exp['start']);
-                        $diasRest = max(0, (int)ceil(($expTs - $hoyTs) / 86400));
-                        $pctUsed  = max(0, min(100, round((1 - $diasRest/90) * 100)));
-                        $urgente  = $diasRest <= 14;
-                    ?>
-                    <div class="expiry-info" style="border-bottom:1px solid var(--mc-border)">
-                        <strong><?= htmlspecialchars($exp['title'] ?? 'Curso') ?></strong>
-                        <div class="expiry-bar">
-                            <div class="expiry-bar-track">
-                                <div class="expiry-bar-fill" style="width:<?= $pctUsed ?>%"></div>
+            <!-- Tareas urgentes (próximas 72h) -->
+            <?php if (!empty($tareasUrgentes) || !empty($tareasVencidas)): ?>
+            <div class="rp-card" data-rp-id="atencion">
+                <div class="rp-head" style="color:#dc2626">
+                    <span style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+                        Atención requerida
+                        <a href="<?= BASE_URL ?>/index.php?url=tareas" style="font-size:.68rem;color:#dc2626;font-weight:700;text-decoration:none;margin-left:auto;flex-shrink:0">Ver todas →</a>
+                    </span>
+                    <span class="rp-toggle" title="Colapsar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </span>
+                </div>
+                <div class="rp-body">
+                    <?php foreach ($tareasVencidas as $tv): ?>
+                        <div class="ev-item">
+                            <span class="ev-dot" style="background:#dc2626"></span>
+                            <div style="flex:1;min-width:0">
+                                <p class="ev-titulo"><?= htmlspecialchars($tv['titulo']) ?></p>
+                                <div class="ev-meta">
+                                    <span class="ev-tag ev-tipo-expiracion">Vencida</span>
+                                    <span class="ev-date"><?= htmlspecialchars($tv['curso'] ?? '') ?></span>
+                                </div>
                             </div>
                         </div>
-                        <?php if ($diasRest === 0): ?>
-                            <p class="expiry-note">Expirado hoy</p>
-                        <?php elseif ($urgente): ?>
-                            <p class="expiry-note"><?= $diasRest ?> día<?= $diasRest !== 1 ? 's' : '' ?> restante<?= $diasRest !== 1 ? 's' : '' ?></p>
+                    <?php endforeach; ?>
+                    <?php foreach ($tareasUrgentes as $tu): ?>
+                        <div class="ev-item">
+                            <span class="ev-dot" style="background:#f59e0b"></span>
+                            <div style="flex:1;min-width:0">
+                                <p class="ev-titulo"><?= htmlspecialchars($tu['titulo']) ?></p>
+                                <div class="ev-meta">
+                                    <span class="ev-tag ev-tipo-tarea"><?= $tu['dias_restantes'] === 0 ? 'Hoy' : 'En '.$tu['dias_restantes'].'d' ?></span>
+                                    <span class="ev-date"><?= htmlspecialchars($tu['curso'] ?? '') ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <!-- ── SMART SLOTS ── -->
+            <div class="rp-card" data-rp-id="smartslots">
+                <div class="rp-head">
+                    <span style="display:flex;align-items:center;gap:5px;flex:1;min-width:0">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6B8F71" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Smart Slots
+                        <span style="font-size:.65rem;font-weight:600;color:var(--mc-muted);text-transform:none;letter-spacing:0;margin-left:4px">· Sugerencias</span>
+                    </span>
+                    <span class="rp-toggle" title="Colapsar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </span>
+                </div>
+                <div class="rp-body">
+                    <?php if ($rachaActual >= 1): ?>
+                    <div class="ss-row" style="display:flex;align-items:center;gap:12px">
+                        <span class="ss-icon"><?= $rachaActual >= 30 ? '🔥🔥🔥' : ($rachaActual >= 7 ? '🔥🔥' : ($rachaActual >= 3 ? '🔥' : '⚡')) ?></span>
+                        <div>
+                            <div class="ss-label">Racha actual</div>
+                            <div class="ss-value"><?= $rachaActual ?> día<?= $rachaActual !== 1 ? 's' : '' ?> consecutivo<?= $rachaActual !== 1 ? 's' : '' ?></div>
+                            <div class="ss-sub">
+                            <?php if ($rachaActual >= 30): ?>Racha legendaria. ¡Sigue así!
+                            <?php elseif ($rachaActual >= 7): ?>Semana completa. ¡Excelente constancia!
+                            <?php elseif ($rachaActual >= 3): ?>Buen ritmo. ¡A por la semana!
+                            <?php else: ?>Sigue estudiando mañana para mantenerla.
+                            <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <div class="ss-row" style="display:flex;align-items:center;gap:12px">
+                        <span class="ss-icon">⚡</span>
+                        <div>
+                            <div class="ss-label">Racha</div>
+                            <div class="ss-value">Sin racha activa</div>
+                            <div class="ss-sub">Estudia hoy para empezar una racha.</div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($patronesEstudio)):
+                          $top     = $patronesEstudio[0];
+                          $diasEs  = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+                          $horaFmt = sprintf('%02d:00', (int)$top['hora']);
+                    ?>
+                    <div class="ss-row">
+                        <div class="ss-label">Mejor momento de estudio</div>
+                        <div class="ss-value"><?= $diasEs[$top['dia_semana']] ?? '' ?> · <?= $horaFmt ?>h</div>
+                        <div class="ss-sub">Basado en <?= $top['frecuencia'] ?> sesión<?= $top['frecuencia'] != 1 ? 'es' : '' ?> recientes. El Smart Slot está marcado en el calendario.</div>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($leccionesPendientes)): ?>
+                    <div class="ss-row">
+                        <div class="ss-label">Bloques sugeridos esta semana</div>
+                        <?php
+                        $slotColors = ['#8b5cf6','#0ea5e9','#14b8a6','#f59e0b','#ec4899'];
+                        foreach (array_values($leccionesPendientes) as $lpIdx => $lp):
+                            $lpDurReal = (int)($lp['duracion_min_real'] ?? 0) > 0;
+                            $lpDurMin  = max(5, (int)$lp['duracion_min']);
+                            $lpDurStr  = $lpDurReal ? $lpDurMin . ' min' : '~' . $lpDurMin . ' min';
+                            $lpColor   = $slotColors[$lpIdx % count($slotColors)];
+                        ?>
+                            <div style="display:flex;align-items:flex-start;gap:8px;margin-top:7px">
+                                <span style="width:7px;height:7px;border-radius:50%;background:<?= $lpColor ?>;flex-shrink:0;margin-top:5px"></span>
+                                <div>
+                                    <div style="font-size:.8rem;font-weight:700;color:var(--mc-dark)"><?= htmlspecialchars(mb_substr($lp['titulo'], 0, 36)) ?></div>
+                                    <div class="ss-sub"><?= htmlspecialchars(mb_substr($lp['curso_titulo'] ?? '', 0, 28)) ?> · <?= $lpDurStr ?><?= !$lpDurReal ? ' <span title="Duración estimada">est.</span>' : '' ?></div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        <div class="ss-sub" style="margin-top:6px">Los bloques aparecen en el calendario con borde punteado.</div>
+                    </div>
+                    <?php elseif (empty($patronesEstudio) && $rachaActual === 0): ?>
+                    <div class="ss-row">
+                        <div class="ss-sub" style="text-align:center;padding:6px 0">Completa algunas lecciones para activar las sugerencias inteligentes.</div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Perfil de habilidades -->
+            <div class="rp-card" data-rp-id="habilidades">
+                <div class="rp-head">
+                    <span style="flex:1;min-width:0">
+                        Perfil de habilidades
+                        <span style="font-size:.65rem;font-weight:500;color:var(--mc-muted);text-transform:none;letter-spacing:0;margin-left:4px">· tus cursos</span>
+                    </span>
+                    <span class="rp-toggle" title="Colapsar">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </span>
+                </div>
+                <div class="rp-body">
+                    <div class="chart-wrap">
+                        <?php if (empty($skillsRadar)): ?>
+                            <div class="chart-no-data">
+                                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                Sin cursos matriculados
+                            </div>
                         <?php else: ?>
-                            <p style="margin-top:6px;font-size:.72rem;color:var(--mc-muted)">Expira el <?= date('d/m/Y', $expTs) ?></p>
+                            <div class="chart-canvas-wrap">
+                                <canvas id="radarChart"></canvas>
+                            </div>
                         <?php endif; ?>
                     </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                </div>
             </div>
 
         </aside>
@@ -523,8 +926,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script>
-    const BASE     = '<?= BASE_URL ?>';
-    const fcEvents = <?= json_encode($fcEvents, JSON_HEX_TAG | JSON_HEX_APOS) ?>;
+    const BASE       = '<?= BASE_URL ?>';
+    const fcEvents   = <?= json_encode($fcEvents, JSON_HEX_TAG | JSON_HEX_APOS) ?>;
+    const smartSlots = <?= json_encode($smartSlots, JSON_HEX_TAG | JSON_HEX_APOS) ?>;
 
     const tipLabels  = {sesion:'Sesión de estudio',hito:'Hito personal',recordatorio:'Recordatorio',bloqueo:'Bloqueo',tarea:'Tarea del curso',expiracion:'Expiración'};
     const tipClasses = {sesion:'ev-tipo-sesion',hito:'ev-tipo-hito',recordatorio:'ev-tipo-recordatorio',bloqueo:'ev-tipo-bloqueo',tarea:'ev-tipo-tarea',expiracion:'ev-tipo-expiracion'};
@@ -545,15 +949,33 @@
         const p     = info.event.extendedProps;
         const tipo  = p.tipo || 'info';
         const color = info.event.backgroundColor || '#6B8F71';
-        document.getElementById('evTitle').textContent = info.event.title;
+        // Limpiar el título del emoji de sugerencia para el modal
+        const rawTitle = info.event.title.replace(/^[💡📚]\s*/u, '');
+        document.getElementById('evTitle').textContent = rawTitle;
 
         let actionsHtml = '';
-        if (p.editable && p.ev_id) {
-            actionsHtml = `<div class="ev-actions"><button class="ev-btn ev-btn--primary" onclick="abrirFormEditar(${p.ev_id})">Editar</button></div>`;
+        if (p.isSuggestion) {
+            const fechaStr     = info.event.startStr ? info.event.startStr.substring(0, 10) : '';
+            const tituloLimpio = rawTitle.replace(/^Estudia:\s*/i, '').replace(/^Tu momento de estudio/i, 'Sesión de estudio');
+            actionsHtml = `<div class="ev-actions" style="margin-top:10px">
+                <button class="ev-btn ev-btn--primary"
+                    data-action="confirmar-sugerencia"
+                    data-titulo="${escHtml(tituloLimpio)}"
+                    data-fecha="${fechaStr}"
+                    data-color="${color}">
+                    ✚ Añadir al calendario
+                </button>
+                <button class="ev-btn ev-btn--ghost" data-action="cerrar-modal">Cerrar</button>
+            </div>`;
+        } else if (p.editable && p.ev_id) {
+            actionsHtml = `<div class="ev-actions"><button class="ev-btn ev-btn--primary" data-action="editar-evento" data-ev-id="${p.ev_id}">Editar</button></div>`;
         }
 
+        const badgeLabel = p.isSuggestion ? 'Sugerencia Smart Slot' : (tipLabels[tipo] || tipo);
+        const badgeClass = p.isSuggestion ? '' : (tipClasses[tipo] || '');
+
         document.getElementById('evBody').innerHTML =
-            `<span class="ev-tag ${tipClasses[tipo] || ''}" style="background:${color}22;color:${color}">${tipLabels[tipo] || tipo}</span>` +
+            `<span class="ev-tag ${badgeClass}" style="background:${color}22;color:${color}">${badgeLabel}</span>` +
             (p.curso       ? `<p style="margin:6px 0 4px;font-size:.78rem;color:var(--mc-muted)">${escHtml(p.curso)}</p>` : '') +
             (p.descripcion ? `<p style="margin:4px 0 8px">${escHtml(p.descripcion)}</p>` : '') +
             actionsHtml;
@@ -568,18 +990,57 @@
     let calendar;
     document.addEventListener('DOMContentLoaded', function () {
         const calEl = document.getElementById('fc-calendar');
+
+        // Calcula la altura adecuada para vistas timeGrid (semana/día).
+        // Se limita al 78% de la ventana visible para evitar scroll innecesario.
+        function calcTimeGridHeight() {
+            return Math.min(Math.round(window.innerHeight * 0.78), 720);
+        }
+
         calendar = new FullCalendar.Calendar(calEl, {
             initialView:  'dayGridMonth',
             locale:       'es',
             headerToolbar:{left:'prev,next today', center:'title', right:'dayGridMonth,timeGridWeek,listMonth'},
             buttonText:   {today:'Hoy', month:'Mes', week:'Semana', list:'Lista'},
-            events:       fcEvents,
+            events:       [...fcEvents, ...smartSlots],
             height:       'auto',
-            editable:     false,   // controla sólo los NO-personales; overridimos por evento
+            editable:     false,
             eventStartEditable: true,
             dayMaxEvents: 3,
+            // Rango horario útil en vistas de tiempo (evita mostrar las 24h)
+            slotMinTime:  '07:00:00',
+            slotMaxTime:  '23:00:00',
             eventClick:   openViewEvent,
             dateClick:    function(info) { abrirFormNuevo(info.dateStr); },
+
+            eventContent: function(arg) {
+                const p   = arg.event.extendedProps;
+                const raw = arg.event.backgroundColor || '#6B8F71';
+
+                if (p.editable) {
+                    const icons = { sesion:'📅', hito:'🏆', recordatorio:'🔔', bloqueo:'🚫' };
+                    const icon  = icons[p.tipo] || '📅';
+                    const title = escHtmlContent(arg.event.title);
+                    return { html:
+                        `<span style="display:flex;align-items:center;gap:5px;overflow:hidden;min-width:0;padding:1px 0">` +
+                        `<span style="width:7px;height:7px;border-radius:50%;background:${raw};flex-shrink:0;box-shadow:0 0 0 2px ${raw}33"></span>` +
+                        `<span style="font-size:.75em;flex-shrink:0;line-height:1">${icon}</span>` +
+                        `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:.72rem;font-weight:700;color:#1B2336">${title}</span>` +
+                        `</span>`
+                    };
+                }
+                // Eventos del sistema: renderizado por defecto de FullCalendar
+                return true;
+            },
+
+            // Ajusta altura al cambiar entre vistas month ↔ timeGrid
+            viewDidMount: function(info) {
+                if (info.view.type.startsWith('timeGrid')) {
+                    calendar.setOption('height', calcTimeGridHeight());
+                } else {
+                    calendar.setOption('height', 'auto');
+                }
+            },
 
             // Permitir drag solo a eventos personales (extendedProps.editable)
             eventAllow: function(dropInfo, draggedEvent) {
@@ -609,12 +1070,41 @@
             },
 
             eventDidMount: function(info) {
-                const tipo = info.event.extendedProps.tipo;
-                if (tipo === 'expiracion') info.el.style.borderLeft = '3px solid #b91c1c';
-                if (tipo === 'hito')       info.el.style.borderLeft = '3px solid #d97706';
-                if (info.event.extendedProps.editable) {
-                    info.el.style.cursor = 'grab';
-                    info.el.title = 'Arrastra para cambiar la fecha';
+                const p   = info.event.extendedProps;
+                const el  = info.el;
+                const raw = info.event.backgroundColor || '#6B8F71';
+
+                if (p.isSuggestion) {
+                    el.title        = p.descripcion || 'Sugerencia Smart Slot';
+                    el.style.cursor = 'pointer';
+                    return;
+                }
+
+                if (p.editable) {
+                    el.classList.add('fc-event-personal');
+                    // Neutralizar inline styles en el raíz y los nodos FC (no en nuestro contenido)
+                    const fcNodes = [el, ...el.querySelectorAll('.fc-event-main, .fc-event-main-frame, .fc-event-title-frame')];
+                    fcNodes.forEach(node => {
+                        node.style.setProperty('background-color', 'transparent', 'important');
+                        node.style.setProperty('border-color',     'transparent', 'important');
+                        node.style.setProperty('border',           'none',        'important');
+                        node.style.setProperty('box-shadow',       'none',        'important');
+                    });
+                    el.style.cursor = 'grab';
+                    el.title        = 'Arrastra para mover · ' + info.event.title;
+                } else {
+                    // Eventos del sistema (tareas, expiraciones): color sólido con barra
+                    const barColors = {
+                        expiracion:   '#b91c1c',
+                        hito:         '#d97706',
+                        recordatorio: '#1d4ed8',
+                        bloqueo:      '#64748b',
+                        tarea:        '#7c3aed',
+                        sesion:       '#166534',
+                    };
+                    const bar = barColors[p.tipo];
+                    if (bar) el.style.borderLeft = `3px solid ${bar}`;
+                    el.title = info.event.title + (p.curso ? '\n' + p.curso : '');
                 }
             }
         });
@@ -627,73 +1117,96 @@
             }
         });
 
-        // Reajustar FullCalendar cuando el sidebar cambia de tamaño
+        // Reajustar FullCalendar al cambiar el sidebar y al redimensionar ventana
         const sidebarToggleBtn = document.getElementById('sidebarToggle');
         if (sidebarToggleBtn) {
             sidebarToggleBtn.addEventListener('click', function () {
-                // Esperar a que termine la transición CSS (~220ms) y re-renderizar
-                setTimeout(() => calendar && calendar.updateSize(), 230);
+                setTimeout(() => {
+                    calendar && calendar.updateSize();
+                    if (calendar.view.type.startsWith('timeGrid')) {
+                        calendar.setOption('height', calcTimeGridHeight());
+                    }
+                }, 240);
             });
         }
+        window.addEventListener('resize', function () {
+            if (calendar && calendar.view.type.startsWith('timeGrid')) {
+                calendar.setOption('height', calcTimeGridHeight());
+            }
+        });
 
-        // ── RADAR CHART ──
+        // ── SKILLS RADAR ──
+        // skillsRadar: [{skill, nivel, cursos}] — calculado en el controlador
         const radarCanvas = document.getElementById('radarChart');
         if (radarCanvas) {
-            const cursosData  = <?= json_encode(array_values(array_map(
-                fn($c) => ['titulo' => mb_substr($c['titulo'], 0, 22), 'progreso' => $c['progreso']],
-                array_filter($cursosEnProgreso ?? [], fn($c) => $c['total_lecciones'] > 0)
-            )), JSON_HEX_TAG | JSON_HEX_APOS) ?>;
+            const skillsData = <?= json_encode(array_values($skillsRadar ?? []), JSON_HEX_TAG | JSON_HEX_APOS) ?>;
+            const labels  = skillsData.map(s => s.skill);
+            const valores = skillsData.map(s => s.nivel);
 
-            const labels   = cursosData.map(c => c.titulo);
-            const valores  = cursosData.map(c => c.progreso);
+            const radarTooltipOpts = {
+                callbacks: {
+                    label: ctx => ' Nivel: ' + ctx.raw + '%',
+                    afterLabel: ctx => {
+                        const s = skillsData[ctx.dataIndex];
+                        return s.cursos ? 'Cursos: ' + s.cursos : '';
+                    }
+                },
+                titleFont: {family:"'Saira',sans-serif", size:11},
+                bodyFont:  {family:"'Saira',sans-serif", size:11},
+            };
 
-            // Si sólo hay 1 curso, usar doughnut; si hay 2+, radar
-            if (cursosData.length === 1) {
+            if (skillsData.length === 0) {
+                // noop — manejado en PHP con chart-no-data
+            } else if (skillsData.length < 3) {
+                // 1-2 skills: barras horizontales (radar no tiene sentido con <3 ejes)
                 new Chart(radarCanvas, {
-                    type: 'doughnut',
+                    type: 'bar',
                     data: {
-                        labels: ['Completado', 'Pendiente'],
+                        labels,
                         datasets: [{
-                            data: [valores[0], 100 - valores[0]],
-                            backgroundColor: ['#6B8F71', '#e5e7eb'],
-                            borderWidth: 0,
+                            label: 'Nivel (%)',
+                            data: valores,
+                            backgroundColor: labels.map((_, i) =>
+                                ['rgba(107,143,113,.25)', 'rgba(59,130,246,.22)'][i % 2]),
+                            borderColor:  labels.map((_, i) =>
+                                ['#6B8F71', '#3b82f6'][i % 2]),
+                            borderWidth: 2,
+                            borderRadius: 6,
                         }]
                     },
                     options: {
-                        cutout: '70%',
-                        plugins: {
-                            legend: {display: false},
-                            tooltip: {callbacks: {label: ctx => ctx.label + ': ' + ctx.raw + '%'}},
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                min: 0, max: 100,
+                                ticks: {
+                                    font: {family:"'Saira',sans-serif", size:9},
+                                    color:'#9ca3af',
+                                    callback: v => v + '%',
+                                },
+                                grid: {color:'#f3f4f6'},
+                            },
+                            y: {
+                                ticks: {font: {family:"'Saira',sans-serif", size:10, weight:'700'}, color:'#374151'},
+                                grid: {display:false},
+                            }
                         },
-                        animation: {duration: 700}
-                    },
-                    plugins: [{
-                        id: 'centerText',
-                        afterDraw(chart) {
-                            const {ctx, chartArea:{left,top,right,bottom}} = chart;
-                            ctx.save();
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            const cx = (left + right) / 2, cy = (top + bottom) / 2;
-                            ctx.font = 'bold 22px Saira,sans-serif';
-                            ctx.fillStyle = '#1B2336';
-                            ctx.fillText(valores[0] + '%', cx, cy - 4);
-                            ctx.font = '600 10px Saira,sans-serif';
-                            ctx.fillStyle = '#6b7280';
-                            ctx.fillText(labels[0].length > 16 ? labels[0].substring(0,16)+'…' : labels[0], cx, cy + 16);
-                            ctx.restore();
-                        }
-                    }]
+                        plugins: {legend:{display:false}, tooltip: radarTooltipOpts},
+                        animation: {duration:700}
+                    }
                 });
             } else {
+                // 3+ skills: diagrama de araña/radar
                 new Chart(radarCanvas, {
                     type: 'radar',
                     data: {
-                        labels: labels,
+                        labels,
                         datasets: [{
-                            label: 'Progreso (%)',
+                            label: 'Nivel (%)',
                             data: valores,
-                            backgroundColor: 'rgba(107,143,113,.18)',
+                            backgroundColor: 'rgba(107,143,113,.14)',
                             borderColor: '#6B8F71',
                             borderWidth: 2.2,
                             pointBackgroundColor: '#6B8F71',
@@ -719,21 +1232,14 @@
                                 pointLabels: {
                                     font: {family:"'Saira',sans-serif", size:10, weight:'700'},
                                     color: '#374151',
-                                    callback: lbl => lbl.length > 14 ? lbl.substring(0,14)+'…' : lbl,
+                                    callback: lbl => lbl.length > 13 ? lbl.substring(0,13)+'…' : lbl,
                                 },
-                                grid:  {color:'#e5e7eb'},
-                                angleLines:{color:'#e5e7eb'},
+                                grid:       {color:'#e5e7eb'},
+                                angleLines: {color:'#d1d5db'},
                             }
                         },
-                        plugins: {
-                            legend: {display: false},
-                            tooltip: {
-                                callbacks: {label: ctx => ' ' + ctx.raw + '% completado'},
-                                titleFont: {family:"'Saira',sans-serif"},
-                                bodyFont:  {family:"'Saira',sans-serif"},
-                            }
-                        },
-                        animation: {duration: 800}
+                        plugins: {legend:{display:false}, tooltip: radarTooltipOpts},
+                        animation: {duration:800}
                     }
                 });
             }
@@ -757,6 +1263,42 @@
             document.getElementById('evColor').value = selectedColor;
         });
     });
+
+    // Delegación de eventos del modal de vista (botones inyectados via innerHTML)
+    document.getElementById('evBody').addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        if (action === 'cerrar-modal') {
+            closeViewModal();
+        } else if (action === 'editar-evento') {
+            abrirFormEditar(parseInt(btn.dataset.evId));
+        } else if (action === 'confirmar-sugerencia') {
+            confirmarSugerencia(btn.dataset.titulo, btn.dataset.fecha, btn.dataset.color);
+        }
+    });
+
+    function confirmarSugerencia(titulo, fecha, color) {
+        closeViewModal();
+        formTitle.textContent = 'Confirmar evento';
+        evIdField.value = '';
+        eliminarBtn.style.display = 'none';
+        document.getElementById('evTitulo').value      = titulo;
+        document.getElementById('evTipo').value        = 'sesion';
+        document.getElementById('evFechaInicio').value = fecha;
+        document.getElementById('evFechaFin').value    = '';
+        document.getElementById('evDescripcion').value = '';
+        const swatches = document.querySelectorAll('.ev-color-swatch');
+        let matched = false;
+        swatches.forEach(s => {
+            s.classList.remove('selected');
+            if (s.dataset.color === color) { s.classList.add('selected'); matched = true; }
+        });
+        if (!matched) swatches[0]?.classList.add('selected');
+        selectedColor = matched ? color : (swatches[0]?.dataset.color || '#6B8F71');
+        document.getElementById('evColor').value = selectedColor;
+        formOv.classList.add('open'); formModal.classList.add('open');
+    }
 
     function openFormModal() { formOv.classList.add('open'); formModal.classList.add('open'); closeViewModal(); }
     function closeFormModal() {
@@ -797,8 +1339,6 @@
         });
     }
 
-    document.getElementById('btnNuevoEvento').addEventListener('click', () => abrirFormNuevo(null));
-    document.getElementById('btnNuevoEvRp')?.addEventListener('click', () => abrirFormNuevo(null));
     [formOv, document.getElementById('formClose'), document.getElementById('formCancelBtn')].forEach(el => el?.addEventListener('click', closeFormModal));
 
     document.querySelectorAll('.ev-edit-btn').forEach(btn => {
@@ -831,6 +1371,34 @@
     });
 
     function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    const escHtmlContent = escHtml;
+
+    // ── AGENDA TABS ──
+    document.querySelectorAll('.agenda-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.agenda;
+            document.querySelectorAll('.agenda-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.agenda-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('panel' + target.charAt(0).toUpperCase() + target.slice(1)).classList.add('active');
+        });
+    });
+
+    // ── COLLAPSIBLE CARDS ──
+    // Restaurar estado guardado en localStorage
+    document.querySelectorAll('.rp-card[data-rp-id]').forEach(card => {
+        const id = card.dataset.rpId;
+        if (localStorage.getItem('rp-collapsed-' + id) === '1') {
+            card.classList.add('collapsed');
+        }
+        const head = card.querySelector('.rp-head');
+        head.addEventListener('click', e => {
+            // No colapsar si el clic es en un enlace o botón dentro del head
+            if (e.target.closest('a, button:not(.rp-toggle)')) return;
+            card.classList.toggle('collapsed');
+            localStorage.setItem('rp-collapsed-' + id, card.classList.contains('collapsed') ? '1' : '0');
+        });
+    });
     </script>
 </body>
 </html>

@@ -52,9 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['crm_login'])) {
             } else {
                 $rol          = $user['rol']          ?? 'USUARIO';
                 $esAdmin      = ($rol === 'ADMINISTRADOR');
-                $esModerador  = !empty($user['es_moderador']);
+                $esModerador  = ($rol === 'MODERADOR');
+                $esInstructor = ($rol === 'INSTRUCTOR');
 
-                if (!$esAdmin && !$esModerador) {
+                if (!$esAdmin && !$esModerador && !$esInstructor) {
                     $loginError = 'No tienes permisos para acceder al CRM.';
                 } else {
                     $_SESSION['usuario_id']     = $user['id'];

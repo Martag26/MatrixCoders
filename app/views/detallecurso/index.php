@@ -139,26 +139,29 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                 position: static !important;
             }
 
-            .curso-acceso {
-                flex-direction: column;
-                align-items: stretch;
+            .tabs-header-row {
+                flex-wrap: wrap;
             }
         }
 
         /* ── AVISO EXPIRACIÓN ── */
-        .expiry-notice {
-            display: flex; align-items: flex-start; gap: 12px;
-            border-radius: 10px; padding: .85rem 1.1rem;
-            margin-top: .75rem; margin-bottom: 1.2rem;
-            font-size: .83rem; line-height: 1.55;
+        .expiry-strip {
+            display: flex; align-items: center; gap: 10px;
+            padding: .6rem .9rem; border-radius: 10px;
+            margin-top: .6rem; margin-bottom: 1.1rem;
+            font-size: .82rem;
         }
-        .expiry-notice--ok   { background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
-        .expiry-notice--warn { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
-        .expiry-notice--danger { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; }
-        .expiry-notice svg { flex-shrink: 0; margin-top: 1px; }
-        .expiry-notice strong { display: block; font-weight: 700; margin-bottom: 1px; }
-        .expiry-bar { height: 4px; border-radius: 99px; background: #e5e7eb; margin-top: 8px; overflow: hidden; }
-        .expiry-bar-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+        .expiry-strip--ok     { background: #f0fdf4; color: #166534; }
+        .expiry-strip--warn   { background: #fffbeb; color: #92400e; }
+        .expiry-strip--danger { background: #fef2f2; color: #991b1b; }
+        .expiry-strip svg { flex-shrink: 0; }
+        .expiry-strip-text { flex: 1; min-width: 0; }
+        .expiry-strip-label { font-weight: 700; }
+        .expiry-strip-sub { font-size: .76rem; opacity: .78; }
+        .expiry-ring { flex-shrink: 0; width: 44px; height: 44px; }
+        .expiry-ring circle { fill: none; stroke-width: 4; stroke-linecap: round; }
+        .expiry-ring .ring-bg { stroke: rgba(0,0,0,.08); }
+        .expiry-ring .ring-fill { transition: stroke-dashoffset .5s ease; transform: rotate(-90deg); transform-origin: center; }
 
         /* ── MATRICULA OK ── */
         .matricula-ok {
@@ -174,39 +177,32 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             gap: .6rem;
         }
 
-        .curso-acceso {
-            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: 12px;
-            padding: 1rem 1.15rem;
-            color: #166534;
-            margin-bottom: 1.2rem;
+
+        .tabs-header-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
+            gap: .75rem;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: .25rem;
         }
 
-        .curso-acceso-copy {
-            display: grid;
-            gap: .2rem;
-        }
-
-        .curso-acceso-copy strong {
-            font-size: .95rem;
-        }
-
-        .curso-acceso-copy span {
-            font-size: .82rem;
-            color: #15803d;
-        }
-
-        .curso-acceso .btn-mc,
-        .curso-acceso form {
-            margin: 0;
-            width: auto;
+        .acceso-chip-btn-solo {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--mc-green, #6B8F71);
+            color: #fff;
+            border-radius: 8px;
+            padding: .35rem .85rem;
+            font-size: .78rem;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
             flex-shrink: 0;
+            transition: background .13s;
         }
+
+        .acceso-chip-btn-solo:hover { background: #557a5c; color: #fff; }
 
         /* ── TABS ── */
         .curso-tabs .nav-link {
@@ -620,7 +616,7 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
 
     <!-- HERO -->
     <section class="curso-hero">
-        <div class="container">
+        <div style="max-width:1220px;margin:0 auto;padding:0 18px">
             <div class="row align-items-center g-3">
                 <div class="col-lg-8">
                     <h1><?= $titulo ?></h1>
@@ -661,13 +657,6 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                     ? BASE_URL . '/index.php?url=leccion&id=' . $primeraLeccion['id']
                     : BASE_URL . '/index.php?url=detallecurso&id=' . $curso['id'];
                 ?>
-                <div class="curso-acceso">
-                    <div class="curso-acceso-copy">
-                        <strong>Ya tienes acceso a este curso</strong>
-                        <span>Puedes entrar directamente y seguir con tus lecciones.</span>
-                    </div>
-                    <a href="<?= $urlCurso ?>" class="btn-mc">▶ Ir al curso</a>
-                </div>
                 <?php if ($fechaExpiracion): ?>
                     <?php
                     $d = $diasParaExpirar;
@@ -691,20 +680,23 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                         $sub = 'Este acceso expira el ' . $fechaExpiracion . ' (90 días desde la matrícula).';
                     }
                     ?>
-                    <div class="expiry-notice <?= $cls ?>">
-                        <?php if ($d <= 0): ?>
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        <?php elseif ($d <= 14): ?>
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                        <?php else: ?>
-                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                        <?php endif; ?>
-                        <div style="flex:1">
-                            <strong><?= $msg ?></strong>
-                            <?= htmlspecialchars($sub) ?>
-                            <div class="expiry-bar">
-                                <div class="expiry-bar-fill" style="width:<?= $pctUsed ?>%;background:<?= $barColor ?>"></div>
-                            </div>
+                    <?php
+                    $circumference = 2 * M_PI * 16; // r=16
+                    $pctLeft = 100 - $pctUsed;
+                    $dashOffset = $circumference * (1 - $pctLeft / 100);
+                    $stripCls = str_replace('expiry-notice', 'expiry-strip', $cls);
+                    ?>
+                    <div class="expiry-strip <?= $stripCls ?>">
+                        <svg class="expiry-ring" viewBox="0 0 44 44">
+                            <circle class="ring-bg"   cx="22" cy="22" r="16" />
+                            <circle class="ring-fill" cx="22" cy="22" r="16"
+                                stroke="<?= $barColor ?>"
+                                stroke-dasharray="<?= $circumference ?>"
+                                stroke-dashoffset="<?= $dashOffset ?>" />
+                        </svg>
+                        <div class="expiry-strip-text">
+                            <div class="expiry-strip-label"><?= $msg ?></div>
+                            <div class="expiry-strip-sub"><?= htmlspecialchars($sub) ?></div>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -722,24 +714,31 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
             <?php endif; ?>
 
             <!-- TABS -->
-            <ul class="nav curso-tabs border-bottom mb-1">
-                <li class="nav-item">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-info">Información</button>
-                </li>
-                <?php if (!empty($unidades)): ?>
+            <div class="tabs-header-row">
+                <ul class="nav curso-tabs border-bottom mb-1" style="flex:1;border-bottom:none!important;margin-bottom:0!important">
                     <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-temario">
-                            Temario
-                            <span class="badge ms-1" style="background:var(--mc-green);font-size:.68rem;"><?= count($unidades) ?></span>
-                        </button>
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-info">Información</button>
                     </li>
+                    <?php if (!empty($unidades)): ?>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-temario">
+                                Temario
+                                <span class="badge ms-1" style="background:var(--mc-green);font-size:.68rem;"><?= count($unidades) ?></span>
+                            </button>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+                <?php if ($estaMatriculado): ?>
+                    <?php
+                    $_pl = $modeloCurso->getPrimeraLeccion($curso['id']);
+                    $_urlChip = $_pl
+                        ? BASE_URL . '/index.php?url=leccion&id=' . $_pl['id']
+                        : BASE_URL . '/index.php?url=detallecurso&id=' . $curso['id'];
+                    ?>
+                    <a href="<?= $_urlChip ?>" class="acceso-chip-btn-solo">▶ Ir al curso</a>
                 <?php endif; ?>
-                <?php if (!empty($tareas)): ?>
-                    <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tareas">Tareas</button>
-                    </li>
-                <?php endif; ?>
-            </ul>
+            </div>
+            <div class="border-bottom mb-1"></div>
 
             <div class="tab-content">
 
@@ -822,18 +821,65 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                 <?php endif; ?>
 
                 <!-- ── TAREAS ── -->
-                <?php if (!empty($tareas)): ?>
-                    <div class="tab-pane fade" id="tab-tareas">
+                <div class="tab-pane fade" id="tab-tareas">
+                    <?php if (empty($tareas)): ?>
+                        <div class="tarea-empty">
+                            <p style="font-weight:700;margin:0 0 4px">Sin tareas asignadas</p>
+                            <p style="font-size:.82rem;margin:0;line-height:1.6">
+                                Este curso todavía no tiene tareas publicadas.
+                                Cuando el instructor añada tareas con fecha límite aparecerán aquí.
+                            </p>
+                        </div>
+                    <?php else: ?>
+                        <?php
+                        // Estadísticas rápidas de tareas (solo si el usuario está matriculado)
+                        if ($estaMatriculado):
+                            $totalT     = count($tareas);
+                            $entregadas = count(array_filter($tareas, fn($t) => $t['estado_visual'] === 'entregada'));
+                            $vencidas   = count(array_filter($tareas, fn($t) => $t['estado_visual'] === 'vencida'));
+                            $proximas   = count(array_filter($tareas, fn($t) => $t['estado_visual'] === 'proxima'));
+                        ?>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.2rem">
+                            <span style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:99px;padding:5px 13px;font-size:.77rem;font-weight:700;color:#166534">
+                                ✔ <?= $entregadas ?>/<?= $totalT ?> entregadas
+                            </span>
+                            <?php if ($proximas > 0): ?>
+                            <span style="background:#fffbeb;border:1px solid #fde68a;border-radius:99px;padding:5px 13px;font-size:.77rem;font-weight:700;color:#92400e">
+                                ⚡ <?= $proximas ?> próxima<?= $proximas !== 1 ? 's' : '' ?>
+                            </span>
+                            <?php endif; ?>
+                            <?php if ($vencidas > 0): ?>
+                            <span style="background:#fef2f2;border:1px solid #fecaca;border-radius:99px;padding:5px 13px;font-size:.77rem;font-weight:700;color:#991b1b">
+                                ⚠ <?= $vencidas ?> vencida<?= $vencidas !== 1 ? 's' : '' ?>
+                            </span>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+
                         <?php foreach ($tareas as $t):
-                            $vencida = !empty($t['fecha_limite']) && strtotime($t['fecha_limite']) < time();
-                            $diasRestantes = !empty($t['fecha_limite'])
-                                ? (int)floor((strtotime(substr($t['fecha_limite'], 0, 10)) - strtotime(date('Y-m-d'))) / 86400)
-                                : null;
+                            $estadoVisual  = $t['estado_visual'] ?? 'pendiente';
+                            $vencida       = $estadoVisual === 'vencida';
+                            $entregada     = $estadoVisual === 'entregada';
+                            $proxima       = $estadoVisual === 'proxima';
+                            $diasRestantes = $t['dias_restantes'] ?? null;
+
+                            $chipLabel = match($estadoVisual) {
+                                'entregada' => '✔ Entregada',
+                                'vencida'   => '⚠ Vencida',
+                                'proxima'   => $diasRestantes === 0 ? 'Entrega hoy' : 'En '.$diasRestantes.'d',
+                                default     => 'Tarea del curso',
+                            };
+                            $chipStyle = match($estadoVisual) {
+                                'entregada' => 'background:#d1fae5;color:#065f46',
+                                'vencida'   => 'background:#fee2e2;color:#991b1b',
+                                'proxima'   => 'background:#fef9c3;color:#854d0e',
+                                default     => '',
+                            };
                         ?>
                             <div class="tarea-item">
                                 <div class="tarea-body-meta">
                                     <div class="tarea-panel-top">
-                                        <span class="tarea-chip tarea-chip-soft"><?= $vencida ? 'Vencida' : ($diasRestantes === 0 ? 'Entrega hoy' : 'Tarea del curso') ?></span>
+                                        <span class="tarea-chip tarea-chip-soft" style="<?= $chipStyle ?>"><?= $chipLabel ?></span>
                                         <?php if (!empty($t['leccion_titulo'])): ?>
                                             <span class="tarea-chip tarea-chip-accent"><?= htmlspecialchars($t['leccion_titulo']) ?></span>
                                         <?php endif; ?>
@@ -842,8 +888,13 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                     <?php if (!empty($t['descripcion'])): ?>
                                         <div class="tarea-desc"><?= htmlspecialchars($t['descripcion']) ?></div>
                                     <?php endif; ?>
-                                    <?php if (!empty($t['leccion_titulo'])): ?>
-                                        <span class="tarea-lesson-ref">Asociada a la leccion: <?= htmlspecialchars($t['leccion_titulo']) ?></span>
+                                    <?php if ($entregada && !empty($t['entregado_en'])): ?>
+                                        <span class="tarea-lesson-ref" style="color:#15803d">
+                                            Entregada el <?= fmtFecha($t['entregado_en']) ?>
+                                            <?= $t['entrega_nota'] !== null ? ' · Nota: ' . htmlspecialchars($t['entrega_nota']) : '' ?>
+                                        </span>
+                                    <?php elseif (!empty($t['leccion_titulo'])): ?>
+                                        <span class="tarea-lesson-ref">Asociada a: <?= htmlspecialchars($t['leccion_titulo']) ?></span>
                                     <?php endif; ?>
                                 </div>
                                 <?php if (!empty($t['fecha_limite'])): ?>
@@ -853,8 +904,14 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                 <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
+
+                        <?php if (!$estaMatriculado): ?>
+                            <p style="font-size:.8rem;color:var(--mc-muted);margin-top:.5rem;text-align:center">
+                                Matricúlate para ver tu progreso en las tareas.
+                            </p>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
 
             </div><!-- /tab-content -->
         </div><!-- /columna principal -->

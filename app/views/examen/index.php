@@ -24,8 +24,9 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--mc-dark);marg
 /* Sticky header */
 .exam-sticky-header{position:sticky;top:66px;z-index:50;background:#fff;border-bottom:1px solid var(--mc-border);padding:0;}
 .exam-progress-track{display:flex;align-items:center;gap:14px;padding:10px 24px;max-width:1160px;margin:0 auto;}
-.exam-progress-bar-wrap{flex:1;height:6px;background:#e5e7eb;border-radius:99px;overflow:hidden;}
-.exam-progress-bar-fill{height:100%;background:var(--mc-green);border-radius:99px;transition:width .3s;}
+.exam-progress-bar-wrap{flex:1;height:10px;background:#e5e7eb;border-radius:99px;overflow:visible;position:relative;}
+.exam-progress-bar-fill{height:100%;background:linear-gradient(90deg,#4a6b50,var(--mc-green));border-radius:99px;transition:width .3s;position:relative;min-width:0;}
+.exam-progress-bar-fill::after{content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:14px;height:14px;border-radius:50%;background:var(--mc-green);border:2px solid #fff;box-shadow:0 0 0 2px var(--mc-green);display:var(--dot-display,none);}
 .exam-progress-text{font-size:.8rem;font-weight:700;color:var(--mc-muted);white-space:nowrap;}
 
 /* Hero */
@@ -219,7 +220,9 @@ function onSelect(radio, preguntaId, idx) {
 
   // Update progress
   const pct = Math.round((answered / TOTAL) * 100);
-  document.getElementById('progressFill').style.width = pct + '%';
+  const fill = document.getElementById('progressFill');
+  fill.style.width = pct + '%';
+  fill.style.setProperty('--dot-display', answered > 0 ? 'block' : 'none');
   document.getElementById('progressText').textContent = answered + ' / ' + TOTAL + ' respondidas';
   document.getElementById('footerAnswered').textContent = answered;
 }

@@ -212,6 +212,78 @@ body {
     transform: translateY(-1px);
 }
 
+.btn-course-enrolled {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: .72rem;
+    font-weight: 700;
+    border: 1px solid #bbf7d0;
+    cursor: default;
+    pointer-events: none;
+}
+
+.card-body-inner-home {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.nivel-badge-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .63rem;
+    font-weight: 800;
+    border-radius: 20px;
+    padding: 3px 9px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: .2px;
+}
+
+.nivel-badge-home::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+.course-desc-home {
+    font-size: .78rem;
+    color: #6b7280;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+}
+
+.card-footer-row-home {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.course-badge-discount {
+    color: #fff;
+    background: #ef4444;
+    border-color: #ef4444;
+    font-weight: 800;
+}
+
 .seccionBeneficios {
     background: linear-gradient(to right, #6B8F71, #1D1E18);
     color: #fff;

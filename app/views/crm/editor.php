@@ -23,6 +23,26 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 .crm-editor-tab:hover{background:rgba(255,255,255,.06);color:var(--crm-text)}
 .crm-editor-tab.active{background:var(--crm-primary);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.35)}
 .crm-editor-tab svg{flex-shrink:0}
+
+/* ── Contenido sub-tabs ── */
+.crm-contenido-subtabs-nav{display:flex;gap:2px;padding:4px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:11px;margin-bottom:18px;width:fit-content}
+.crm-contenido-subtab{display:flex;align-items:center;gap:6px;padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;color:var(--crm-muted);background:transparent;transition:all .15s;white-space:nowrap}
+.crm-contenido-subtab:hover{background:rgba(255,255,255,.06);color:var(--crm-text)}
+.crm-contenido-subtab.active{background:var(--crm-primary);color:#fff;box-shadow:0 2px 8px rgba(124,58,237,.3)}
+.crm-contenido-subtab .ctab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(255,255,255,.25);color:inherit}
+.crm-contenido-subtab:not(.active) .ctab-badge{background:var(--crm-border);color:var(--crm-muted)}
+.crm-ctab-panel{display:none}
+.crm-ctab-panel.active{display:block}
+
+/* ── Unit collapse ── */
+.crm-unit-lessons{overflow:hidden;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .2s;}
+.crm-unit-lessons.collapsed{max-height:0!important;opacity:0;pointer-events:none;}
+.crm-unit-chevron{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;color:var(--crm-muted);transition:transform .25s,background .15s;cursor:pointer;flex-shrink:0;}
+.crm-unit-chevron:hover{background:rgba(255,255,255,.08);}
+.crm-unit.is-open .crm-unit-chevron{transform:rotate(0deg);}
+.crm-unit:not(.is-open) .crm-unit-chevron{transform:rotate(-90deg);}
+.crm-add-lesson{display:none;}
+.crm-unit.is-open .crm-add-lesson{display:flex;}
 .crm-tab-panel{display:none}
 .crm-tab-panel.active{display:block}
 .crm-info-grid{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start}
@@ -35,9 +55,22 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 .crm-exam-subtab{padding:10px 20px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:var(--crm-muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:8px 8px 0 0}
 .crm-exam-subtab:hover{color:var(--crm-text);background:rgba(255,255,255,.04)}
 .crm-exam-subtab.active{color:var(--crm-primary);border-bottom-color:var(--crm-primary)}
-.crm-tarea-card{background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:11px;padding:16px;margin-bottom:10px;position:relative}
-.crm-tarea-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.crm-tarea-num{width:26px;height:26px;border-radius:7px;background:var(--crm-primary)20;color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.crm-tarea-card{background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:12px;padding:0;margin-bottom:12px;position:relative;overflow:hidden}
+.crm-tarea-card-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--crm-border);background:rgba(124,58,237,.03)}
+.crm-tarea-num{width:28px;height:28px;border-radius:8px;background:var(--crm-primary)20;color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.crm-tarea-body{padding:16px}
+.crm-tarea-tipo-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.4px}
+.crm-tarea-tipo-proyecto{background:rgba(139,92,246,.15);color:#7c3aed}
+.crm-tarea-tipo-codigo{background:rgba(16,185,129,.12);color:#059669}
+.crm-tarea-tipo-diseno{background:rgba(245,158,11,.12);color:#b45309}
+.crm-tarea-tipo-texto{background:rgba(99,102,241,.12);color:#4338ca}
+.crm-rubrica-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.crm-rubrica-table th{text-align:left;font-size:11px;font-weight:600;color:var(--crm-muted);padding:5px 8px;background:var(--crm-bg-alt,rgba(0,0,0,.03));border-bottom:1px solid var(--crm-border)}
+.crm-rubrica-table td{padding:5px 8px;border-bottom:1px solid var(--crm-border)}
+.crm-rubrica-table tr:last-child td{border-bottom:none}
+.crm-pts-summary{display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.2);border-radius:9px;font-size:12.5px;font-weight:600;color:var(--crm-primary)}
+.crm-exam-preview-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--crm-border);border-radius:8px;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--crm-muted);cursor:pointer;transition:all .15s}
+.crm-exam-preview-btn:hover{border-color:var(--crm-primary);color:var(--crm-primary);background:rgba(124,58,237,.05)}
 .crm-apunte-block{background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:11px;padding:16px;margin-bottom:10px}
 .crm-apunte-block-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .crm-sortable-handle{cursor:grab;color:var(--crm-muted);flex-shrink:0;line-height:0}
@@ -91,10 +124,6 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>
     Evaluación
   </button>
-  <button class="crm-editor-tab" data-tab="apuntes" onclick="switchTab('apuntes')">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-    Apuntes
-  </button>
   <button class="crm-editor-tab" data-tab="resultados" onclick="switchTab('resultados'); cargarResultados()">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     Resultados
@@ -134,6 +163,14 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
           <div class="crm-form-group">
             <label class="crm-label">Descripción</label>
             <textarea class="crm-textarea" id="cDesc" rows="4" placeholder="Describe el curso, qué aprenderán los alumnos..."><?= htmlspecialchars($curso['descripcion'] ?? '') ?></textarea>
+          </div>
+          <div class="crm-form-group">
+            <label class="crm-label">Información adicional <span style="font-weight:400;color:var(--crm-muted)">(visible en la ficha del curso)</span></label>
+            <textarea class="crm-textarea" id="cInfoExtra" rows="3" placeholder="Requisitos previos, público objetivo, detalles del formato…"><?= htmlspecialchars($curso['info_extra'] ?? '') ?></textarea>
+          </div>
+          <div class="crm-form-group">
+            <label class="crm-label">¿Qué aprenderás? <span style="font-weight:400;color:var(--crm-muted)">(un punto por línea)</span></label>
+            <textarea class="crm-textarea" id="cQueAprenderas" rows="5" placeholder="Aprenderás a crear APIs REST&#10;Dominarás Docker y contenedores&#10;Implementarás CI/CD en proyectos reales"><?= htmlspecialchars($curso['que_aprenderas'] ?? '') ?></textarea>
           </div>
           <div class="crm-form-row">
             <div class="crm-form-group">
@@ -179,7 +216,7 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
         </div>
         <div class="crm-editor-panel-body" style="padding:12px">
           <?php if (empty($instructores)): ?>
-            <p style="font-size:13px;color:var(--crm-muted);text-align:center;padding:12px">No hay instructores (rol EDITOR) registrados.</p>
+            <p style="font-size:13px;color:var(--crm-muted);text-align:center;padding:12px">No hay instructores (rol INSTRUCTOR) registrados.</p>
           <?php else: ?>
             <div id="instructoresAsignadosList" style="display:flex;flex-direction:column;gap:6px">
               <?php foreach ($instructoresAsignados as $iid):
@@ -261,30 +298,66 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 </div>
 
 <!-- ================================================================ -->
-<!-- TAB 2: CONTENIDO (VÍDEOS)                                         -->
+<!-- TAB 2: CONTENIDO                                                   -->
 <!-- ================================================================ -->
 <div id="tab-contenido" class="crm-tab-panel">
+
+<!-- Sub-tabs nav -->
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+  <div class="crm-contenido-subtabs-nav">
+    <button class="crm-contenido-subtab active" data-ctab="lecciones" onclick="switchContenidoTab('lecciones')">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Lecciones
+      <span class="ctab-badge"><?= $numLecciones ?></span>
+    </button>
+    <button class="crm-contenido-subtab" data-ctab="recursos" onclick="switchContenidoTab('recursos')">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+      Recursos
+      <span class="ctab-badge"><?= array_sum(array_map(fn($u) => array_sum(array_map(fn($l) => count($l['recursos'] ?? []), $u['lecciones'])), $unidades)) ?></span>
+    </button>
+    <button class="crm-contenido-subtab" data-ctab="tareas" onclick="switchContenidoTab('tareas')">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+      Tareas
+      <span class="ctab-badge"><?= count($tareasPracticas) ?></span>
+    </button>
+  </div>
+  <!-- Acciones contextuales por sub-tab -->
+  <div id="ctab-action-lecciones">
+    <button type="button" class="crm-btn crm-btn-primary crm-btn-sm" onclick="openModalNuevaUnidad()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+      Nueva unidad
+    </button>
+  </div>
+  <div id="ctab-action-tareas" style="display:none">
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="agregarTarea()">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+      Añadir tarea
+    </button>
+  </div>
+</div>
+
+<!-- ── Sub-tab: LECCIONES ── -->
+<div id="ctab-lecciones" class="crm-ctab-panel active">
   <div class="crm-editor-panel">
     <div class="crm-editor-panel-header">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      <h3>Contenido del curso</h3>
+      <h3>Lecciones</h3>
       <span style="font-size:11px;color:var(--crm-muted);margin-left:4px"><?= $numUnidades ?> unidades · <?= $numLecciones ?> lecciones</span>
-      <button type="button" class="crm-btn crm-btn-primary crm-btn-sm" style="margin-left:auto" onclick="openModalNuevaUnidad()">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-        Unidad
-      </button>
     </div>
     <div class="crm-editor-panel-body" style="padding:14px">
       <div class="crm-curriculum" id="curriculum">
         <?php foreach ($unidades as $u): ?>
-        <div class="crm-unit" data-unidad-id="<?= $u['id'] ?>">
-          <div class="crm-unit-header">
-            <span class="crm-unit-handle" title="Arrastrar">
+        <div class="crm-unit is-open" data-unidad-id="<?= $u['id'] ?>">
+          <div class="crm-unit-header" onclick="toggleUnit(this.closest('.crm-unit'))" style="cursor:pointer">
+            <span class="crm-unit-handle" title="Arrastrar" onclick="event.stopPropagation()">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
             </span>
-            <span class="crm-unit-title" onclick="toggleUnit(this)"><?= htmlspecialchars($u['titulo']) ?></span>
+            <span class="crm-unit-chevron">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+            </span>
+            <span class="crm-unit-title"><?= htmlspecialchars($u['titulo']) ?></span>
             <span style="font-size:11px;color:var(--crm-muted);margin-right:4px"><?= count($u['lecciones']) ?> lec.</span>
-            <div class="crm-unit-actions">
+            <div class="crm-unit-actions" onclick="event.stopPropagation()">
               <button class="crm-btn-icon crm-btn-sm" title="Editar unidad" onclick="openModalEditarUnidad(this, <?= $u['id'] ?>)">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
@@ -336,7 +409,167 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
       </div>
     </div>
   </div>
+</div><!-- cierre ctab-lecciones -->
+
+<!-- ── Sub-tab: RECURSOS ── -->
+<?php
+$tipoIconsMap = ['pdf'=>'📄','doc'=>'📝','zip'=>'🗜️','link'=>'🔗','actividad'=>'✏️','video'=>'▶️'];
+$tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>'Enlace','actividad'=>'Actividad','video'=>'Vídeo'];
+?>
+<div id="ctab-recursos" class="crm-ctab-panel">
+<div class="crm-editor-panel">
+  <div class="crm-editor-panel-header">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+    <h3>Recursos por lección</h3>
+    <span style="font-size:11.5px;color:var(--crm-muted);margin-left:6px">Material visible en la plataforma</span>
+  </div>
+  <div class="crm-editor-panel-body" style="padding:14px">
+    <div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12.5px;color:var(--crm-text);display:flex;gap:10px;align-items:flex-start">
+      <svg width="16" height="16" fill="none" stroke="var(--crm-primary)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div>Los recursos añadidos aquí aparecerán en la pestaña <strong>Recursos</strong> de cada lección en la plataforma. Pueden ser PDFs, documentos, enlaces, actividades o vídeos.</div>
+    </div>
+    <?php foreach ($unidades as $u):
+      if (empty($u['lecciones'])) continue;
+    ?>
+    <div class="crm-apuntes-unidad" style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;color:var(--crm-primary);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;padding:0 2px">
+        <?= htmlspecialchars($u['titulo']) ?>
+      </div>
+      <?php foreach ($u['lecciones'] as $lec):
+        $recursos = $lec['recursos'] ?? [];
+      ?>
+      <div class="crm-apuntes-leccion" style="border:1px solid var(--crm-border);border-radius:10px;margin-bottom:8px;overflow:hidden">
+        <div class="crm-apuntes-lec-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--crm-bg);user-select:none" onclick="toggleApuntesLec(this)">
+          <svg class="apuntes-chevron" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="transition:transform .2s;flex-shrink:0"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
+          <span style="font-size:13px;font-weight:600;flex:1"><?= htmlspecialchars($lec['titulo']) ?></span>
+          <span class="apuntes-rec-count" style="font-size:11px;color:var(--crm-muted);background:var(--crm-border);padding:1px 8px;border-radius:99px"><?= count($recursos) ?> recurso<?= count($recursos)===1?'':'s' ?></span>
+        </div>
+        <div class="crm-apuntes-lec-body" style="display:none;padding:12px 14px;border-top:1px solid var(--crm-border)">
+          <div class="rec-list-<?= $lec['id'] ?>" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+            <?php foreach ($recursos as $r): ?>
+            <div class="crm-recurso-row" style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:8px;font-size:12.5px">
+              <span><?= $tipoIconsMap[$r['tipo']] ?? '📎' ?></span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($r['nombre']) ?></div>
+                <?php if ($r['descripcion']): ?><div style="font-size:11px;color:var(--crm-muted)"><?= htmlspecialchars($r['descripcion']) ?></div><?php endif; ?>
+              </div>
+              <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--crm-border);color:var(--crm-muted);flex-shrink:0"><?= strtoupper($r['tipo']) ?></span>
+              <a href="<?= htmlspecialchars($r['url_o_ruta']) ?>" target="_blank" class="crm-btn-icon" title="Abrir recurso">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
+              <button class="crm-btn-icon danger" title="Eliminar recurso" onclick="eliminarRecursoApunte(<?= $r['id'] ?>, this)">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($recursos)): ?>
+            <div class="rec-empty-<?= $lec['id'] ?>" style="font-size:12px;color:var(--crm-muted);text-align:center;padding:12px">Sin recursos todavía.</div>
+            <?php endif; ?>
+          </div>
+          <div id="addRecForm-<?= $lec['id'] ?>" style="display:none;background:var(--crm-bg-alt,rgba(0,0,0,.02));border:1px solid var(--crm-border);border-radius:9px;padding:12px">
+            <div style="display:grid;grid-template-columns:1fr 140px;gap:8px;margin-bottom:8px">
+              <input type="text" class="crm-input rec-add-nombre" placeholder="Nombre del recurso *">
+              <select class="crm-select rec-add-tipo" onchange="toggleAddRecUrl(this)">
+                <?php foreach ($tipoLabelMap as $tv => $tl): ?>
+                <option value="<?= $tv ?>"><?= $tl ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="rec-add-url-wrap" style="margin-bottom:8px">
+              <input type="url" class="crm-input rec-add-url" placeholder="URL / Enlace *">
+            </div>
+            <div class="rec-add-file-wrap" style="display:none;margin-bottom:8px">
+              <input type="file" class="crm-input rec-add-file" accept=".pdf,.doc,.docx,.zip,.rar,.txt,.png,.jpg,.xlsx,.pptx,.mp4">
+            </div>
+            <input type="text" class="crm-input rec-add-desc" placeholder="Descripción (opcional)" style="margin-bottom:8px">
+            <div style="display:flex;gap:6px">
+              <button class="crm-btn crm-btn-primary crm-btn-sm" onclick="subirRecursoApunte(<?= $lec['id'] ?>, this)">Añadir recurso</button>
+              <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById('addRecForm-<?= $lec['id'] ?>').style.display='none'">Cancelar</button>
+            </div>
+          </div>
+          <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById('addRecForm-<?= $lec['id'] ?>').style.display='block';this.style.display='none'">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            Añadir recurso
+          </button>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <?php endforeach; ?>
+    <?php if (empty(array_filter($unidades, fn($u) => !empty($u['lecciones'])))): ?>
+    <div style="text-align:center;padding:40px;color:var(--crm-muted)">
+      <p style="font-size:13px">Añade lecciones al curso para gestionar sus recursos aquí.</p>
+    </div>
+    <?php endif; ?>
+  </div>
 </div>
+</div><!-- cierre ctab-recursos -->
+
+<!-- ── Sub-tab: TAREAS ── -->
+<div id="ctab-tareas" class="crm-ctab-panel">
+<div class="crm-editor-panel">
+  <div class="crm-editor-panel-header">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+    <h3>Tareas prácticas</h3>
+  </div>
+  <div class="crm-editor-panel-body">
+    <div id="puntosResumen" class="crm-pts-summary" style="margin-bottom:16px">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+      Total: <span id="puntosTotal">0</span> puntos — <span id="tareasTotal">0</span> tareas
+    </div>
+    <div id="tareasList">
+      <?php foreach ($tareasPracticas as $ti => $t):
+        $tipoClass = ['proyecto'=>'crm-tarea-tipo-proyecto','codigo'=>'crm-tarea-tipo-codigo','diseno'=>'crm-tarea-tipo-diseno','texto'=>'crm-tarea-tipo-texto'][$t['tipo']??'texto'] ?? 'crm-tarea-tipo-texto';
+      ?>
+      <div class="crm-tarea-card" data-tarea="<?= $ti ?>">
+        <div class="crm-tarea-card-head">
+          <div class="crm-tarea-num"><?= $ti+1 ?></div>
+          <input type="text" class="crm-input" style="flex:1;min-width:0" value="<?= htmlspecialchars($t['titulo']) ?>" placeholder="Título de la tarea">
+          <select class="crm-select tarea-tipo-sel" style="width:195px;flex-shrink:0" onchange="updateTipoVisual(this)">
+            <?php foreach ($tiposTarea as $tv => $tl): ?>
+            <option value="<?= $tv ?>" <?= ($t['tipo']??'texto')===$tv?'selected':'' ?>><?= $tl ?></option>
+            <?php endforeach; ?>
+          </select>
+          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+            <input type="number" class="crm-input tarea-pts-input" style="width:76px;text-align:center" value="<?= $t['puntos'] ?? 10 ?>" min="0.5" max="100" step="0.5" title="Puntos" oninput="actualizarPuntosTotales()">
+            <span style="font-size:11px;color:var(--crm-muted);font-weight:600">pts</span>
+          </div>
+          <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)" title="Eliminar tarea">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="crm-tarea-body">
+          <div class="crm-form-group">
+            <label class="crm-label">Enunciado</label>
+            <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno..."><?= htmlspecialchars($t['enunciado'] ?? '') ?></textarea>
+          </div>
+          <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
+          <div class="crm-proyecto-extra">
+          <?php endif; ?>
+          <div class="crm-form-group">
+            <label class="crm-label" style="display:flex;align-items:center;gap:6px">
+              Rúbrica de evaluación
+              <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span>
+            </label>
+            <textarea class="crm-textarea tarea-criterios" rows="3" placeholder="Ej: Funcionalidad (40%) — cumple todos los requisitos&#10;Código limpio (25%)..."><?= htmlspecialchars($t['criterios'] ?? '') ?></textarea>
+            <p style="font-size:11px;color:var(--crm-muted);margin-top:4px">Una línea por criterio. Incluye el peso en % si aplica.</p>
+          </div>
+          <?php if (($t['tipo']??'texto') === 'proyecto'): ?>
+          </div>
+          <?php endif; ?>
+        </div>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTarea()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+      Añadir tarea práctica
+    </button>
+  </div>
+</div>
+</div><!-- cierre ctab-tareas -->
+
+</div><!-- cierre tab-contenido -->
 
 <!-- ================================================================ -->
 <!-- TAB 3: EVALUACIÓN                                                 -->
@@ -362,10 +595,16 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
       <div class="crm-editor-panel-header">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>
         <h3>Examen tipo test</h3>
-        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="agregarPregunta()">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-          Pregunta
-        </button>
+        <div style="display:flex;gap:6px;margin-left:auto">
+          <button type="button" class="crm-exam-preview-btn" onclick="previewExamenTest()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            Vista previa
+          </button>
+          <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="agregarPregunta()">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            Pregunta
+          </button>
+        </div>
       </div>
       <div class="crm-editor-panel-body">
         <div class="crm-form-row" style="margin-bottom:12px">
@@ -420,106 +659,57 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <div class="crm-editor-panel">
       <div class="crm-editor-panel-header">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-        <h3>Examen práctico</h3>
+        <h3>Examen práctico / Proyecto</h3>
         <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="agregarTarea()">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-          Tarea
+          Añadir tarea
         </button>
       </div>
       <div class="crm-editor-panel-body">
-        <div class="crm-form-row" style="margin-bottom:12px">
-          <div class="crm-form-group">
+
+        <!-- General info -->
+        <div style="display:grid;grid-template-columns:1fr 160px 160px;gap:12px;margin-bottom:14px" class="crm-prac-header-grid">
+          <div class="crm-form-group" style="margin-bottom:0">
             <label class="crm-label">Título del examen práctico</label>
             <input type="text" class="crm-input" id="exPracTitulo" value="<?= htmlspecialchars($examenPractico['titulo'] ?? '') ?>" placeholder="Ej: Proyecto final integrador">
           </div>
-          <div class="crm-form-group">
+          <div class="crm-form-group" style="margin-bottom:0">
             <label class="crm-label">Nota mínima (0-10)</label>
             <input type="number" class="crm-input" id="exPracNota" value="<?= $examenPractico['nota_minima'] ?? 5 ?>" min="0" max="10" step="0.5">
           </div>
-        </div>
-        <div class="crm-form-group" style="margin-bottom:18px">
-          <label class="crm-label">Descripción general</label>
-          <textarea class="crm-textarea" id="exPracDesc" rows="2" placeholder="Describe el objetivo y alcance del examen práctico..."><?= htmlspecialchars($examenPractico['descripcion'] ?? '') ?></textarea>
-        </div>
-
-        <div id="tareasList">
-          <?php foreach ($tareasPracticas as $ti => $t): ?>
-          <div class="crm-tarea-card" data-tarea="<?= $ti ?>">
-            <div class="crm-tarea-card-head">
-              <div class="crm-tarea-num"><?= $ti+1 ?></div>
-              <input type="text" class="crm-input" style="flex:1" value="<?= htmlspecialchars($t['titulo']) ?>" placeholder="Título de la tarea">
-              <select class="crm-select" style="width:180px;flex-shrink:0">
-                <?php foreach ($tiposTarea as $tv => $tl): ?>
-                <option value="<?= $tv ?>" <?= ($t['tipo']??'texto')===$tv?'selected':'' ?>><?= $tl ?></option>
-                <?php endforeach; ?>
-              </select>
-              <input type="number" class="crm-input" style="width:80px;flex-shrink:0;text-align:center" value="<?= $t['puntos'] ?? 10 ?>" min="1" max="100" step="0.5" title="Puntos">
-              <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)" title="Eliminar tarea">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div class="crm-form-group">
-              <label class="crm-label">Enunciado / Descripción</label>
-              <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno..."><?= htmlspecialchars($t['enunciado'] ?? '') ?></textarea>
-            </div>
-            <div class="crm-form-group" style="margin-bottom:0">
-              <label class="crm-label">Criterios de evaluación <span style="color:var(--crm-muted);font-weight:400">(opcional)</span></label>
-              <textarea class="crm-textarea" rows="2" placeholder="¿Qué se valora? Ej: funcionalidad, código limpio, documentación..."><?= htmlspecialchars($t['criterios'] ?? '') ?></textarea>
-            </div>
+          <div class="crm-form-group" style="margin-bottom:0">
+            <label class="crm-label">Fecha límite</label>
+            <input type="date" class="crm-input" id="exPracFecha" value="<?= htmlspecialchars($examenPractico['fecha_entrega'] ?? '') ?>">
           </div>
-          <?php endforeach; ?>
         </div>
 
-        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTarea()">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-          Añadir tarea práctica
-        </button>
+        <div style="display:grid;grid-template-columns:1fr 200px;gap:12px;margin-bottom:18px">
+          <div class="crm-form-group" style="margin-bottom:0">
+            <label class="crm-label">Descripción / Contexto del proyecto</label>
+            <textarea class="crm-textarea" id="exPracDesc" rows="3" placeholder="Describe el objetivo, alcance y contexto del proyecto. ¿Qué problema resuelve? ¿A quién va dirigido?..."><?= htmlspecialchars($examenPractico['descripcion'] ?? '') ?></textarea>
+          </div>
+          <div class="crm-form-group" style="margin-bottom:0">
+            <label class="crm-label">Modo de entrega</label>
+            <select class="crm-select" id="exPracModo">
+              <?php foreach (['cualquiera'=>'Cualquier forma','texto'=>'Solo texto','archivo'=>'Solo archivo','url'=>'Solo URL/repositorio','texto_y_archivo'=>'Texto + Archivo'] as $mv => $ml): ?>
+              <option value="<?= $mv ?>" <?= ($examenPractico['modo_entrega']??'cualquiera')===$mv?'selected':'' ?>><?= $ml ?></option>
+              <?php endforeach; ?>
+            </select>
+            <p style="font-size:11px;color:var(--crm-muted);margin-top:5px">Cómo entrega el alumno su trabajo</p>
+          </div>
+        </div>
+
+        <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:12px 16px;font-size:13px;color:#166534;display:flex;align-items:center;gap:10px">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Las tareas prácticas se gestionan en la pestaña <strong>Contenido</strong>.
+        </div>
       </div>
     </div>
   </div>
 </div>
-
-<!-- ================================================================ -->
-<!-- TAB 4: APUNTES                                                    -->
-<!-- ================================================================ -->
-<div id="tab-apuntes" class="crm-tab-panel">
-  <div class="crm-editor-panel">
-    <div class="crm-editor-panel-header">
-      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-      <h3>Apuntes del curso</h3>
-      <button type="button" class="crm-btn crm-btn-primary crm-btn-sm" style="margin-left:auto" onclick="agregarApunte()">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-        Sección
-      </button>
-    </div>
-    <div class="crm-editor-panel-body" style="padding:14px">
-      <p style="font-size:12.5px;color:var(--crm-muted);margin-bottom:14px">Organiza los materiales de estudio en secciones. Los alumnos los podrán consultar desde su área personal.</p>
-
-      <div id="apuntesList" class="sortable-apuntes">
-        <?php foreach ($apuntes as $ai => $a): ?>
-        <div class="crm-apunte-block" data-apunte="<?= $ai ?>">
-          <div class="crm-apunte-block-head">
-            <span class="crm-sortable-handle" title="Arrastrar para ordenar">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
-            </span>
-            <input type="text" class="crm-input" style="flex:1" value="<?= htmlspecialchars($a['titulo'] ?? '') ?>" placeholder="Título de la sección">
-            <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarApunte(this)" title="Eliminar sección">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </button>
-          </div>
-          <textarea class="crm-textarea" rows="5" placeholder="Contenido de los apuntes, notas, resúmenes, referencias..."><?= htmlspecialchars($a['contenido'] ?? '') ?></textarea>
-        </div>
-        <?php endforeach; ?>
-        <?php if (empty($apuntes)): ?>
-        <div id="emptyApuntesMsg" style="text-align:center;padding:40px;color:var(--crm-muted)">
-          <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/></svg>
-          <p style="font-size:13px">Sin secciones todavía. Haz clic en "+ Sección" para añadir.</p>
-        </div>
-        <?php endif; ?>
-      </div>
-    </div>
-  </div>
-</div>
+<style>
+@media(max-width:800px){.crm-prac-header-grid{grid-template-columns:1fr!important}}
+</style>
 
 <!-- ================================================================ -->
 <!-- TAB 5: RESULTADOS                                                 -->
@@ -559,6 +749,26 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
       <div id="resultadosEmpty" style="display:none;text-align:center;padding:40px;color:var(--crm-muted)">
         <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         <p style="font-size:13px">Ningún alumno matriculado todavía.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Vista previa examen test -->
+<div class="modal fade crm-modal" id="modalPreviewExamen" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="border-bottom:2px solid var(--crm-primary)">
+        <div>
+          <h5 class="modal-title" id="previewExamTitle" style="font-size:16px;font-weight:700">Vista previa del examen</h5>
+          <div id="previewExamMeta" style="font-size:12px;color:var(--crm-muted);margin-top:2px"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="previewExamBody" style="max-height:72vh;overflow-y:auto;padding:24px"></div>
+      <div class="modal-footer" style="background:var(--crm-bg);border-top:1px solid var(--crm-border)">
+        <span style="font-size:12px;color:var(--crm-muted)">Esta es una simulación de cómo verán los alumnos el examen</span>
+        <button class="crm-btn crm-btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
@@ -749,15 +959,62 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 const CURSO_ID  = <?= $curso['id'] ?>;
 const INSTR_MAP = <?= json_encode($instructoresMap, JSON_UNESCAPED_UNICODE) ?>;
 
+/* ===== Unsaved-changes guard ===== */
+const _FIELDS_INFO = ['cTitulo','cDesc','cInfoExtra','cQueAprenderas','cPrecio','cNivel','cCategoria','cDestacado','cActivo'];
+const _FIELDS_EXAM_TEST = ['exTitulo','exDesc','exNota'];
+const _FIELDS_EXAM_PRAC = ['exPracTitulo','exPracDesc','exPracNota','exPracFecha','exPracModo'];
+
+let _savedSnapshot = null;
+
+function _takeSnapshot() {
+  const get  = id => { const el = document.getElementById(id); if (!el) return ''; return el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value; };
+  const qtxt = sel => [...document.querySelectorAll(sel)].map(e => e.value).join('||');
+  return JSON.stringify({
+    info:      _FIELDS_INFO.map(get).join('|'),
+    examTest:  _FIELDS_EXAM_TEST.map(get).join('|') + '||' + qtxt('.crm-exam-question input[type=text]') + qtxt('.crm-exam-question input[type=radio]:checked'),
+    examPrac:  _FIELDS_EXAM_PRAC.map(get).join('|') + '||' + qtxt('.crm-tarea-card input[type=text]') + qtxt('.crm-tarea-card textarea') + qtxt('.crm-tarea-card .tarea-pts-input'),
+  });
+}
+
+function _markSaved() { _savedSnapshot = _takeSnapshot(); }
+
+function _hasUnsaved() {
+  if (_savedSnapshot === null) return false;
+  return _savedSnapshot !== _takeSnapshot();
+}
+
+async function _confirmLeave() {
+  if (!_hasUnsaved()) return true;
+  return CRM.confirm(
+    'Tienes cambios sin guardar que se perderán si continúas. ¿Quieres salir de todas formas?',
+    { title: 'Cambios sin guardar', okLabel: 'Salir sin guardar', cancelLabel: 'Quedarme aquí' }
+  );
+}
+
 /* ===== Tabs ===== */
-function switchTab(name) {
+async function switchTab(name) {
+  if (!await _confirmLeave()) return;
   document.querySelectorAll('.crm-tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.crm-editor-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
 }
 
-function switchExamTab(name) {
+/* ===== Contenido sub-tabs ===== */
+async function switchContenidoTab(name) {
+  if (!await _confirmLeave()) return;
+  document.querySelectorAll('.crm-ctab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.crm-contenido-subtab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ctab-' + name).classList.add('active');
+  document.querySelector(`[data-ctab="${name}"]`).classList.add('active');
+  ['lecciones','tareas'].forEach(k => {
+    const el = document.getElementById('ctab-action-' + k);
+    if (el) el.style.display = (k === name) ? '' : 'none';
+  });
+}
+
+async function switchExamTab(name) {
+  if (!await _confirmLeave()) return;
   document.querySelectorAll('.crm-exam-subpanel').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.crm-exam-subtab').forEach(t => t.classList.remove('active'));
   document.getElementById('etab-' + name).style.display = '';
@@ -831,14 +1088,15 @@ async function crearNuevaUnidad() {
     closeModal('modalNuevaUnidad');
     document.getElementById('emptyMsg')?.remove();
     const div = document.createElement('div');
-    div.className = 'crm-unit';
+    div.className = 'crm-unit is-open';
     div.dataset.unidadId = res.id;
     div.innerHTML = `
-      <div class="crm-unit-header">
-        <span class="crm-unit-handle"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></span>
-        <span class="crm-unit-title" onclick="toggleUnit(this)">${CRM.escapeHtml(titulo)}</span>
+      <div class="crm-unit-header" onclick="toggleUnit(this.closest('.crm-unit'))" style="cursor:pointer">
+        <span class="crm-unit-handle" onclick="event.stopPropagation()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></span>
+        <span class="crm-unit-chevron"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg></span>
+        <span class="crm-unit-title">${CRM.escapeHtml(titulo)}</span>
         <span style="font-size:11px;color:var(--crm-muted);margin-right:4px">0 lec.</span>
-        <div class="crm-unit-actions">
+        <div class="crm-unit-actions" onclick="event.stopPropagation()">
           <button class="crm-btn-icon crm-btn-sm" onclick="openModalEditarUnidad(this, ${res.id})">
             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </button>
@@ -847,7 +1105,7 @@ async function crearNuevaUnidad() {
           </button>
         </div>
       </div>
-      <div class="crm-unit-lessons sortable-lessons" data-unidad-id="${res.id}"></div>
+      <div class="crm-unit-lessons sortable-lessons" data-unidad-id="${res.id}" style="max-height:none"></div>
       <div class="crm-add-lesson" onclick="nuevaLeccion(${res.id})">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
         Añadir lección
@@ -885,10 +1143,23 @@ async function pedirEliminarUnidad(id, btn) {
   else CRM.toast(res.error, 'error');
 }
 
-function toggleUnit(span) {
-  const lessons = span.closest('.crm-unit').querySelector('.crm-unit-lessons');
-  if (lessons) lessons.style.display = lessons.style.display === 'none' ? '' : 'none';
+function toggleUnit(unit) {
+  const lessons = unit.querySelector('.crm-unit-lessons');
+  if (!lessons) return;
+  const open = unit.classList.contains('is-open');
+  if (open) {
+    lessons.style.maxHeight = lessons.scrollHeight + 'px';
+    requestAnimationFrame(() => { lessons.classList.add('collapsed'); lessons.style.maxHeight = '0'; });
+    unit.classList.remove('is-open');
+  } else {
+    lessons.classList.remove('collapsed');
+    lessons.style.maxHeight = lessons.scrollHeight + 'px';
+    unit.classList.add('is-open');
+    lessons.addEventListener('transitionend', () => { if (unit.classList.contains('is-open')) lessons.style.maxHeight = 'none'; }, { once: true });
+  }
 }
+/* Init heights for all open units */
+document.querySelectorAll('.crm-unit.is-open .crm-unit-lessons').forEach(el => { el.style.maxHeight = 'none'; });
 
 /* ===== Lessons ===== */
 let leccionMode = 'create';
@@ -1134,61 +1405,170 @@ function agregarTarea() {
   div.innerHTML = `
     <div class="crm-tarea-card-head">
       <div class="crm-tarea-num">${ti+1}</div>
-      <input type="text" class="crm-input" style="flex:1" placeholder="Título de la tarea">
-      <select class="crm-select" style="width:180px;flex-shrink:0">${optsHtml}</select>
-      <input type="number" class="crm-input" style="width:80px;flex-shrink:0;text-align:center" value="10" min="1" max="100" step="0.5" title="Puntos">
+      <input type="text" class="crm-input" style="flex:1;min-width:0" placeholder="Título de la tarea">
+      <select class="crm-select tarea-tipo-sel" style="width:195px;flex-shrink:0" onchange="updateTipoVisual(this)">${optsHtml}</select>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+        <input type="number" class="crm-input tarea-pts-input" style="width:76px;text-align:center" value="10" min="0.5" max="100" step="0.5" title="Puntos" oninput="actualizarPuntosTotales()">
+        <span style="font-size:11px;color:var(--crm-muted);font-weight:600">pts</span>
+      </div>
       <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="crm-form-group">
-      <label class="crm-label">Enunciado / Descripción</label>
-      <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno..."></textarea>
-    </div>
-    <div class="crm-form-group" style="margin-bottom:0">
-      <label class="crm-label">Criterios de evaluación <span style="color:var(--crm-muted);font-weight:400">(opcional)</span></label>
-      <textarea class="crm-textarea" rows="2" placeholder="¿Qué se valora? Ej: funcionalidad, código limpio, documentación..."></textarea>
+    <div class="crm-tarea-body">
+      <div class="crm-form-group">
+        <label class="crm-label">Enunciado</label>
+        <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno, requisitos funcionales, tecnologías a usar..."></textarea>
+      </div>
+      <div class="crm-form-group" style="margin-bottom:0">
+        <label class="crm-label" style="display:flex;align-items:center;gap:6px">Rúbrica de evaluación <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span></label>
+        <textarea class="crm-textarea tarea-criterios" rows="3" placeholder="Ej: Funcionalidad (40%) — cumple todos los requisitos&#10;Código limpio (25%) — legible, comentado&#10;Documentación (20%) — README e instrucciones&#10;Diseño UI/UX (15%) — interfaz intuitiva"></textarea>
+        <p style="font-size:11px;color:var(--crm-muted);margin-top:4px">Una línea por criterio. Incluye el peso en % si aplica.</p>
+      </div>
     </div>`;
   document.getElementById('tareasList').appendChild(div);
+  actualizarPuntosTotales();
   div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function updateTipoVisual(sel) {
+  // Could add visual badge in future; for now just trigger totals
+  actualizarPuntosTotales();
+}
+
+function actualizarPuntosTotales() {
+  const inputs = [...document.querySelectorAll('.tarea-pts-input')];
+  const total  = inputs.reduce((s, i) => s + (parseFloat(i.value) || 0), 0);
+  const count  = document.querySelectorAll('.crm-tarea-card').length;
+  const el = document.getElementById('puntosResumen');
+  if (el) {
+    document.getElementById('puntosTotal').textContent = total % 1 === 0 ? total : total.toFixed(1);
+    document.getElementById('tareasTotal').textContent = count;
+  }
 }
 
 async function pedirEliminarTarea(btn) {
   const ok = await CRM.confirm('¿Eliminar esta tarea?', { title: 'Eliminar tarea', okLabel: 'Eliminar' });
-  if (ok) btn.closest('.crm-tarea-card').remove();
+  if (ok) { btn.closest('.crm-tarea-card').remove(); actualizarPuntosTotales(); }
 }
 
-/* ===== Apuntes builder ===== */
-let apunteCount = document.querySelectorAll('.crm-apunte-block').length;
+// Initialize totals and snapshot on page load
+document.addEventListener('DOMContentLoaded', () => {
+  actualizarPuntosTotales();
+  _markSaved();
 
-function agregarApunte() {
-  document.getElementById('emptyApuntesMsg')?.remove();
-  const ai  = apunteCount++;
-  const div = document.createElement('div');
-  div.className = 'crm-apunte-block';
-  div.dataset.apunte = ai;
-  div.innerHTML = `
-    <div class="crm-apunte-block-head">
-      <span class="crm-sortable-handle" title="Arrastrar para ordenar">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
-      </span>
-      <input type="text" class="crm-input" style="flex:1" placeholder="Título de la sección">
-      <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarApunte(this)">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-      </button>
-    </div>
-    <textarea class="crm-textarea" rows="5" placeholder="Contenido de los apuntes, notas, resúmenes, referencias..."></textarea>`;
-  document.getElementById('apuntesList').appendChild(div);
-  div.querySelector('input').focus();
+  // Warn before browser navigation (close tab, refresh, back button)
+  window.addEventListener('beforeunload', e => {
+    if (_hasUnsaved()) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  // Intercept in-page links (sidebar, "Volver a Cursos", etc.)
+  document.addEventListener('click', async e => {
+    const a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank') return;
+    if (!_hasUnsaved()) return;
+    e.preventDefault();
+    const ok = await _confirmLeave();
+    if (ok) { _savedSnapshot = null; window.location.href = a.href; }
+  });
+});
+
+/* ===== Apuntes / Recursos por lección ===== */
+function toggleApuntesLec(header) {
+  const body    = header.nextElementSibling;
+  const chevron = header.querySelector('.apuntes-chevron');
+  const open    = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(90deg)';
 }
 
-async function pedirEliminarApunte(btn) {
-  const ok = await CRM.confirm('¿Eliminar esta sección de apuntes?', { title: 'Eliminar sección', okLabel: 'Eliminar' });
-  if (!ok) return;
-  btn.closest('.crm-apunte-block').remove();
-  if (!document.querySelector('.crm-apunte-block')) {
-    document.getElementById('apuntesList').innerHTML = '<div id="emptyApuntesMsg" style="text-align:center;padding:40px;color:var(--crm-muted)"><p style="font-size:13px">Sin secciones todavía.</p></div>';
+function toggleAddRecUrl(sel) {
+  const form    = sel.closest('.crm-apuntes-lec-body, #addRecForm-' + sel.closest('[id]')?.id?.replace('addRecForm-',''));
+  const needsFile = ['pdf','doc','zip'].includes(sel.value);
+  const urlWrap  = sel.closest('[id^="addRecForm"]').querySelector('.rec-add-url-wrap');
+  const fileWrap = sel.closest('[id^="addRecForm"]').querySelector('.rec-add-file-wrap');
+  if (urlWrap)  urlWrap.style.display  = needsFile ? 'none' : 'block';
+  if (fileWrap) fileWrap.style.display = needsFile ? 'block' : 'none';
+}
+
+async function subirRecursoApunte(leccionId, btn) {
+  const form    = document.getElementById('addRecForm-' + leccionId);
+  const nombre  = form.querySelector('.rec-add-nombre').value.trim();
+  const tipo    = form.querySelector('.rec-add-tipo').value;
+  const desc    = form.querySelector('.rec-add-desc').value.trim();
+  if (!nombre) { CRM.toast('El nombre es obligatorio', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('leccion_id', leccionId);
+  fd.append('nombre', nombre);
+  fd.append('tipo', tipo);
+  fd.append('descripcion', desc);
+
+  const needsFile = ['pdf','doc','zip'].includes(tipo);
+  if (needsFile) {
+    const file = form.querySelector('.rec-add-file').files[0];
+    if (!file) { CRM.toast('Selecciona un archivo', 'error'); return; }
+    fd.append('archivo', file);
+  } else {
+    const url = form.querySelector('.rec-add-url').value.trim();
+    if (!url) { CRM.toast('La URL es obligatoria', 'error'); return; }
+    fd.append('url', url);
   }
+
+  const orig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Subiendo…';
+  const res = await fetch(`${window.CRM_API_URL}&action=subir_recurso_leccion`, { method: 'POST', body: fd }).then(r=>r.json());
+  btn.disabled = false; btn.textContent = orig;
+
+  if (!res.ok) { CRM.toast(res.error, 'error'); return; }
+
+  // Inject the new resource row into the list
+  const TIPO_ICONS_MAP = { pdf:'📄', doc:'📝', zip:'🗜️', link:'🔗', actividad:'✏️', video:'▶️' };
+  const list = document.querySelector(`.rec-list-${leccionId}`);
+  if (list) {
+    // Remove empty state
+    list.querySelectorAll(`[class^="rec-empty-"]`).forEach(e => e.remove());
+    const row = document.createElement('div');
+    row.className = 'crm-recurso-row';
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:8px;font-size:12.5px';
+    row.innerHTML = `
+      <span>${TIPO_ICONS_MAP[tipo] || '📎'}</span>
+      <div style="flex:1;min-width:0"><div style="font-weight:600">${CRM.escapeHtml(nombre)}</div>${desc?`<div style="font-size:11px;color:var(--crm-muted)">${CRM.escapeHtml(desc)}</div>`:''}</div>
+      <span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--crm-border);color:var(--crm-muted);flex-shrink:0">${tipo.toUpperCase()}</span>
+      <a href="${res.url}" target="_blank" class="crm-btn-icon" title="Abrir"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></a>
+      <button class="crm-btn-icon danger" title="Eliminar" onclick="eliminarRecursoApunte(${res.id}, this)"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg></button>`;
+    list.appendChild(row);
+    // Update count badge
+    const header = list.closest('.crm-apuntes-leccion').querySelector('.apuntes-rec-count');
+    if (header) { const n = list.querySelectorAll('.crm-recurso-row').length; header.textContent = n + ' recurso' + (n===1?'':'s'); }
+  }
+
+  // Reset form
+  form.querySelector('.rec-add-nombre').value = '';
+  form.querySelector('.rec-add-url').value = '';
+  form.querySelector('.rec-add-desc').value = '';
+  form.style.display = 'none';
+  // Re-show the add button
+  const addBtn = form.nextElementSibling;
+  if (addBtn) addBtn.style.display = '';
+  CRM.toast('Recurso añadido', 'success');
+}
+
+async function eliminarRecursoApunte(id, btn) {
+  const ok = await CRM.confirm('¿Eliminar este recurso?', { title: 'Eliminar recurso', okLabel: 'Eliminar' });
+  if (!ok) return;
+  const res = await CRM.api('eliminar_recurso', { id });
+  if (res.ok) {
+    const row = btn.closest('.crm-recurso-row');
+    const list = row.parentElement;
+    const lec  = row.closest('.crm-apuntes-leccion');
+    row.remove();
+    const n = list.querySelectorAll('.crm-recurso-row').length;
+    if (n === 0) list.innerHTML = '<div style="font-size:12px;color:var(--crm-muted);text-align:center;padding:12px">Sin recursos todavía.</div>';
+    const badge = lec?.querySelector('.apuntes-rec-count');
+    if (badge) badge.textContent = n + ' recurso' + (n===1?'':'s');
+    CRM.toast('Recurso eliminado', 'success');
+  } else CRM.toast(res.error, 'error');
 }
 
 /* ===== Save everything ===== */
@@ -1200,8 +1580,10 @@ async function guardarTodo() {
   // 1. Basic info
   const r1 = await CRM.api('actualizar_curso', {
     id:          CURSO_ID,
-    titulo:      document.getElementById('cTitulo').value,
-    descripcion: document.getElementById('cDesc').value,
+    titulo:          document.getElementById('cTitulo').value,
+    descripcion:     document.getElementById('cDesc').value,
+    info_extra:      document.getElementById('cInfoExtra').value,
+    que_aprenderas:  document.getElementById('cQueAprenderas').value,
     precio:      parseFloat(document.getElementById('cPrecio').value) || 0,
     nivel:       document.getElementById('cNivel').value,
     categoria:   document.getElementById('cCategoria').value,
@@ -1238,36 +1620,34 @@ async function guardarTodo() {
 
   // 5. Practical exam
   const tareas = [...document.querySelectorAll('.crm-tarea-card')].map(tEl => {
-    const inputs = tEl.querySelectorAll('input[type=text], input[type=number]');
-    const txts   = tEl.querySelectorAll('textarea');
-    const sel    = tEl.querySelector('select');
+    const tituloInput = tEl.querySelector('input[type=text]');
+    const ptsInput    = tEl.querySelector('.tarea-pts-input');
+    const tipoSel     = tEl.querySelector('.tarea-tipo-sel') || tEl.querySelector('select');
+    const txts        = tEl.querySelectorAll('textarea');
     return {
-      titulo:    inputs[0]?.value || '',
-      tipo:      sel?.value || 'texto',
-      puntos:    parseFloat(inputs[1]?.value) || 10,
+      titulo:    tituloInput?.value || '',
+      tipo:      tipoSel?.value || 'texto',
+      puntos:    parseFloat(ptsInput?.value) || 10,
       enunciado: txts[0]?.value || '',
-      criterios: txts[1]?.value || '',
+      criterios: tEl.querySelector('.tarea-criterios')?.value || txts[1]?.value || '',
     };
   });
   const exPracTitulo = document.getElementById('exPracTitulo').value.trim();
   await CRM.api('guardar_examen_practico', {
-    curso_id:    CURSO_ID,
-    titulo:      exPracTitulo,
-    descripcion: document.getElementById('exPracDesc').value,
-    nota_minima: parseFloat(document.getElementById('exPracNota').value) || 5,
+    curso_id:       CURSO_ID,
+    titulo:         exPracTitulo,
+    descripcion:    document.getElementById('exPracDesc').value,
+    nota_minima:    parseFloat(document.getElementById('exPracNota').value) || 5,
+    fecha_entrega:  document.getElementById('exPracFecha')?.value || null,
+    modo_entrega:   document.getElementById('exPracModo')?.value || 'cualquiera',
     tareas,
   });
 
-  // 6. Apuntes
-  const apuntes = [...document.querySelectorAll('.crm-apunte-block')].map(aEl => ({
-    titulo:    aEl.querySelector('input[type=text]')?.value || '',
-    contenido: aEl.querySelector('textarea')?.value || '',
-  }));
-  await CRM.api('guardar_apuntes', { curso_id: CURSO_ID, apuntes });
+  // 6. Apuntes / Recursos — saved per-resource via API, no batch save needed
 
   btn.disabled = false;
   btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Guardar todo';
-  if (r1.ok) CRM.toast('✓ Todos los cambios guardados correctamente', 'success');
+  if (r1.ok) { _markSaved(); CRM.toast('✓ Todos los cambios guardados correctamente', 'success'); }
   else CRM.toast(r1.error || 'Error al guardar', 'error');
 }
 
@@ -1369,14 +1749,26 @@ async function eliminarRecurso(id) {
 let resultadosLoaded = false;
 async function cargarResultados(force = false) {
   if (resultadosLoaded && !force) return;
-  resultadosLoaded = true;
   document.getElementById('resultadosLoading').style.display  = '';
   document.getElementById('resultadosContent').style.display  = 'none';
   document.getElementById('resultadosEmpty').style.display    = 'none';
 
-  const res = await fetch(`${window.CRM_API_URL}&action=get_resultados_curso&curso_id=${CURSO_ID}`).then(r=>r.json());
+  let res;
+  try {
+    res = await fetch(`${window.CRM_API_URL}&action=get_resultados_curso&curso_id=${CURSO_ID}`).then(r=>r.json());
+  } catch(e) {
+    document.getElementById('resultadosLoading').style.display = 'none';
+    document.getElementById('resultadosEmpty').style.display   = '';
+    document.getElementById('resultadosEmpty').innerHTML = '<svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M12 9v2m0 4h.01"/></svg><p style="font-size:13px">Error de conexión. <a href="#" onclick="cargarResultados(true);return false">Reintentar</a></p>';
+    return;
+  }
+  resultadosLoaded = true;
   document.getElementById('resultadosLoading').style.display = 'none';
-  if (!res.ok) { CRM.toast(res.error, 'error'); return; }
+  if (!res.ok) {
+    document.getElementById('resultadosEmpty').style.display = '';
+    document.getElementById('resultadosEmpty').innerHTML = `<p style="font-size:13px;color:var(--crm-danger)">${res.error || 'Error al cargar resultados'}</p><button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="cargarResultados(true)">Reintentar</button>`;
+    return;
+  }
 
   const alumnos = res.alumnos || [];
   if (!alumnos.length) { document.getElementById('resultadosEmpty').style.display = ''; return; }
@@ -1495,4 +1887,60 @@ async function guardarCalificaciones() {
 const _spinStyle = document.createElement('style');
 _spinStyle.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 document.head.appendChild(_spinStyle);
+
+/* ===== Preview examen test ===== */
+function previewExamenTest() {
+  const titulo     = document.getElementById('exTitulo').value.trim() || 'Examen sin título';
+  const desc       = document.getElementById('exDesc').value.trim();
+  const notaMin    = document.getElementById('exNota').value || '5';
+  const preguntas  = [...document.querySelectorAll('.crm-exam-question')];
+
+  document.getElementById('previewExamTitle').textContent = titulo;
+  document.getElementById('previewExamMeta').textContent  = `Nota mínima para aprobar: ${notaMin}/10 · ${preguntas.length} pregunta${preguntas.length !== 1 ? 's' : ''}`;
+
+  const bodyEl = document.getElementById('previewExamBody');
+
+  if (!preguntas.length) {
+    bodyEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--crm-muted)"><svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 12px;opacity:.4"><path stroke-linecap="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p style="font-size:13.5px;font-weight:600">Sin preguntas</p><p style="font-size:12px;margin-top:4px">Añade preguntas al examen para ver la vista previa.</p></div>';
+    openModal('modalPreviewExamen');
+    return;
+  }
+
+  let html = '';
+  if (desc) html += `<div style="background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.18);border-radius:10px;padding:14px 16px;margin-bottom:22px;font-size:13.5px;line-height:1.6;color:var(--crm-text)">${CRM.escapeHtml(desc)}</div>`;
+
+  preguntas.forEach((pEl, idx) => {
+    const enunciado = pEl.querySelector('input[type=text]')?.value || `Pregunta ${idx+1}`;
+    const opciones  = [...pEl.querySelectorAll('.crm-option-row')];
+    const correcta  = pEl.querySelector('input[type=radio]:checked')?.value;
+
+    html += `<div style="margin-bottom:22px;padding:16px 18px;border:1px solid var(--crm-border);border-radius:11px">
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">
+        <div style="width:26px;height:26px;border-radius:8px;background:var(--crm-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">${idx+1}</div>
+        <div style="font-size:14px;font-weight:600;padding-top:3px">${CRM.escapeHtml(enunciado)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">`;
+
+    opciones.forEach((oEl, oidx) => {
+      const texto     = oEl.querySelector('input[type=text]')?.value || '';
+      const isCorr    = String(oidx) === correcta;
+      const letter    = String.fromCharCode(65 + oidx);
+      html += `<label style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid ${isCorr?'rgba(16,185,129,.4)':'var(--crm-border)'};border-radius:8px;cursor:pointer;background:${isCorr?'rgba(16,185,129,.06)':'transparent'};transition:background .12s">
+        <span style="width:26px;height:26px;border-radius:50%;background:${isCorr?'rgba(16,185,129,.15)':'var(--crm-border)'};color:${isCorr?'#059669':'var(--crm-muted)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">${letter}</span>
+        <span style="font-size:13.5px">${CRM.escapeHtml(texto)}</span>
+        ${isCorr ? '<span style="margin-left:auto;font-size:10px;font-weight:700;color:#059669;background:rgba(16,185,129,.12);padding:1px 7px;border-radius:99px">✓ Correcta</span>' : ''}
+      </label>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  html += `<div style="padding:16px;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:10px;text-align:center;font-size:13px;color:var(--crm-muted)">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block;vertical-align:middle;margin-right:6px;color:var(--crm-primary)"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    Las respuestas correctas (marcadas en verde) no son visibles para los alumnos durante el examen
+  </div>`;
+
+  bodyEl.innerHTML = html;
+  openModal('modalPreviewExamen');
+}
 </script>

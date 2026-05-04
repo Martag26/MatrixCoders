@@ -31,6 +31,7 @@
 
                     $ok = $_SESSION['register_ok'] ?? '';
                     unset($_SESSION['register_ok']);
+
                     ?>
 
                     <?php if ($ok): ?>
@@ -57,7 +58,7 @@
                                 <input type="checkbox"> Recordar contraseña
                             </label>
 
-                            <a class="forgot" href="#">¿Has olvidado la contraseña?</a>
+                            <a class="forgot fw-bold" href="#">¿Has olvidado la contraseña?</a>
                         </div>
 
                         <button class="btn btn-google w-100" type="button">
@@ -69,7 +70,11 @@
 
                         <p class="auth-small text-center mt-3">
                             ¿No estás registrado todavía?
-                            <a href="<?= BASE_URL ?>/index.php?url=register">Regístrate</a>
+                            <a class="fw-bold" href="<?= BASE_URL ?>/index.php?url=register">Regístrate</a>
+                        </p>
+                        <p class="auth-small text-center">
+                            ¿Eres administrador?
+                            <a class="fw-bold" href="/matrixcoders/admin/">Accede aquí</a>
                         </p>
                     </form>
                 </section>

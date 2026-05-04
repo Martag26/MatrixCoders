@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS notificacion (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario_id INTEGER NOT NULL,
     tipo       TEXT    NOT NULL DEFAULT 'info'
-               CHECK (tipo IN ('info','tarea','mensaje','expiracion','crm')),
+               CHECK (tipo IN ('info','tarea','tarea_vencida','mensaje','expiracion','crm','evento_calendario')),
     titulo     TEXT    NOT NULL,
     cuerpo     TEXT    DEFAULT NULL,
     leido      INTEGER NOT NULL DEFAULT 0,

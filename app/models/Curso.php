@@ -70,6 +70,7 @@ class Curso
                 LIMIT 1) AS descuento_activo
         FROM curso c
         LEFT JOIN matricula m ON m.curso_id = c.id
+        WHERE COALESCE(c.activo, 1) = 1
         GROUP BY c.id
         ORDER BY total_matriculas DESC, c.id DESC
         LIMIT ?

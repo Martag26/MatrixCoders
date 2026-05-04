@@ -117,7 +117,6 @@
                 <h3 class="section-title"><?= htmlspecialchars($tituloBloque) ?></h3>
 
                 <?php if (empty($cursos)): ?>
-                    <!-- Mensaje mostrado cuando no hay cursos disponibles o no hay resultados de búsqueda -->
                     <div class="alert alert-warning mt-3">
                         No se encontraron cursos.
                     </div>
@@ -125,73 +124,84 @@
                     <div class="row g-4 mt-1">
                         <?php foreach ($cursos as $curso): ?>
                             <?php
-                            $titulo = $curso['titulo'] ?? 'Programación avanzada en PHP y MySQL';
-                            $desc   = $curso['descripcion'] ?? '';
-                            $img = imageFallback($curso['imagen'] ?? null, $titulo);
-                            $dur = formatDuracionFallback($curso['duracion_min'] ?? null);
-                            $stu = (int)($curso['total_matriculas'] ?? 0);
-                            $precio = isset($curso['precio']) ? (float)$curso['precio'] : 33.99;
-                            $nivel  = $curso['nivel'] ?? '';
-                            $cat    = $curso['categoria'] ?? '';
+                            $titulo  = $curso['titulo'] ?? '';
+                            $desc    = $curso['descripcion'] ?? '';
+                            $img     = imageFallback($curso['imagen'] ?? null, $titulo);
+                            $imgFallback = imageFallback('', '');
+                            $stu     = (int)($curso['total_matriculas'] ?? 0);
+                            $precio  = isset($curso['precio']) ? (float)$curso['precio'] : 0;
+                            $descuento = (float)($curso['descuento_activo'] ?? 0);
+                            $precioFinal = ($descuento > 0 && $precio > 0) ? round($precio * (1 - $descuento/100), 2) : $precio;
+                            $nivel   = $curso['nivel'] ?? '';
+                            $cat     = $curso['categoria'] ?? '';
                             [$nivelTxt, $nivelColor, $nivelBg] = nivelLabelHome($nivel);
                             ?>
                             <div class="col-12 col-md-6 col-lg-4">
-                                <!-- Card clickable -->
                                 <div class="course-card h-100"
-                                    style="cursor:pointer;"
-                                    onclick="window.location.href='<?= BASE_URL ?>/index.php?url=curso&id=<?= $curso['id'] ?>'">
+                                    onclick="window.location.href='<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $curso['id'] ?>'">
 
                                     <div class="course-thumb-wrap">
-                                        <?php if ($img): ?>
-                                            <img src="<?= htmlspecialchars($img) ?>"
-                                                class="course-thumb w-100"
-                                                alt="<?= htmlspecialchars($titulo) ?>"
-                                                onerror="this.src='<?= matrixcoders_curso_image('', '') ?>'">
-                                        <?php else: ?>
-                                            <div class="course-thumb w-100"></div>
-                                        <?php endif; ?>
+                                        <img src="<?= htmlspecialchars($img) ?>"
+                                            class="course-thumb w-100"
+                                            alt="<?= htmlspecialchars($titulo) ?>"
+                                            onerror="this.src='<?= htmlspecialchars($imgFallback) ?>'">
 
-                                        <?php if ($nivelTxt !== '' || $precio <= 0): ?>
+                                        <?php if ($descuento > 0): ?>
                                             <div class="course-badges-corner">
-                                                <?php if ($nivelTxt !== ''): ?>
-                                                    <span class="course-badge-corner" style="color:<?= $nivelColor ?>;background:<?= $nivelBg ?>;border-color:<?= $nivelColor ?>22">
-                                                        <?= htmlspecialchars($nivelTxt) ?>
-                                                    </span>
-                                                <?php endif; ?>
+                                                <span class="course-badge-corner course-badge-discount">-<?= round($descuento) ?>%</span>
                                             </div>
                                         <?php endif; ?>
                                     </div>
 
-                                    <div class="p-3 d-flex flex-column gap-2">
-                                        <?php if ($cat !== ''): ?>
+                                    <div class="card-body-inner-home">
+                                        <?php if ($cat !== '' || $nivelTxt !== ''): ?>
                                             <div class="tags-row">
-                                                <span class="tag tag-soft">
-                                                    <?= htmlspecialchars($cat) ?>
-                                                </span>
-                                            </div>
-                                        <?php endif; ?>
-                                        <div class="course-meta">
-                                            <span><?= $stu ?> <?= $stu === 1 ? 'estudiante' : 'estudiantes' ?></span>
-                                        </div>
-                                        <div class="course-title"><?= htmlspecialchars($titulo) ?></div>
-                                        <p class="text-muted" style="font-size:0.85rem; margin:0;">
-                                            <?= htmlspecialchars($desc) ?>
-                                        </p>
-                                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
-                                            <div class="course-price">
-                                                <?= $precio > 0 ? number_format($precio, 2) . '€' : 'Gratis' ?>
-                                                <?php if ($precio <= 0): ?>
-                                                    <div style="font-size:.72rem;font-weight:700;color:#047857;margin-top:2px;">Acceso sin coste</div>
+                                                <?php if ($nivelTxt !== ''): ?>
+                                                    <span class="nivel-badge-home" style="color:<?= $nivelColor ?>;background:<?= $nivelBg ?>;border-color:<?= $nivelColor ?>33">
+                                                        <?= htmlspecialchars($nivelTxt) ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php if ($cat !== ''): ?>
+                                                    <span class="tag tag-soft"><?= htmlspecialchars($cat) ?></span>
                                                 <?php endif; ?>
                                             </div>
-                                            <!-- Botón cesta — stopPropagation para que no active el onclick de la card -->
-                                            <button
-                                                class="btn-course-cart"
-                                                title="Añadir al carrito"
-                                                onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precio ?>)">
+                                        <?php endif; ?>
+
+                                        <div class="course-title"><?= htmlspecialchars($titulo) ?></div>
+
+                                        <?php if ($desc): ?>
+                                            <p class="course-desc-home"><?= htmlspecialchars($desc) ?></p>
+                                        <?php endif; ?>
+
+                                        <div class="course-meta" style="font-size:.75rem">
+                                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:3px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                                            <?= $stu ?> <?= $stu === 1 ? 'estudiante' : 'estudiantes' ?>
+                                        </div>
+
+                                        <div class="card-footer-row-home">
+                                            <div>
+                                                <?php if ($precio <= 0): ?>
+                                                    <span class="course-price" style="color:#16a34a">Gratis</span>
+                                                    <div style="font-size:.7rem;font-weight:700;color:#047857">Acceso sin coste</div>
+                                                <?php elseif ($descuento > 0): ?>
+                                                    <del style="font-size:.8rem;color:#9ca3af;margin-right:4px"><?= number_format($precio, 2) ?>€</del>
+                                                    <span class="course-price"><?= number_format($precioFinal, 2) ?>€</span>
+                                                <?php else: ?>
+                                                    <span class="course-price"><?= number_format($precio, 2) ?>€</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if (!in_array($curso['id'], $matriculasUsuario ?? [])): ?>
+                                            <button class="btn-course-cart"
+                                                onclick="event.stopPropagation(); abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precioFinal ?>)">
                                                 <img src="<?= BASE_URL ?>/img/carrito-de-compras.png" alt="">
                                                 <span>Añadir</span>
                                             </button>
+                                            <?php else: ?>
+                                            <span class="btn-course-enrolled">
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                Matriculado
+                                            </span>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 </div>

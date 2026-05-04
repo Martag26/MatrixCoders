@@ -69,6 +69,12 @@ $totalTareas      = count($tareas);
 $totalEntregadas  = count($entregasExistentes);
 $todasEntregadas  = $totalEntregadas >= $totalTareas;
 
+// Check deadline
+$plazoSuperado = false;
+if ($examenPractico && !empty($examenPractico['fecha_entrega'])) {
+    $plazoSuperado = (new DateTime()) > (new DateTime($examenPractico['fecha_entrega']));
+}
+
 // Load user info
 $stmtU = $db->prepare("SELECT nombre FROM usuario WHERE id=?");
 $stmtU->execute([$usuarioId]);
@@ -77,6 +83,11 @@ $usuario = $stmtU->fetch(PDO::FETCH_ASSOC);
 // ── Handle POST: save submissions ──────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json; charset=utf-8');
+
+    if ($plazoSuperado) {
+        echo json_encode(['ok' => false, 'error' => 'El plazo de entrega ha finalizado']);
+        exit;
+    }
 
     $tareaId  = (int)($_POST['tarea_id'] ?? 0);
     $respTxt  = trim($_POST['respuesta_texto'] ?? '');

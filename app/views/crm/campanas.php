@@ -5,7 +5,20 @@
     <h1>Campañas</h1>
     <p>Crea y gestiona campañas de descuentos, avisos y promociones. Total: <strong><?= $totalRows ?></strong></p>
   </div>
-  <div class="crm-page-actions">
+  <div class="crm-page-actions" style="gap:6px">
+    <!-- View toggle -->
+    <div style="display:flex;background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:9px;padding:3px;gap:2px">
+      <button id="btnCamCards" onclick="setViewCam('cards')" title="Vista tarjetas"
+        style="padding:5px 10px;border:none;border-radius:7px;cursor:pointer;background:var(--crm-primary);color:#fff;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Tarjetas
+      </button>
+      <button id="btnCamTable" onclick="setViewCam('table')" title="Vista tabla"
+        style="padding:5px 10px;border:none;border-radius:7px;cursor:pointer;background:transparent;color:var(--crm-muted);display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        Tabla
+      </button>
+    </div>
     <button class="crm-btn crm-btn-primary" onclick="openModal('modalCampana'); modoModal='crear'">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
       Nueva campaña
@@ -49,11 +62,21 @@
 </div>
 <?php else: ?>
 
-<div class="crm-campaigns-grid">
-  <?php foreach ($campanas as $cam):
-    $ahora = date('Y-m-d');
+<?php
+$ahora = date('Y-m-d');
+function campEstado(array $cam, string $ahora): array {
     $esActiva = $cam['activa'] && (!$cam['fecha_fin'] || $cam['fecha_fin'] >= $ahora);
     $esPasada = $cam['fecha_fin'] && $cam['fecha_fin'] < $ahora;
+    $label = $esActiva ? 'Activa' : ($esPasada ? 'Expirada' : 'Inactiva');
+    $cls   = $esActiva ? 'activo' : 'inactivo';
+    return [$label, $cls];
+}
+?>
+
+<!-- ===== CARDS VIEW ===== -->
+<div class="crm-campaigns-grid" id="camViewCards">
+  <?php foreach ($campanas as $cam):
+    [$estadoLabel, $estadoCls] = campEstado($cam, $ahora);
   ?>
   <div class="crm-campaign-card <?= $cam['tipo'] ?>">
     <div class="crm-campaign-header">
@@ -63,9 +86,7 @@
           <?php if ($cam['descuento_pct'] > 0): ?>
             <span class="crm-discount-pill">-<?= round($cam['descuento_pct']) ?>%</span>
           <?php endif; ?>
-          <span class="crm-badge <?= $esActiva?'activo':($esPasada?'inactivo':'inactivo') ?>">
-            <?= $esActiva?'Activa':($esPasada?'Expirada':'Inactiva') ?>
-          </span>
+          <span class="crm-badge <?= $estadoCls ?>"><?= $estadoLabel ?></span>
         </div>
         <h3 class="crm-campaign-title"><?= htmlspecialchars($cam['titulo']) ?></h3>
       </div>
@@ -110,12 +131,72 @@
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <?= $cam['fecha_inicio'] ? date('d/m/Y', strtotime($cam['fecha_inicio'])) : '—' ?>
         →
-        <?= $cam['fecha_fin']    ? date('d/m/Y', strtotime($cam['fecha_fin']))    : 'Sin fin' ?>
+        <?= $cam['fecha_fin'] ? date('d/m/Y', strtotime($cam['fecha_fin'])) : 'Sin fin' ?>
       </div>
-      <div style="font-size:11.5px;color:var(--crm-muted)"><?= $cam['cursos_count'] ?> curso(s) vinculado(s)</div>
+      <div style="font-size:11.5px;color:var(--crm-muted)"><?= $cam['cursos_count'] ?> curso(s)</div>
     </div>
   </div>
   <?php endforeach; ?>
+</div>
+
+<!-- ===== TABLE VIEW ===== -->
+<div class="crm-table-wrap" id="camViewTable" style="display:none">
+  <table class="crm-table">
+    <thead>
+      <tr>
+        <th style="width:32px">#</th>
+        <th>Título</th>
+        <th>Tipo</th>
+        <th style="text-align:center">Descuento</th>
+        <th>Fechas</th>
+        <th>Audiencia</th>
+        <th style="text-align:center">Cursos</th>
+        <th style="text-align:center">Estado</th>
+        <th style="text-align:right">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($campanas as $cam):
+      [$estadoLabel, $estadoCls] = campEstado($cam, $ahora);
+    ?>
+    <tr>
+      <td style="color:var(--crm-muted);font-size:12px"><?= $cam['id'] ?></td>
+      <td>
+        <div style="font-size:13px;font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars($cam['titulo']) ?></div>
+        <div style="font-size:11.5px;color:var(--crm-muted);margin-top:2px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= htmlspecialchars(mb_strimwidth($cam['cuerpo'],0,60,'…')) ?></div>
+      </td>
+      <td><span class="crm-badge <?= $cam['tipo'] ?>" style="font-size:10px"><?= ucfirst($cam['tipo']) ?></span></td>
+      <td style="text-align:center">
+        <?= $cam['descuento_pct'] > 0
+          ? '<span style="font-weight:700;color:var(--crm-danger)">-'.round($cam['descuento_pct']).'%</span>'
+          : '<span style="color:var(--crm-muted)">—</span>' ?>
+      </td>
+      <td style="font-size:12px;white-space:nowrap">
+        <div><?= $cam['fecha_inicio'] ? date('d/m/Y', strtotime($cam['fecha_inicio'])) : '—' ?></div>
+        <div style="color:var(--crm-muted)"><?= $cam['fecha_fin'] ? '→ '.date('d/m/Y', strtotime($cam['fecha_fin'])) : 'Sin fin' ?></div>
+      </td>
+      <td style="font-size:12px">
+        <?php
+          $audLabels = ['todos'=>'Todos','nuevos'=>'Nuevos ('.$cam['dias_registro'].'d)','matriculados'=>'Matriculados'];
+          echo htmlspecialchars($audLabels[$cam['audiencia'] ?? 'todos'] ?? 'Todos');
+        ?>
+      </td>
+      <td style="text-align:center;font-weight:700"><?= $cam['cursos_count'] ?></td>
+      <td style="text-align:center"><span class="crm-badge <?= $estadoCls ?>" style="font-size:10px"><?= $estadoLabel ?></span></td>
+      <td style="text-align:right">
+        <div style="display:flex;gap:5px;justify-content:flex-end">
+          <button class="crm-btn-icon" title="Editar" onclick='abrirEditar(<?= htmlspecialchars(json_encode($cam), JSON_UNESCAPED_UNICODE) ?>)'>
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button class="crm-btn-icon danger" title="Eliminar" onclick="eliminarCampana(<?= $cam['id'] ?>, '<?= addslashes($cam['titulo']) ?>')">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>
+    <?php endforeach; ?>
+    </tbody>
+  </table>
 </div>
 
 <!-- Pagination -->
@@ -239,6 +320,20 @@
 <script>
 let modoModal = 'crear';
 
+/* ── View toggle ── */
+const CAM_VIEW_KEY = 'mc_crm_cam_view';
+function setViewCam(v) {
+  localStorage.setItem(CAM_VIEW_KEY, v);
+  const isCards = v === 'cards';
+  document.getElementById('camViewCards').style.display = isCards ? '' : 'none';
+  document.getElementById('camViewTable').style.display = isCards ? 'none' : '';
+  document.getElementById('btnCamCards').style.background = isCards ? 'var(--crm-primary)' : 'transparent';
+  document.getElementById('btnCamCards').style.color      = isCards ? '#fff' : 'var(--crm-muted)';
+  document.getElementById('btnCamTable').style.background = isCards ? 'transparent' : 'var(--crm-primary)';
+  document.getElementById('btnCamTable').style.color      = isCards ? 'var(--crm-muted)' : '#fff';
+}
+(function(){ setViewCam(localStorage.getItem(CAM_VIEW_KEY) || 'cards'); })();
+
 function toggleAudienciaOpts() {
   const val = document.getElementById('campAudiencia').value;
   document.getElementById('campDiasGroup').style.display = val === 'nuevos' ? '' : 'none';
@@ -286,12 +381,42 @@ document.getElementById('modalCampana').addEventListener('show.bs.modal', () => 
   }
 });
 
+/* ── Client-side date sanity check ── */
+function validarFechasCampana() {
+  const inicio = document.getElementById('campInicio').value;
+  const fin    = document.getElementById('campFin').value;
+  if (inicio && fin && inicio > fin) {
+    CRM.toast('La fecha de inicio no puede ser posterior a la fecha de fin.', 'error');
+    document.getElementById('campFin').focus();
+    return false;
+  }
+  return true;
+}
+
+document.getElementById('campInicio')?.addEventListener('change', function() {
+  const fin = document.getElementById('campFin').value;
+  if (fin && this.value > fin) {
+    document.getElementById('campFin').value = this.value;
+    CRM.toast('Fecha fin ajustada para que sea ≥ fecha inicio', 'info');
+  }
+});
+
+document.getElementById('campFin')?.addEventListener('change', function() {
+  const inicio = document.getElementById('campInicio').value;
+  if (inicio && this.value < inicio) {
+    CRM.toast('La fecha de fin no puede ser anterior al inicio.', 'error');
+    this.value = inicio;
+  }
+});
+
 async function guardarCampana() {
+  if (!validarFechasCampana()) return;
+
   const cursos    = [...document.querySelectorAll('.camp-curso-check:checked')].map(cb => cb.value);
   const audiencia = document.getElementById('campAudiencia').value;
   const data = {
-    titulo:         document.getElementById('campTitulo').value,
-    cuerpo:         document.getElementById('campCuerpo').value,
+    titulo:         document.getElementById('campTitulo').value.trim(),
+    cuerpo:         document.getElementById('campCuerpo').value.trim(),
     tipo:           document.getElementById('campTipo').value,
     fecha_inicio:   document.getElementById('campInicio').value,
     fecha_fin:      document.getElementById('campFin').value,
@@ -302,10 +427,23 @@ async function guardarCampana() {
     dias_registro:  audiencia === 'nuevos' ? parseInt(document.getElementById('campDias').value) || 7 : null,
     cursos,
   };
+
+  if (!data.titulo) { CRM.toast('El título es obligatorio', 'error'); document.getElementById('campTitulo').focus(); return; }
+  if (!data.cuerpo) { CRM.toast('El cuerpo del mensaje es obligatorio', 'error'); document.getElementById('campCuerpo').focus(); return; }
+
   const action = modoModal === 'editar' ? 'editar_campana' : 'crear_campana';
   if (modoModal === 'editar') data.id = document.getElementById('campId').value;
 
+  // Disable button while saving
+  const btn = document.getElementById('btnGuardarCampana');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = 'Guardando…';
+
   const res = await CRM.api(action, data);
+  btn.disabled = false;
+  btn.textContent = origText;
+
   if (res.ok) { CRM.toast(res.mensaje, 'success'); closeModal('modalCampana'); setTimeout(()=>location.reload(),800); }
   else        { CRM.toast(res.error, 'error'); }
 }

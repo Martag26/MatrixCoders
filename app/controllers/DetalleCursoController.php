@@ -74,7 +74,52 @@ $planPermiteAcceso = match (true) {
 $unidades = $modeloCurso->getUnidadesConLecciones($id);
 
 // ── Tareas ────────────────────────────────────────────────────────
+// getTareasByCurso siempre devuelve array (vacío si no hay tareas)
 $tareas = $modeloCurso->getTareasByCurso($id);
+
+// Si el usuario está matriculado, enriquecemos las tareas con su estado de entrega
+if ($estaMatriculado && $usuarioId && !empty($tareas)) {
+    $tareaIds = array_column($tareas, 'id');
+    $placeholders = implode(',', array_fill(0, count($tareaIds), '?'));
+    $stmtEnt = $db->prepare("
+        SELECT tarea_id, id AS entrega_id, nota, entregado_en
+        FROM entrega
+        WHERE usuario_id = ? AND tarea_id IN ($placeholders)
+    ");
+    $stmtEnt->execute(array_merge([$usuarioId], $tareaIds));
+    $entregas = [];
+    foreach ($stmtEnt->fetchAll(PDO::FETCH_ASSOC) as $e) {
+        $entregas[$e['tarea_id']] = $e;
+    }
+    foreach ($tareas as &$t) {
+        $entrega = $entregas[$t['id']] ?? null;
+        $hoy = strtotime(date('Y-m-d'));
+        $fl  = !empty($t['fecha_limite']) ? strtotime(substr($t['fecha_limite'], 0, 10)) : null;
+        $t['entregada']      = $entrega !== null;
+        $t['entrega_nota']   = $entrega['nota'] ?? null;
+        $t['entregado_en']   = $entrega['entregado_en'] ?? null;
+        $t['dias_restantes'] = $fl !== null ? (int)floor(($fl - $hoy) / 86400) : null;
+        if ($entrega) {
+            $t['estado_visual'] = 'entregada';
+        } elseif ($fl !== null && $fl < $hoy) {
+            $t['estado_visual'] = 'vencida';
+        } elseif ($fl !== null && $fl - $hoy <= 3 * 86400) {
+            $t['estado_visual'] = 'proxima';
+        } else {
+            $t['estado_visual'] = 'pendiente';
+        }
+    }
+    unset($t);
+} else {
+    foreach ($tareas as &$t) {
+        $t['entregada']      = false;
+        $t['entrega_nota']   = null;
+        $t['entregado_en']   = null;
+        $t['dias_restantes'] = null;
+        $t['estado_visual']  = 'pendiente';
+    }
+    unset($t);
+}
 
 // ── Lección activa (solo si está matriculado) ─────────────────────
 $leccionActiva = null;

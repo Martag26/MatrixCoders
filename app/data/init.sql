@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     contraseña      TEXT    NOT NULL,
     creado_en       TEXT    NOT NULL DEFAULT (datetime('now')),
     rol             TEXT    NOT NULL DEFAULT 'USUARIO'
-                    CHECK (rol IN ('USUARIO','EDITOR','ADMINISTRADOR')),
+                    CHECK (rol IN ('USUARIO','INSTRUCTOR','MODERADOR','ADMINISTRADOR')),
     foto            TEXT    DEFAULT NULL,
     bio             TEXT    DEFAULT NULL,
     idioma          TEXT    NOT NULL DEFAULT 'es',

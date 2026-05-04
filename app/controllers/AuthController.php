@@ -60,12 +60,21 @@ class AuthController
             exit;
         }
 
-        // Almacenar datos del usuario en la sesión
-        $_SESSION['usuario_id'] = $user['id'];
-        $_SESSION['usuario_nombre'] = $user['nombre'];
-        $_SESSION['usuario_plan'] = $user['plan'] ?? 'gratuito';
+        $rol = $user['rol'] ?? 'USUARIO';
 
-        // Redirigir al panel principal tras un login correcto
+        // Almacenar datos del usuario en la sesión
+        $_SESSION['usuario_id']     = $user['id'];
+        $_SESSION['usuario_nombre'] = $user['nombre'];
+        $_SESSION['usuario_plan']   = $user['plan'] ?? 'gratuito';
+        $_SESSION['usuario_rol']    = $rol;
+
+        // El portal es solo para alumnos; redirigir al CRM con aviso
+        if ($rol !== 'USUARIO') {
+            $_SESSION['crm_bienvenida'] = true;
+            header("Location: " . BASE_URL . "/index.php?url=crm");
+            exit;
+        }
+
         header("Location: " . BASE_URL . "/index.php?url=dashboard");
         exit;
     }

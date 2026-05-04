@@ -1,7 +1,10 @@
 <?php
-$nota         = (float)($resultadoPrevio['nota'] ?? 0);
-$aprobado     = (bool)($resultadoPrevio['aprobado'] ?? false);
-$notaMinima   = (float)($examen['nota_minima'] ?? 5.0);
+$nota              = (float)($resultadoPrevio['nota'] ?? 0);
+$aprobado          = (bool)($resultadoPrevio['aprobado'] ?? false);
+$notaMinima        = (float)($examen['nota_minima'] ?? 5.0);
+$intentosUsados    = (int)($resultadoPrevio['intentos'] ?? 0);
+$maxIntentos       = 2;
+$intentosRestantes = max(0, $maxIntentos - $intentosUsados);
 $tituloCurso  = htmlspecialchars($curso['titulo']  ?? 'Curso');
 $tituloExamen = htmlspecialchars($examen['titulo'] ?? 'Examen Final');
 $nombreUsuario= htmlspecialchars($usuario['nombre'] ?? 'Estudiante');
@@ -194,9 +197,15 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                 </div>
 
                 <?php if (!$aprobado): ?>
+                    <?php if ($intentosRestantes > 0): ?>
                     <div style="margin-top:16px;padding:12px 16px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:.85rem;color:#7c2d12;">
-                        💡 No has alcanzado la nota mínima. Puedes repasar el material del curso y volver a intentarlo.
+                        💡 No has alcanzado la nota mínima. Te queda <strong><?= $intentosRestantes ?> intento<?= $intentosRestantes > 1 ? 's' : '' ?></strong>. Repasa el material del curso antes de volver a intentarlo.
                     </div>
+                    <?php else: ?>
+                    <div style="margin-top:16px;padding:12px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;font-size:.85rem;color:#7f1d1d;">
+                        ❌ Has agotado tus <?= $maxIntentos ?> intentos para este examen. Contacta con tu instructor si necesitas ayuda.
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if ($aprobado && !empty($tieneExamenPractico)): ?>
@@ -216,7 +225,7 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                     <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" class="btn-outline-mc">
                         ← Volver al curso
                     </a>
-                    <?php if (!$aprobado): ?>
+                    <?php if (!$aprobado && $intentosRestantes > 0): ?>
                         <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= (int)$curso['id'] ?>" class="btn-primary-mc">
                             Repetir examen →
                         </a>

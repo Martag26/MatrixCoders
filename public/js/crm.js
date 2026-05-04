@@ -25,12 +25,17 @@
     }
   }
 
-  // Restore state on load
+  // Restore state on load without animation (no-transition class already set in HTML)
   const saved = localStorage.getItem(KEY) === '1';
   if (!isMobile()) {
     sidebar.classList.toggle('collapsed', saved);
     if (main) main.classList.toggle('expanded', saved);
   }
+  // Re-enable transitions after first paint so restoring state is instant
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    sidebar.classList.remove('no-transition');
+    if (main) main.classList.remove('no-transition');
+  }));
 
   if (toggle) {
     toggle.addEventListener('click', () => {

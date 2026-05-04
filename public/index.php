@@ -54,6 +54,12 @@ switch ($url) {
         $controller->documentos();
         break;
 
+    case 'nube-api':
+        require_once "../app/controllers/DashboardController.php";
+        $controller = new DashboardController();
+        $controller->nubeApi();
+        break;
+
     case 'documento':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();
@@ -183,6 +189,10 @@ switch ($url) {
         require_once "../app/controllers/NotificacionesPageController.php";
         break;
 
+    case 'buzon':
+        require_once "../app/controllers/BuzonController.php";
+        break;
+
     case 'api-notificaciones':
         require_once "../app/controllers/NotificacionController.php";
         break;
@@ -249,6 +259,17 @@ switch ($url) {
         $controller = new CrmController();
         $controller->api();
         break;
+
+    case 'crm-logout':
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
+        }
+        session_destroy();
+        header('Location: /matrixcoders/admin/');
+        exit;
 
     default:
         require_once "../app/controllers/CursoController.php";
