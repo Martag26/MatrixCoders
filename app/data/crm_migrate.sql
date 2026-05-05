@@ -111,6 +111,13 @@ CREATE TABLE IF NOT EXISTS tarea_practica (
     creado_en TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Añadir columna intentos a resultado_examen si no existe (idempotente vía INSERT OR IGNORE no aplica en ALTER,
+-- SQLite no soporta IF NOT EXISTS en ALTER TABLE; se maneja con try/catch en la aplicación)
+-- La columna se añade con una query defensiva ejecutada desde PHP al conectar (ver db.php o ExamenController)
+
+-- Columna intentos para resultado_examen
+-- SQLite: ALTER TABLE no permite IF NOT EXISTS, así que se hace desde PHP con try/catch
+
 -- Notebook de NotebookLM asociado a una lección (URL externa, gestionado por instructor)
 CREATE TABLE IF NOT EXISTS leccion_notebook (
     leccion_id   INTEGER PRIMARY KEY,

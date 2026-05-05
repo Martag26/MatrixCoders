@@ -18,11 +18,22 @@ if ($cursoId <= 0) {
     exit;
 }
 
-// Verificar matrícula activa
-$stmtM = $db->prepare("SELECT COUNT(*) FROM matricula WHERE usuario_id=? AND curso_id=? AND estado='activa'");
+// Verificar matrícula (activa o revocada)
+$stmtM = $db->prepare("SELECT estado FROM matricula WHERE usuario_id=? AND curso_id=?");
 $stmtM->execute([$usuarioId, $cursoId]);
-if (!(int)$stmtM->fetchColumn()) {
+$matriculaEstado = $stmtM->fetchColumn();
+
+if (!$matriculaEstado) {
     header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
+    exit;
+}
+
+// Si la matrícula está revocada, mostrar página de acceso perdido
+if ($matriculaEstado === 'revocada') {
+    $stmtC2 = $db->prepare("SELECT titulo FROM curso WHERE id=?");
+    $stmtC2->execute([$cursoId]);
+    $cursoRevocado = $stmtC2->fetch(PDO::FETCH_ASSOC);
+    require __DIR__ . '/../views/examen/acceso_perdido.php';
     exit;
 }
 
@@ -135,6 +146,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
     $stmtR2->execute([$usuarioId, $examen['id']]);
     $resultadoPrevio = $stmtR2->fetch(PDO::FETCH_ASSOC);
     $intentosUsados  = (int)($resultadoPrevio['intentos'] ?? 0);
+
+    // Revocar matrícula si agota los 2 intentos sin aprobar
+    if (!$aprobado && $intentosUsados >= $maxIntentos) {
+        $db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=?")
+           ->execute([$usuarioId, $cursoId]);
+        // Notificar al usuario
+        try {
+            $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
+               ->execute([$usuarioId, 'info',
+                   'Has perdido el acceso al curso',
+                   'Has agotado los 2 intentos del examen sin aprobar. Has perdido el acceso al curso y al certificado.',
+                   BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId
+               ]);
+        } catch (\Exception $e) {}
+    }
 
     // Generar certificado si aprueba
     if ($aprobado) {

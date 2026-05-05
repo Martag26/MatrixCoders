@@ -46,6 +46,10 @@ switch ($url) {
         require_once "../app/controllers/RepositorioController.php";
         break;
 
+    case 'chatbot':
+        require_once "../app/controllers/ChatbotController.php";
+        break;
+
     case 'documento-compartido':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();

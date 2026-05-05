@@ -69,6 +69,43 @@ $totalTareas      = count($tareas);
 $totalEntregadas  = count($entregasExistentes);
 $todasEntregadas  = $totalEntregadas >= $totalTareas;
 
+// Comprobar si todas las entregas están revisadas y generar certificado automáticamente
+$certificadoPractico = null;
+$practicoAprobado    = false;
+if ($todasEntregadas) {
+    $notaMinimaPrac = (float)($examenPractico['nota_minima'] ?? 5.0);
+    $todasAprobadas = true;
+    $notaMedia      = 0;
+    $revisadas      = 0;
+
+    foreach ($entregasExistentes as $ent) {
+        if (!(int)$ent['revisado']) { $todasAprobadas = false; break; }
+        $notaEnt = (float)($ent['nota'] ?? 0);
+        if ($notaEnt < $notaMinimaPrac) { $todasAprobadas = false; }
+        $notaMedia += $notaEnt;
+        $revisadas++;
+    }
+
+    if ($todasAprobadas && $revisadas === $totalTareas) {
+        $practicoAprobado = true;
+        $notaMedia = $revisadas > 0 ? round($notaMedia / $revisadas, 1) : 0;
+
+        // Generar certificado si no existe
+        $stmtCertEx = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
+        $stmtCertEx->execute([$usuarioId, $cursoId]);
+        $certificadoPractico = $stmtCertEx->fetch(PDO::FETCH_ASSOC);
+
+        if (!$certificadoPractico) {
+            $codigoPrac = strtoupper(substr(md5($usuarioId . '-prac-' . $cursoId . '-' . microtime()), 0, 12));
+            $db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
+               ->execute([$usuarioId, $cursoId, $codigoPrac]);
+            $stmtCertEx2 = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
+            $stmtCertEx2->execute([$usuarioId, $cursoId]);
+            $certificadoPractico = $stmtCertEx2->fetch(PDO::FETCH_ASSOC);
+        }
+    }
+}
+
 // Check deadline
 $plazoSuperado = false;
 if ($examenPractico && !empty($examenPractico['fecha_entrega'])) {

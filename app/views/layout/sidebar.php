@@ -8,6 +8,7 @@ $isCalendario  = in_array($currentUrl, ['calendario'], true);
 $isCuenta    = in_array($currentUrl, ['perfil', 'ajustes'], true);
 $isMisCursos    = in_array($currentUrl, ['mis-cursos'], true);
 $isRepositorio  = in_array($currentUrl, ['repositorio'], true);
+$isChatbot      = in_array($currentUrl, ['chatbot'], true);
 ?>
 <aside class="sidebar" id="mainSidebar">
 
@@ -84,7 +85,21 @@ $isRepositorio  = in_array($currentUrl, ['repositorio'], true);
             </li>
 
             <li>
-                <a href="<?= BASE_URL ?>/index.php" class="sidebar__link" title="Buzón">
+                <a href="<?= BASE_URL ?>/index.php?url=chatbot"
+                   class="sidebar__link <?= $isChatbot ? 'active' : '' ?>"
+                   title="Oráculo — Asistente IA">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a10 10 0 0 1 10 10c0 4.418-2.861 8.166-6.832 9.49L12 22l-3.168-.51C4.861 20.166 2 16.418 2 12A10 10 0 0 1 12 2z"/>
+                        <path d="M8 12h.01M12 12h.01M16 12h.01"/>
+                    </svg>
+                    <span class="sidebar__label">Oráculo</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<?= BASE_URL ?>/index.php?url=buzon"
+                   class="sidebar__link <?= in_array($currentUrl, ['buzon'], true) ? 'active' : '' ?>"
+                   title="Buzón de mensajes">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                         <polyline points="22,6 12,13 2,6"/>

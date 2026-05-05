@@ -170,6 +170,22 @@ class DashboardController
         $perfilCursos  = count($cursosEnProgreso);
         // ─────────────────────────────────────────────────────────────────────
 
+        // Mensajes no leídos para el widget del buzón
+        $stmtMsgNL = $conexion->prepare("SELECT COUNT(*) FROM mensaje WHERE receptor_id = ? AND leido = 0");
+        $stmtMsgNL->execute([$usuario_id]);
+        $mensajesNoLeidos = (int)$stmtMsgNL->fetchColumn();
+
+        $stmtMsgRecientes = $conexion->prepare("
+            SELECT m.id, m.asunto, m.cuerpo, m.enviado_en, m.leido, u.nombre AS nombre_emisor
+            FROM mensaje m
+            JOIN usuario u ON u.id = m.emisor_id
+            WHERE m.receptor_id = ?
+            ORDER BY m.leido ASC, m.enviado_en DESC
+            LIMIT 4
+        ");
+        $stmtMsgRecientes->execute([$usuario_id]);
+        $mensajesRecientes = $stmtMsgRecientes->fetchAll(PDO::FETCH_ASSOC);
+
         $pageTitle = "Espacio de trabajo";
         $flash = $_SESSION['dashboard_flash'] ?? null;
         unset($_SESSION['dashboard_flash']);

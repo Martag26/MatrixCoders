@@ -40,15 +40,22 @@ $planUsuario = $_SESSION['usuario_plan'] ?? null;
 $planesAccesoTotal = ['plan_estudiantes', 'plan_empresas'];
 
 if (in_array($planUsuario, $planesAccesoTotal)) {
-    // Con estos planes puede ver cualquier lección sin necesidad de matrícula
     $estaMatriculado = true;
 } else {
-    // Sin plan o con curso_individual: solo accede si está matriculado
-    $estaMatriculado = $modeloCurso->estaMatriculado($usuarioId, $cursoId);
-    if (!$estaMatriculado) {
+    // Verificar estado de matrícula (activa o revocada)
+    $stmtEst = $db->prepare("SELECT estado FROM matricula WHERE usuario_id=? AND curso_id=?");
+    $stmtEst->execute([$usuarioId, $cursoId]);
+    $estadoMatricula = $stmtEst->fetchColumn();
+
+    if (!$estadoMatricula) {
         header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
         exit;
     }
+    if ($estadoMatricula === 'revocada') {
+        header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId . '&acceso=revocado');
+        exit;
+    }
+    $estaMatriculado = true;
 }
 
 // ── AJAX: marcar lección como vista ──

@@ -184,6 +184,57 @@ $proximasTareas = array_slice($proximasTareas, 0, 5);
                         <?php endif; ?>
                     </div>
 
+                    <!-- ── BUZÓN DE MENSAJES ── -->
+                    <?php
+                    $mensajesNoLeidos  = $mensajesNoLeidos  ?? 0;
+                    $mensajesRecientes = $mensajesRecientes ?? [];
+                    ?>
+                    <div class="documentos">
+                        <div class="dashboard-section-head">
+                            <h2 style="display:flex;align-items:center;gap:.5rem">
+                                Buzón de mensajes
+                                <?php if ($mensajesNoLeidos > 0): ?>
+                                <span style="background:#3b82f6;color:#fff;font-size:.65rem;font-weight:800;border-radius:99px;padding:1px 8px"><?= $mensajesNoLeidos ?> nuevo<?= $mensajesNoLeidos !== 1 ? 's' : '' ?></span>
+                                <?php endif; ?>
+                            </h2>
+                            <a class="section-link" href="<?= BASE_URL ?>/index.php?url=buzon">Ver todos</a>
+                        </div>
+                        <?php if (empty($mensajesRecientes)): ?>
+                        <div class="sv-empty">
+                            <div>
+                                <p class="sv-empty-title">Sin mensajes</p>
+                                <p class="sv-empty-sub">Cuando recibas mensajes de administradores o instructores aparecerán aquí.</p>
+                            </div>
+                        </div>
+                        <?php else: ?>
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <?php foreach ($mensajesRecientes as $msg):
+                                $esLeido = (bool)$msg['leido'];
+                                $diffSec = time() - strtotime($msg['enviado_en'] ?? 'now');
+                                $timeAgo = $diffSec < 60 ? 'ahora' : ($diffSec < 3600 ? floor($diffSec/60).'m' : ($diffSec < 86400 ? floor($diffSec/3600).'h' : date('d/m', strtotime($msg['enviado_en']))));
+                            ?>
+                            <a href="<?= BASE_URL ?>/index.php?url=buzon&msg=<?= (int)$msg['id'] ?>"
+                               style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;border:1.5px solid <?= $esLeido ? '#e5e7eb' : '#bfdbfe' ?>;background:<?= $esLeido ? '#fff' : '#eff6ff' ?>;text-decoration:none;transition:border-color .15s">
+                                <div style="width:36px;height:36px;border-radius:9px;background:<?= $esLeido ? '#f3f4f6' : '#dbeafe' ?>;color:<?= $esLeido ? '#6b7280' : '#1d4ed8' ?>;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;flex-shrink:0">
+                                    <?= mb_strtoupper(mb_substr($msg['nombre_emisor'] ?? 'X', 0, 1, 'UTF-8'), 'UTF-8') ?>
+                                </div>
+                                <div style="flex:1;min-width:0">
+                                    <div style="font-size:.85rem;font-weight:<?= $esLeido ? '600' : '800' ?>;color:#1B2336;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                                        <?= htmlspecialchars($msg['asunto'] ?: 'Sin asunto') ?>
+                                    </div>
+                                    <div style="font-size:.75rem;color:#6b7280;margin-top:1px">
+                                        <?= htmlspecialchars($msg['nombre_emisor']) ?> · <?= $timeAgo ?>
+                                    </div>
+                                </div>
+                                <?php if (!$esLeido): ?>
+                                <span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0"></span>
+                                <?php endif; ?>
+                            </a>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+
                     <!-- ── SEGUIR VIENDO ── -->
                     <div class="seguimiento">
                         <div class="seguimiento-cabecera">
