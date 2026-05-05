@@ -50,6 +50,11 @@ class Database
             $conexion->exec(file_get_contents($crmMigrateSql));
         }
 
+        // Añadir columna intentos a resultado_examen si no existe (SQLite no soporta IF NOT EXISTS en ALTER)
+        try { $conexion->exec("ALTER TABLE resultado_examen ADD COLUMN intentos INTEGER NOT NULL DEFAULT 1"); } catch (\Exception $e) {}
+        // Añadir columna estado a matricula si no existe
+        try { $conexion->exec("ALTER TABLE matricula ADD COLUMN estado TEXT NOT NULL DEFAULT 'activa'"); } catch (\Exception $e) {}
+
         return $conexion;
     }
 }

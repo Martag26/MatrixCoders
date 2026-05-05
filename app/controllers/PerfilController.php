@@ -66,6 +66,16 @@ class PerfilController
             exit;
         }
 
+        $stmt = $this->db->prepare(
+            "SELECT c.id, c.titulo
+             FROM matricula m
+             JOIN curso c ON c.id = m.curso_id
+             WHERE m.usuario_id = ?
+             ORDER BY m.fecha DESC"
+        );
+        $stmt->execute([(int)$_SESSION['usuario_id']]);
+        $cursosMatriculados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $pageTitle = 'Mi perfil';
         $flash     = $_SESSION['flash'] ?? null;
         unset($_SESSION['flash']);
@@ -142,6 +152,50 @@ class PerfilController
         $_SESSION['usuario_nombre'] = $nombre;
 
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Perfil actualizado correctamente.'];
+        header('Location: ' . BASE_URL . '/index.php?url=perfil');
+        exit;
+    }
+
+    public function cambiarPassword(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/index.php?url=perfil');
+            exit;
+        }
+
+        if (empty($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL . '/index.php?url=login');
+            exit;
+        }
+
+        $id                = (int)$_SESSION['usuario_id'];
+        $passwordActual    = $_POST['password_actual'] ?? '';
+        $passwordNueva     = $_POST['password_nueva'] ?? '';
+        $passwordConfirmar = $_POST['password_confirmar'] ?? '';
+        $usuario           = $this->obtenerUsuario($id);
+
+        if (!$usuario || empty($usuario['password']) || !password_verify($passwordActual, $usuario['password'])) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'La contraseña actual no es correcta.'];
+            header('Location: ' . BASE_URL . '/index.php?url=perfil');
+            exit;
+        }
+
+        if (mb_strlen($passwordNueva) < 8) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'La nueva contraseña debe tener al menos 8 caracteres.'];
+            header('Location: ' . BASE_URL . '/index.php?url=perfil');
+            exit;
+        }
+
+        if ($passwordNueva !== $passwordConfirmar) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'La confirmación de la contraseña no coincide.'];
+            header('Location: ' . BASE_URL . '/index.php?url=perfil');
+            exit;
+        }
+
+        $stmt = $this->db->prepare("UPDATE usuario SET password = ? WHERE id = ?");
+        $stmt->execute([password_hash($passwordNueva, PASSWORD_DEFAULT), $id]);
+
+        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Contraseña actualizada.'];
         header('Location: ' . BASE_URL . '/index.php?url=perfil');
         exit;
     }

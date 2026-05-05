@@ -36,6 +36,20 @@ switch ($url) {
         $controller->index();
         break;
 
+    case 'mis-cursos':
+        require_once "../app/controllers/MisCursosController.php";
+        $controller = new MisCursosController();
+        $controller->index();
+        break;
+
+    case 'repositorio':
+        require_once "../app/controllers/RepositorioController.php";
+        break;
+
+    case 'chatbot':
+        require_once "../app/controllers/ChatbotController.php";
+        break;
+
     case 'documento-compartido':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();
@@ -221,6 +235,12 @@ switch ($url) {
         require_once "../app/controllers/PerfilController.php";
         $controller = new PerfilController();
         $controller->guardar();
+        break;
+
+    case 'cambiar-password':
+        require_once "../app/controllers/PerfilController.php";
+        $controller = new PerfilController();
+        $controller->cambiarPassword();
         break;
 
     case 'ajustes':

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../models/Curso.php';
+require_once __DIR__ . '/../helpers/GeminiService.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -43,15 +44,22 @@ $planUsuario = $_SESSION['usuario_plan'] ?? null;
 $planesAccesoTotal = ['plan_estudiantes', 'plan_empresas'];
 
 if (in_array($planUsuario, $planesAccesoTotal)) {
-    // Con estos planes puede ver cualquier lección sin necesidad de matrícula
     $estaMatriculado = true;
 } else {
-    // Sin plan o con curso_individual: solo accede si está matriculado
-    $estaMatriculado = $modeloCurso->estaMatriculado($usuarioId, $cursoId);
-    if (!$estaMatriculado) {
+    // Verificar estado de matrícula (activa o revocada)
+    $stmtEst = $db->prepare("SELECT estado FROM matricula WHERE usuario_id=? AND curso_id=?");
+    $stmtEst->execute([$usuarioId, $cursoId]);
+    $estadoMatricula = $stmtEst->fetchColumn();
+
+    if (!$estadoMatricula) {
         header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
         exit;
     }
+    if ($estadoMatricula === 'revocada') {
+        header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId . '&acceso=revocado');
+        exit;
+    }
+    $estaMatriculado = true;
 }
 
 // ── AJAX: marcar lección como vista ──
@@ -59,6 +67,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'marca
     header('Content-Type: application/json');
     $modeloCurso->marcarVista($usuarioId, $leccionId);
     echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ── AJAX: chat RAG sobre contenido del curso ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'rag_chat') {
+    header('Content-Type: application/json');
+    $pregunta = trim($_POST['pregunta'] ?? '');
+    if (!$pregunta) { echo json_encode(['ok' => false, 'error' => 'Pregunta vacía']); exit; }
+
+    // Construir contexto: título del curso, unidades y lecciones, apuntes IA si existen
+    $stmtCtx = $db->prepare("
+        SELECT c.titulo AS curso_titulo, c.descripcion AS curso_descripcion,
+               l.titulo AS leccion_titulo, l.video_url
+        FROM leccion l
+        JOIN unidad u ON u.id = l.unidad_id
+        JOIN curso c  ON c.id = u.curso_id
+        WHERE l.id = ?
+    ");
+    $stmtCtx->execute([$leccionId]);
+    $ctx = $stmtCtx->fetch(PDO::FETCH_ASSOC);
+
+    $stmtUnidades = $db->prepare("
+        SELECT u.titulo, GROUP_CONCAT(l2.titulo, ' | ') AS lecciones
+        FROM unidad u
+        JOIN leccion l2 ON l2.unidad_id = u.id
+        WHERE u.curso_id = (SELECT unidad.curso_id FROM unidad JOIN leccion ON leccion.unidad_id = unidad.id WHERE leccion.id = ?)
+        GROUP BY u.id ORDER BY u.orden
+    ");
+    $stmtUnidades->execute([$leccionId]);
+    $unidadesCtx = $stmtUnidades->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmtApuntes = $db->prepare("SELECT contenido FROM leccion_apuntes_ia WHERE leccion_id = ?");
+    $stmtApuntes->execute([$leccionId]);
+    $apuntesIa = $stmtApuntes->fetchColumn() ?: '';
+
+    $contexto  = "Curso: {$ctx['curso_titulo']}\n";
+    $contexto .= "Descripción del curso: " . ($ctx['curso_descripcion'] ?? 'No disponible') . "\n";
+    $contexto .= "Lección actual: {$ctx['leccion_titulo']}\n\n";
+    $contexto .= "Estructura del curso:\n";
+    foreach ($unidadesCtx as $u) {
+        $contexto .= "- {$u['titulo']}: {$u['lecciones']}\n";
+    }
+    if ($apuntesIa) {
+        $contexto .= "\nApuntes generados de la lección:\n" . substr($apuntesIa, 0, 2000);
+    }
+
+    $gemini    = new GeminiService();
+    $resultado = $gemini->preguntaConContexto($pregunta, $contexto);
+    echo json_encode($resultado);
     exit;
 }
 
@@ -104,7 +161,17 @@ if ($usuarioId) {
     $nota = $modeloCurso->getNota($usuarioId, $leccionId);
 }
 
-// URL del notebook de NotebookLM asociado a esta lección (generado por el instructor con IA)
+// Recursos descargables de esta lección (subidos por el instructor via CRM)
+$stmtRec = $db->prepare("
+    SELECT id, nombre, tipo, url_o_ruta, descripcion, descargable
+    FROM leccion_recurso
+    WHERE leccion_id = ?
+    ORDER BY orden ASC, id ASC
+");
+$stmtRec->execute([$leccionId]);
+$recursosInstructor = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
+
+// URL del notebook de NotebookLM asociado a esta lección (gestionado por el instructor)
 $stmtNb = $db->prepare("SELECT notebook_url FROM leccion_notebook WHERE leccion_id = ?");
 $stmtNb->execute([$leccionId]);
 $notebookUrl = $stmtNb->fetchColumn() ?: null;
@@ -115,6 +182,11 @@ try {
     $stmtRec->execute([$leccionId]);
     $recursosInstructor = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) { $recursosInstructor = []; }
+
+// Apuntes IA en caché (si existen)
+$stmtAi = $db->prepare("SELECT contenido FROM leccion_apuntes_ia WHERE leccion_id = ?");
+$stmtAi->execute([$leccionId]);
+$apuntesIaCached = $stmtAi->fetchColumn() ?: null;
 
 $pageTitle = htmlspecialchars($leccion['titulo'] ?? 'Lección');
 

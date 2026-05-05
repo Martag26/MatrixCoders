@@ -139,6 +139,15 @@ CREATE TABLE IF NOT EXISTS entrega_entregable (
     FOREIGN KEY (alumno_id) REFERENCES usuario(id) ON DELETE CASCADE
 );
 
+-- Notebook de NotebookLM asociado a una lección (URL externa, gestionado por instructor)
+-- Columna intentos para resultado_examen se añade desde PHP con try/catch (SQLite no soporta IF NOT EXISTS en ALTER TABLE)
+CREATE TABLE IF NOT EXISTS leccion_notebook (
+    leccion_id   INTEGER PRIMARY KEY,
+    notebook_url TEXT    NOT NULL,
+    creado_en    TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (leccion_id) REFERENCES leccion(id) ON DELETE CASCADE
+);
+
 -- Log de actividad CRM (para el feed del dashboard)
 CREATE TABLE IF NOT EXISTS crm_actividad (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

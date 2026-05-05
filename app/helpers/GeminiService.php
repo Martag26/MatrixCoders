@@ -64,6 +64,48 @@ class GeminiService
         return ['ok' => true, 'contenido' => trim($texto)];
     }
 
+    public function preguntaConContexto(string $pregunta, string $contexto): array
+    {
+        if (!$this->apiKey) {
+            return ['ok' => false, 'error' => 'API key de Gemini no configurada'];
+        }
+
+        $prompt = "Eres un tutor experto de la plataforma educativa MatrixCoders. Un alumno tiene una duda sobre el siguiente contenido del curso:\n\n---\n{$contexto}\n---\n\nResponde la siguiente pregunta de forma clara, precisa y en español. Si la respuesta no está en el contexto, di que no tienes información suficiente pero intenta ayudar con tu conocimiento general.\n\nPregunta del alumno: {$pregunta}";
+
+        $body = json_encode([
+            'contents' => [['parts' => [['text' => $prompt]]]],
+            'generationConfig' => ['temperature' => 0.4, 'maxOutputTokens' => 1024],
+        ]);
+
+        $url = $this->endpoint . '?key=' . urlencode($this->apiKey);
+        $context = stream_context_create([
+            'http' => [
+                'method'        => 'POST',
+                'header'        => "Content-Type: application/json\r\nAccept: application/json\r\n",
+                'content'       => $body,
+                'timeout'       => 60,
+                'ignore_errors' => true,
+            ],
+        ]);
+
+        $response = @file_get_contents($url, false, $context);
+        if ($response === false) {
+            return ['ok' => false, 'error' => 'No se pudo conectar con Gemini'];
+        }
+
+        $data = json_decode($response, true);
+        if (isset($data['error'])) {
+            return ['ok' => false, 'error' => $data['error']['message'] ?? 'Error de la API'];
+        }
+
+        $texto = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        if (!$texto) {
+            return ['ok' => false, 'error' => 'La IA no generó respuesta'];
+        }
+
+        return ['ok' => true, 'respuesta' => trim($texto)];
+    }
+
     private function buildPrompt(string $titulo): string
     {
         return "Eres un asistente educativo experto. Analiza el contenido de este vídeo educativo titulado \"{$titulo}\" y genera apuntes estructurados, completos y útiles en español para estudiantes universitarios.
