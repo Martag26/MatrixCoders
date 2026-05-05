@@ -34,9 +34,17 @@ function matrixcoders_documento_archivo_subido(?array $documento): ?array
     }
 
     $baseUrl = rtrim((string)BASE_URL, '/');
-    $relativePath = $publicPath;
-    if ($baseUrl !== '' && strncmp($publicPath, $baseUrl, strlen($baseUrl)) === 0) {
-        $relativePath = substr($publicPath, strlen($baseUrl));
+
+    // Resolve to relative server path and full public URL
+    if (preg_match('/^https?:\/\//i', $publicPath)) {
+        $relativePath = $publicPath;
+        if ($baseUrl !== '' && strncmp($publicPath, $baseUrl, strlen($baseUrl)) === 0) {
+            $relativePath = substr($publicPath, strlen($baseUrl));
+        }
+        $publicUrl = $publicPath;
+    } else {
+        $relativePath = '/' . ltrim($publicPath, '/');
+        $publicUrl = $baseUrl . $relativePath;
     }
 
     $absolutePath = dirname(__DIR__, 2) . '/public' . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
@@ -46,7 +54,7 @@ function matrixcoders_documento_archivo_subido(?array $documento): ?array
     $notes = $parts[1] ?? '';
 
     return [
-        'public_path' => $publicPath,
+        'public_path' => $publicUrl,
         'absolute_path' => $absolutePath,
         'exists' => $exists,
         'original_name' => trim($nameMatch[1] ?? basename($pathForExtension)),

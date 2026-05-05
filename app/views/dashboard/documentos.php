@@ -202,6 +202,14 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--dark);margin:
 .nube-storage-bar{flex:1;height:5px;background:var(--border);border-radius:99px;overflow:hidden;}
 .nube-storage-fill{height:100%;background:var(--green);border-radius:99px;}
 .nube-storage-lbl{font-size:.72rem;color:var(--muted);font-weight:600;white-space:nowrap;}
+
+/* ── Keep main sidebar compact (not stretched) in this flex layout ── */
+#mainSidebar{align-self:flex-start;margin-top:18px;}
+
+/* ── Delete confirm modal ── */
+.nm-delete-icon{width:44px;height:44px;border-radius:12px;background:#fef2f2;border:1.5px solid #fecaca;display:flex;align-items:center;justify-content:center;margin-bottom:12px;}
+.nm-box-title{font-size:.98rem;font-weight:800;color:var(--dark);margin:0 0 6px;}
+.nm-box-sub{font-size:.82rem;color:var(--muted);margin:0 0 18px;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -288,14 +296,10 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--dark);margin:
           </span>
           <span class="nube-topbar-sub"><?= count($docsVisibles) ?> elemento<?= count($docsVisibles) !== 1 ? 's' : '' ?></span>
           <div class="nube-topbar-actions">
-            <button class="nb-btn nb-btn-secondary" onclick="openModal('nmUpload')">
+            <button class="nb-btn nb-btn-primary" onclick="openModal('nmUpload')">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
               Subir archivo
             </button>
-            <a href="<?= BASE_URL ?>/index.php?url=nuevo-documento" class="nb-btn nb-btn-primary">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-              Nueva nota
-            </a>
           </div>
         </div>
 
@@ -352,14 +356,10 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--dark);margin:
             <h3>Sin archivos aquí todavía</h3>
             <p>Sube un archivo, crea una nota o guarda recursos desde tus lecciones.</p>
             <div style="display:flex;gap:10px;justify-content:center;margin-top:18px;">
-              <button class="nb-btn nb-btn-secondary" onclick="openModal('nmUpload')">
+              <button class="nb-btn nb-btn-primary" onclick="openModal('nmUpload')">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                 Subir archivo
               </button>
-              <a href="<?= BASE_URL ?>/index.php?url=nuevo-documento" class="nb-btn nb-btn-primary">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-                Nueva nota
-              </a>
             </div>
           </div>
 
@@ -565,6 +565,46 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--dark);margin:
   </div>
 </div>
 
+<!-- Delete folder confirmation modal -->
+<div class="nm-overlay" id="nmEliminarCarpeta" onclick="if(event.target===this)closeModal('nmEliminarCarpeta')">
+  <div class="nm-box" style="max-width:400px">
+    <div class="nm-delete-icon">
+      <svg width="20" height="20" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    </div>
+    <p class="nm-box-title">Eliminar carpeta</p>
+    <p class="nm-box-sub" id="nmEliminarCarpetaNombre"></p>
+    <p class="nm-box-sub" style="margin-top:-10px;">Los archivos dentro de esta carpeta <strong>no se eliminarán</strong> — quedarán sin carpeta asignada.</p>
+    <input type="hidden" id="nmEliminarCarpetaId">
+    <div class="nm-actions">
+      <button type="button" class="nb-btn nb-btn-secondary" onclick="closeModal('nmEliminarCarpeta')">Cancelar</button>
+      <button id="btnConfirmarEliminarCarpeta" type="button" class="nb-btn" style="background:var(--danger);color:#fff;border:none;" onclick="confirmarEliminarCarpeta()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        Eliminar carpeta
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete document confirmation modal -->
+<div class="nm-overlay" id="nmEliminarDoc" onclick="if(event.target===this)closeModal('nmEliminarDoc')">
+  <div class="nm-box" style="max-width:380px">
+    <div class="nm-delete-icon">
+      <svg width="20" height="20" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+    </div>
+    <p class="nm-box-title">Eliminar archivo</p>
+    <p class="nm-box-sub" id="nmEliminarDocNombre"></p>
+    <p class="nm-box-sub" style="margin-top:-10px;">Esta acción no se puede deshacer. El archivo se eliminará permanentemente.</p>
+    <input type="hidden" id="nmEliminarDocId">
+    <div class="nm-actions">
+      <button type="button" class="nb-btn nb-btn-secondary" onclick="closeModal('nmEliminarDoc')">Cancelar</button>
+      <button id="btnConfirmarEliminar" type="button" class="nb-btn" style="background:var(--danger);color:#fff;border:none;" onclick="confirmarEliminarDoc()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
 <?php require __DIR__ . '/../layout/footer.php'; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
@@ -600,11 +640,25 @@ function filtrarNube(q) {
     const n = el.dataset.nombre || '';
     el.style.display = n.includes(q) ? '' : 'none';
   });
+  // Hide section labels and their grid/list containers when all items inside are hidden
+  document.querySelectorAll('.nube-grid, .nube-list').forEach(container => {
+    const hasVisible = [...container.querySelectorAll('.doc-item')].some(el => el.style.display !== 'none');
+    container.style.display = hasVisible ? '' : 'none';
+    const prev = container.previousElementSibling;
+    if (prev && prev.classList.contains('nube-section-lbl')) {
+      prev.style.display = hasVisible ? '' : 'none';
+    }
+  });
 }
 
 /* ── Folder filter (select in toolbar) ── */
 function filtrarPorCarpeta(val) {
-  window.location.href = BASE_URL + '/index.php?url=nube' + (val ? '&carpeta=' + val : '');
+  const params = new URLSearchParams(window.location.search);
+  let url = BASE_URL + '/index.php?url=nube';
+  if (val) url += '&carpeta=' + encodeURIComponent(val);
+  const tipo = params.get('tipo');
+  if (tipo) url += '&tipo=' + encodeURIComponent(tipo);
+  window.location.href = url;
 }
 
 /* ── File preview on select ── */
@@ -703,27 +757,53 @@ async function moverDocumento() {
 }
 
 /* ── Delete document ── */
-async function pedirEliminarDoc(id, nombre) {
-  if (!confirm('¿Eliminar "' + nombre + '"? Esta acción no se puede deshacer.')) return;
-  const res = await fetch(BASE_URL + '/index.php?url=nube-api', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nube_action: 'eliminar_documento', id })
-  }).then(r => r.json());
-  if (res.ok) window.location.reload();
-  else alert(res.error || 'Error al eliminar.');
+function pedirEliminarDoc(id, nombre) {
+  document.getElementById('nmEliminarDocId').value = id;
+  document.getElementById('nmEliminarDocNombre').textContent = '"' + nombre + '"';
+  openModal('nmEliminarDoc');
+}
+
+async function confirmarEliminarDoc() {
+  const id = document.getElementById('nmEliminarDocId').value;
+  const btn = document.getElementById('btnConfirmarEliminar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Eliminando…'; }
+  try {
+    const res = await fetch(BASE_URL + '/index.php?url=nube-api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nube_action: 'eliminar_documento', id })
+    }).then(r => r.json());
+    if (res.ok) { closeModal('nmEliminarDoc'); window.location.reload(); }
+    else { if (btn) { btn.disabled = false; btn.textContent = 'Eliminar'; } alert(res.error || 'Error al eliminar.'); }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Eliminar'; }
+    alert('Error de red al eliminar.');
+  }
 }
 
 /* ── Delete folder ── */
-async function pedirEliminarCarpeta(id, nombre) {
-  if (!confirm('¿Eliminar la carpeta "' + nombre + '"? Los archivos dentro quedarán sin carpeta.')) return;
-  const res = await fetch(BASE_URL + '/index.php?url=nube-api', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nube_action: 'eliminar_carpeta', id })
-  }).then(r => r.json());
-  if (res.ok) window.location.href = BASE_URL + '/index.php?url=nube';
-  else alert(res.error || 'Error al eliminar la carpeta.');
+function pedirEliminarCarpeta(id, nombre) {
+  document.getElementById('nmEliminarCarpetaId').value = id;
+  document.getElementById('nmEliminarCarpetaNombre').textContent = '"' + nombre + '"';
+  openModal('nmEliminarCarpeta');
+}
+
+async function confirmarEliminarCarpeta() {
+  const id = document.getElementById('nmEliminarCarpetaId').value;
+  const btn = document.getElementById('btnConfirmarEliminarCarpeta');
+  if (btn) { btn.disabled = true; btn.textContent = 'Eliminando…'; }
+  try {
+    const res = await fetch(BASE_URL + '/index.php?url=nube-api', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nube_action: 'eliminar_carpeta', id })
+    }).then(r => r.json());
+    if (res.ok) { closeModal('nmEliminarCarpeta'); window.location.href = BASE_URL + '/index.php?url=nube'; }
+    else { if (btn) { btn.disabled = false; btn.textContent = 'Eliminar carpeta'; } alert(res.error || 'Error al eliminar la carpeta.'); }
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Eliminar carpeta'; }
+    alert('Error de red al eliminar.');
+  }
 }
 </script>
 </body>
