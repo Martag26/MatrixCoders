@@ -111,6 +111,14 @@ CREATE TABLE IF NOT EXISTS tarea_practica (
     creado_en TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Notebook de NotebookLM asociado a una lección (URL externa, gestionado por instructor)
+CREATE TABLE IF NOT EXISTS leccion_notebook (
+    leccion_id   INTEGER PRIMARY KEY,
+    notebook_url TEXT    NOT NULL,
+    creado_en    TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (leccion_id) REFERENCES leccion(id) ON DELETE CASCADE
+);
+
 -- Log de actividad CRM (para el feed del dashboard)
 CREATE TABLE IF NOT EXISTS crm_actividad (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,

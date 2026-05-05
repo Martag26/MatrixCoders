@@ -826,6 +826,11 @@ $ytId = ytId($videoUrl);
                         </button>
                     </li>
                     <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-apuntes">
+                            Apuntes
+                        </button>
+                    </li>
+                    <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-recursos">
                             Recursos
                             <?php
@@ -871,6 +876,21 @@ $ytId = ytId($videoUrl);
                         <button id="btn-marcar-manual" onclick="marcarVistaManual()" style="margin-left:auto;padding:.3rem .8rem;border:1px solid #86efac;border-radius:6px;background:#fff;color:#166534;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Saira',sans-serif;">Marcar manualmente</button>
                     </div>
                     <?php endif; ?>
+                </div>
+
+                <!-- APUNTES PERSONALES -->
+                <div class="tab-pane fade" id="tab-apuntes">
+                    <div class="notas-header">
+                        <h6>Mis apuntes</h6>
+                    </div>
+                    <textarea id="notas-personales" class="notas-area" placeholder="Escribe tus apuntes aquí…"><?= htmlspecialchars($nota ?? '') ?></textarea>
+                    <div class="notas-footer">
+                        <button class="btn-guardar" onclick="guardarNotaPersonal()">Guardar</button>
+                        <span id="notas-saved-msg" class="notas-saved">✓ Guardado</span>
+                    </div>
+                    <div class="notas-hint">
+                        💡 Tus apuntes se guardan por lección y puedes volver a consultarlos cuando quieras.
+                    </div>
                 </div>
 
                 <!-- RECURSOS — solo documentos del CRM -->
@@ -1160,23 +1180,25 @@ $ytId = ytId($videoUrl);
             }
         }
 
-        /* ── Contador de caracteres (compatibilidad) ── */
-        const notasArea  = null; // textarea eliminado — recursos solo desde CRM
-        const notasChars = null;
-        if (notasArea) {
-            notasArea.addEventListener('input', () => {
-                const preview = document.getElementById('recursos-preview');
-                if (preview) preview.textContent = notasArea.value || '';
-            });
-        }
-
-        /* ── Guardar apuntes via AJAX ── */
-        /* guardarNota / descargarTxt / imprimirPDF eliminados — recursos solo desde CRM */
+        /* ── Guardar apuntes personales ── */
+        let saveTimer;
+        const notasArea = document.getElementById('notas-personales');
         if (notasArea) {
             notasArea.addEventListener('input', () => {
                 clearTimeout(saveTimer);
-                saveTimer = setTimeout(() => guardarNota(false), 30000);
+                saveTimer = setTimeout(() => guardarNotaPersonal(true), 30000);
             });
+        }
+        async function guardarNotaPersonal(silencioso = false) {
+            const ta = document.getElementById('notas-personales');
+            if (!ta) return;
+            const fd = new FormData();
+            fd.append('nota', ta.value);
+            await fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, { method: 'POST', body: fd });
+            if (!silencioso) {
+                const msg = document.getElementById('notas-saved-msg');
+                if (msg) { msg.style.display = 'inline'; setTimeout(() => msg.style.display = 'none', 2000); }
+            }
         }
 
         /* ── YouTube IFrame API: marcar vista al terminar el vídeo ── */

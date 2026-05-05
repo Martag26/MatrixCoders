@@ -42,6 +42,10 @@ switch ($url) {
         $controller->index();
         break;
 
+    case 'repositorio':
+        require_once "../app/controllers/RepositorioController.php";
+        break;
+
     case 'documento-compartido':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();

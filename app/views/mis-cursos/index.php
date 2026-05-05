@@ -39,12 +39,20 @@ $totalCursos      = count($cursos ?? []);
                             <?= $totalCursos ?> <?= $totalCursos === 1 ? 'curso matriculado' : 'cursos matriculados' ?>
                         </p>
                     </div>
-                    <a href="<?= BASE_URL ?>/index.php" class="mis-cursos-btn-explorar">
-                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                        </svg>
-                        Explorar cursos
-                    </a>
+                    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+                        <a href="<?= BASE_URL ?>/index.php?url=repositorio" class="mis-cursos-btn-explorar" style="background:#f0fdf4;color:#166534;border:1.5px solid #86efac">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                            </svg>
+                            Repositorio
+                        </a>
+                        <a href="<?= BASE_URL ?>/index.php" class="mis-cursos-btn-explorar">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            Explorar cursos
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Filtros -->
