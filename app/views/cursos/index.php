@@ -84,16 +84,27 @@
                 Aprende, <span>crece</span> y avanza
             </h1>
 
-            <div style="position: relative; max-width: 560px; margin: 0 auto;">
+            <div style="position: relative; max-width: 640px; margin: 0 auto;">
                 <form class="hero-search" method="GET" action="<?= BASE_URL ?>/index.php"
-                    style="margin-bottom: 0 !important;">
+                    style="margin-bottom: 0 !important; display:flex; gap: 8px; align-items: center;">
                     <input type="hidden" name="url" value="buscar">
-                    <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
-                    <input
-                        class="form-control w-100"
-                        type="text"
-                        name="q"
-                        placeholder="Busca el curso que desees">
+                    <div style="position:relative; flex:1;">
+                        <img class="icon" src="<?= BASE_URL ?>/img/lupa.png" alt="buscar">
+                        <input
+                            class="form-control w-100"
+                            type="text"
+                            name="q"
+                            placeholder="Busca el curso que desees">
+                    </div>
+                    <button type="submit" style="
+                        background: #6B8F71; color: #fff; border: none;
+                        border-radius: 10px; padding: 0 18px; height: 48px;
+                        font-family: 'Saira', sans-serif; font-weight: 700;
+                        font-size: .9rem; white-space: nowrap; cursor: pointer;
+                        transition: background .15s; flex-shrink: 0;
+                    " onmouseover="this.style.background='#4a6b50'" onmouseout="this.style.background='#6B8F71'">
+                        Buscar
+                    </button>
                 </form>
                 <ul id="sugerencias" style="
                     display: none;
@@ -103,13 +114,30 @@
                     list-style: none;
                     padding: 4px 0;
                     margin: 0;
-                    width: 100%;
+                    width: calc(100% - 88px);
                     box-shadow: 0 8px 24px rgba(0,0,0,.08);
                     position: absolute !important;
                     top: calc(100% + 4px);
                     left: 0;
                     z-index: 9999;
                 "></ul>
+            </div>
+
+            <div style="text-align:center; margin-top: 14px;">
+                <a href="<?= BASE_URL ?>/index.php?url=buscar&q=" style="
+                    display: inline-flex; align-items: center; gap: 6px;
+                    background: transparent; border: 1.5px solid #6B8F71;
+                    color: #4a6b50; border-radius: 99px; padding: 6px 20px;
+                    font-family: 'Saira', sans-serif; font-weight: 700;
+                    font-size: .85rem; text-decoration: none; transition: all .15s;
+                " onmouseover="this.style.background='#6B8F71';this.style.color='#fff'"
+                   onmouseout="this.style.background='transparent';this.style.color='#4a6b50'">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    Ver todos los cursos
+                </a>
             </div>
 
             <!-- BLOQUE DE CURSOS: listado dinámico cargado desde la base de datos -->
