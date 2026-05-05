@@ -6,6 +6,7 @@ $isWorkspace   = in_array($currentUrl, ['dashboard'], true);
 $isNube             = in_array($currentUrl, ['nube', 'mis-documentos', 'documento'], true);
 $isCalendario  = in_array($currentUrl, ['calendario'], true);
 $isCuenta    = in_array($currentUrl, ['perfil', 'ajustes'], true);
+$isMisCursos = in_array($currentUrl, ['mis-cursos'], true);
 ?>
 <aside class="sidebar" id="mainSidebar">
 
@@ -56,6 +57,17 @@ $isCuenta    = in_array($currentUrl, ['perfil', 'ajustes'], true);
                         <line x1="3" y1="10" x2="21" y2="10"/>
                     </svg>
                     <span class="sidebar__label">Calendario</span>
+                </a>
+            </li>
+
+            <li>
+                <a href="<?= BASE_URL ?>/index.php?url=mis-cursos"
+                   class="sidebar__link <?= $isMisCursos ? 'active' : '' ?>"
+                   title="Mis cursos">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
+                    </svg>
+                    <span class="sidebar__label">Mis cursos</span>
                 </a>
             </li>
 

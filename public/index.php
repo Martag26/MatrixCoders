@@ -36,6 +36,12 @@ switch ($url) {
         $controller->index();
         break;
 
+    case 'mis-cursos':
+        require_once "../app/controllers/MisCursosController.php";
+        $controller = new MisCursosController();
+        $controller->index();
+        break;
+
     case 'documento-compartido':
         require_once "../app/controllers/DashboardController.php";
         $controller = new DashboardController();
