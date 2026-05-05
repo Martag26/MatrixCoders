@@ -84,14 +84,12 @@
     <div class="crm-sidebar__section">
       <div class="crm-sidebar__section-label">Principal</div>
 
-      <?php if (!$esInstructor || $esAdmin): ?>
       <a href="<?= $crmBase ?>dashboard"
          class="crm-sidebar__link <?= $seccion==='dashboard'?'active':'' ?>"
          data-tooltip="Dashboard">
         <svg class="crm-sl-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         <span class="crm-sl-label">Dashboard</span>
       </a>
-      <?php endif; ?>
 
       <?php if ($esAdmin): ?>
       <a href="<?= $crmBase ?>usuarios"
@@ -111,7 +109,7 @@
       </a>
       <?php endif; ?>
 
-      <?php if ($esAdmin || $esModerador): ?>
+      <?php if ($esAdmin || $esModerador || $esInstructor): ?>
       <a href="<?= $crmBase ?>campanas"
          class="crm-sidebar__link <?= $seccion==='campanas'?'active':'' ?>"
          data-tooltip="Campañas">

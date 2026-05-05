@@ -57,6 +57,8 @@ class Notificacion
         $this->syncExpiraciones($usuario_id);
         $this->syncMensajes($usuario_id);
         $this->syncCampanasCrm($usuario_id);
+        $this->syncExamenTeoricoDisponible($usuario_id);
+        $this->syncExamenPracticoDisponible($usuario_id);
     }
 
     // ── Tareas próximas sin entregar (próximos 3 días) ─────────────────────────
@@ -240,6 +242,94 @@ class Notificacion
                 $crm['cuerpo'],
                 $urlAccion,
                 (int)$crm['id']
+            );
+        }
+    }
+
+    // ── Examen teórico disponible (todas las lecciones y tareas completadas) ──────
+    private function syncExamenTeoricoDisponible(int $uid): void
+    {
+        // Cursos matriculados que tienen examen tipo test
+        try {
+            $stmt = $this->db->prepare("
+                SELECT e.id AS examen_id, c.id AS curso_id, c.titulo AS curso
+                FROM matricula m
+                JOIN curso c ON c.id = m.curso_id
+                JOIN examen e ON e.curso_id = c.id AND (e.tipo='test' OR e.tipo IS NULL OR e.tipo='')
+                LEFT JOIN notificacion n ON n.usuario_id = ? AND n.tipo = 'examen_teorico' AND n.ref_id = e.id
+                WHERE m.usuario_id = ?
+                  AND n.id IS NULL
+            ");
+            $stmt->execute([$uid, $uid]);
+            $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) { return; }
+
+        foreach ($cursos as $c) {
+            $cursoId  = (int)$c['curso_id'];
+            $examenId = (int)$c['examen_id'];
+
+            // Verificar lecciones completadas
+            try {
+                $stmtT = $this->db->prepare("SELECT COUNT(*) FROM leccion l JOIN unidad u ON l.unidad_id=u.id WHERE u.curso_id=?");
+                $stmtT->execute([$cursoId]);
+                $total = (int)$stmtT->fetchColumn();
+                if ($total === 0) continue;
+
+                $stmtV = $this->db->prepare("
+                    SELECT COUNT(DISTINCT lv.leccion_id) FROM leccion_vista lv
+                    JOIN leccion l ON l.id=lv.leccion_id
+                    JOIN unidad u  ON l.unidad_id=u.id
+                    WHERE u.curso_id=? AND lv.usuario_id=?
+                ");
+                $stmtV->execute([$cursoId, $uid]);
+                if ((int)$stmtV->fetchColumn() < $total) continue;
+            } catch (\Exception $e) { continue; }
+
+            // Verificar tareas entregables todas entregadas (si hay)
+            try {
+                $stmtTE = $this->db->prepare("
+                    SELECT COUNT(*) FROM tarea_entregable te
+                    LEFT JOIN entrega_entregable ee ON ee.tarea_id=te.id AND ee.alumno_id=?
+                    WHERE te.curso_id=? AND ee.id IS NULL
+                ");
+                $stmtTE->execute([$uid, $cursoId]);
+                if ((int)$stmtTE->fetchColumn() > 0) continue;
+            } catch (\Exception $e) {}
+
+            $this->insertar($uid, 'examen_teorico',
+                '¡Ya puedes hacer el examen teórico! — ' . $c['curso'],
+                'Has completado todas las lecciones y tareas del curso. Accede al examen cuando estés listo.',
+                BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
+                $examenId
+            );
+        }
+    }
+
+    // ── Examen práctico disponible (examen teórico aprobado) ────────────────────
+    private function syncExamenPracticoDisponible(int $uid): void
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT c.id AS curso_id, c.titulo AS curso, e.id AS examen_id
+                FROM matricula m
+                JOIN curso c ON c.id = m.curso_id
+                JOIN examen e ON e.curso_id = c.id AND (e.tipo='test' OR e.tipo IS NULL OR e.tipo='')
+                JOIN resultado_examen re ON re.examen_id=e.id AND re.usuario_id=? AND re.aprobado=1
+                LEFT JOIN notificacion n ON n.usuario_id=? AND n.tipo='examen_practico' AND n.ref_id=c.id
+                WHERE m.usuario_id = ?
+                  AND n.id IS NULL
+                  AND EXISTS (SELECT 1 FROM tarea_practica tp WHERE tp.curso_id=c.id)
+            ");
+            $stmt->execute([$uid, $uid, $uid]);
+            $cursos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) { return; }
+
+        foreach ($cursos as $c) {
+            $this->insertar($uid, 'examen_practico',
+                '¡Ya puedes hacer el examen práctico! — ' . $c['curso'],
+                'Has aprobado el examen teórico. El examen práctico final ya está disponible para ti.',
+                BASE_URL . '/index.php?url=examen-practico&curso=' . $c['curso_id'],
+                (int)$c['curso_id']
             );
         }
     }

@@ -33,8 +33,7 @@ $archivoSubido = $documento ? matrixcoders_documento_archivo_subido($documento) 
                                 <p>El documento no existe o no pertenece a tu cuenta.</p>
                             <?php else: ?>
                                 <div class="editor-head-actions">
-                                    <a class="section-link" href="<?= BASE_URL ?>/index.php?url=mis-documentos">Volver a documentos</a>
-                                    <a class="section-link" href="<?= BASE_URL ?>/index.php?url=dashboard">Dashboard</a>
+                                    <a class="section-link" href="<?= BASE_URL ?>/index.php?url=nube">Volver a documentos</a>
                                 </div>
                                 <span class="template-kicker">DOCUMENTO</span>
                                 <h1><?= htmlspecialchars($documento['titulo'] ?? 'Documento') ?></h1>

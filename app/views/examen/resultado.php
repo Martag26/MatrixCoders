@@ -202,8 +202,15 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                         💡 No has alcanzado la nota mínima. Te queda <strong><?= $intentosRestantes ?> intento<?= $intentosRestantes > 1 ? 's' : '' ?></strong>. Repasa el material del curso antes de volver a intentarlo.
                     </div>
                     <?php else: ?>
-                    <div style="margin-top:16px;padding:12px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;font-size:.85rem;color:#7f1d1d;">
-                        ❌ Has agotado tus <?= $maxIntentos ?> intentos para este examen. Contacta con tu instructor si necesitas ayuda.
+                    <div style="margin-top:16px;padding:16px 18px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;font-size:.85rem;color:#7f1d1d">
+                        <div style="font-weight:800;font-size:.9rem;margin-bottom:6px">❌ Intentos agotados</div>
+                        Has utilizado los <?= $maxIntentos ?> intentos disponibles sin superar la nota mínima.
+                        Para volver a intentarlo debes <strong>matricularte de nuevo en el curso</strong>. Contacta con un administrador o adquiere el acceso de nuevo.
+                        <div style="margin-top:10px">
+                            <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" style="display:inline-flex;align-items:center;gap:6px;background:#ef4444;color:#fff;border-radius:8px;padding:7px 14px;font-size:.82rem;font-weight:700;text-decoration:none">
+                                Ver ficha del curso →
+                            </a>
+                        </div>
                     </div>
                     <?php endif; ?>
                 <?php endif; ?>

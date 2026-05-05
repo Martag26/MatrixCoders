@@ -6,9 +6,13 @@ require_once __DIR__ . '/../helpers/GeminiService.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Ruta privada: requiere sesión activa
+// Solo alumnos (USUARIO) pueden acceder al portal de lecciones
 if (empty($_SESSION['usuario_id'])) {
     header('Location: ' . BASE_URL . '/index.php?url=login');
+    exit;
+}
+if (($_SESSION['usuario_rol'] ?? '') !== 'USUARIO') {
+    header('Location: ' . BASE_URL . '/index.php?url=crm');
     exit;
 }
 
@@ -171,6 +175,13 @@ $recursosInstructor = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
 $stmtNb = $db->prepare("SELECT notebook_url FROM leccion_notebook WHERE leccion_id = ?");
 $stmtNb->execute([$leccionId]);
 $notebookUrl = $stmtNb->fetchColumn() ?: null;
+
+// Recursos del instructor para esta lección
+try {
+    $stmtRec = $db->prepare('SELECT * FROM leccion_recurso WHERE leccion_id=? ORDER BY orden, id');
+    $stmtRec->execute([$leccionId]);
+    $recursosInstructor = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) { $recursosInstructor = []; }
 
 // Apuntes IA en caché (si existen)
 $stmtAi = $db->prepare("SELECT contenido FROM leccion_apuntes_ia WHERE leccion_id = ?");

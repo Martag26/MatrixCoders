@@ -1,4 +1,14 @@
 <?php
+// Variables passed from ExamenPracticoController via require — add defaults for IDE analysis
+$tareas             = $tareas             ?? [];
+$entregasExistentes = $entregasExistentes ?? [];
+$totalEntregadas    = $totalEntregadas    ?? 0;
+$todasEntregadas    = $todasEntregadas    ?? false;
+$cursoId            = $cursoId            ?? 0;
+$usuarioId          = $usuarioId          ?? 0;
+$examenPractico     = $examenPractico     ?? null;
+$plazoSuperado      = $plazoSuperado      ?? false;
+
 $tituloCurso  = htmlspecialchars($curso['titulo']  ?? 'Curso');
 $tituloPrac   = htmlspecialchars($examenPractico['titulo'] ?? 'Examen Práctico');
 $nTareas      = count($tareas);
@@ -73,11 +83,53 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
 
 <div class="prac-wrap">
 
-  <?php if ($todasEntregadas): ?>
+  <?php
+  // Check review and certificate status
+  $todasRevisadas = false;
+  $aprobadoPrac   = false;
+  $mediaNotas     = null;
+  $certificadoPrac = null;
+  if ($todasEntregadas && count($entregasExistentes) > 0) {
+      $revisadasCount = count(array_filter($entregasExistentes, fn($e) => $e['revisado']));
+      $todasRevisadas = ($revisadasCount >= count($tareas));
+      if ($todasRevisadas) {
+          $notas = array_filter(array_column($entregasExistentes, 'nota'), fn($n) => $n !== null);
+          $mediaNotas = count($notas) > 0 ? array_sum($notas) / count($notas) : null;
+          $notaMinPrac = (float)($examenPractico['nota_minima'] ?? 5.0);
+          $aprobadoPrac = $mediaNotas !== null && $mediaNotas >= $notaMinPrac;
+          try {
+              $stmtCrt = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
+              $stmtCrt->execute([$usuarioId, $cursoId]);
+              $certificadoPrac = $stmtCrt->fetch(PDO::FETCH_ASSOC) ?: null;
+          } catch (Exception $e) {}
+      }
+  }
+  ?>
+
+  <?php if ($todasRevisadas && $aprobadoPrac && $certificadoPrac): ?>
+  <div class="completed-banner" style="background:linear-gradient(135deg,#1e3a5f,#0f172a)">
+    <div style="font-size:2.5rem;margin-bottom:10px">🎓</div>
+    <h2>¡Examen práctico superado!</h2>
+    <p>Nota media: <strong><?= number_format($mediaNotas, 1) ?>/10</strong>. ¡Enhorabuena! Tu certificado está listo.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+      <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>" class="btn-back" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">
+        Ver certificado →
+      </a>
+      <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" class="btn-back">← Volver al curso</a>
+    </div>
+  </div>
+  <?php elseif ($todasRevisadas && !$aprobadoPrac): ?>
+  <div class="completed-banner" style="background:linear-gradient(135deg,#7f1d1d,#991b1b)">
+    <div style="font-size:2.5rem;margin-bottom:10px">📋</div>
+    <h2>Examen práctico revisado</h2>
+    <p>Nota media: <strong><?= $mediaNotas !== null ? number_format($mediaNotas, 1) : '—' ?>/10</strong>. No has superado la nota mínima. Revisa el feedback de cada tarea.</p>
+    <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" class="btn-back">← Volver al curso</a>
+  </div>
+  <?php elseif ($todasEntregadas): ?>
   <div class="completed-banner">
     <div style="font-size:2.5rem;margin-bottom:10px">🎉</div>
     <h2>¡Examen práctico entregado!</h2>
-    <p>Has enviado todas las tareas. El equipo docente las revisará y recibirás tu calificación próximamente.</p>
+    <p>Has enviado todas las tareas. El equipo docente las revisará y recibirás una notificación con tu calificación.</p>
     <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" class="btn-back">← Volver al curso</a>
   </div>
   <?php endif; ?>
