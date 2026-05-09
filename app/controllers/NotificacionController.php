@@ -23,8 +23,7 @@ class NotificacionController
 
         switch ($action) {
             case 'list':
-                $rol = $_SESSION['usuario_rol'] ?? 'USUARIO';
-                $model->sincronizarAutomaticas($usuario_id, $rol);
+                $model->sincronizarAutomaticas($usuario_id);
                 echo json_encode([
                     'notificaciones' => $model->obtenerRecientes($usuario_id),
                     'no_leidas'      => $model->contarNoLeidas($usuario_id),

@@ -165,7 +165,7 @@ try {
 
 $tieneExamenPractico = false;
 try {
-    $stExP = $db->prepare("SELECT COUNT(*) FROM examen WHERE curso_id=? AND tipo='practico'");
+    $stExP = $db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
     $stExP->execute([$cursoId]);
     $tieneExamenPractico = (int)$stExP->fetchColumn() > 0;
 } catch (\Exception $e) {}

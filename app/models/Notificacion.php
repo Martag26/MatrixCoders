@@ -46,25 +46,19 @@ class Notificacion
     }
 
     /**
-     * Genera notificaciones automáticas según el rol del usuario.
+     * Genera notificaciones automáticas sin duplicar.
      * Deduplica por tipo + ref_id para evitar repeticiones en cada petición.
      */
-    public function sincronizarAutomaticas(int $usuario_id, string $rol = 'USUARIO'): void
+    public function sincronizarAutomaticas(int $usuario_id): void
     {
-        if ($rol === 'USUARIO') {
-            $this->syncTareas($usuario_id);
-            $this->syncTareasVencidas($usuario_id);
-            $this->syncEventosCalendario($usuario_id);
-            $this->syncExpiraciones($usuario_id);
-            $this->syncMensajes($usuario_id);
-            $this->syncCampanasCrm($usuario_id);
-            $this->syncExamenTeoricoDisponible($usuario_id);
-            $this->syncExamenPracticoDisponible($usuario_id);
-        } else {
-            // Staff: notificaciones de gestión
-            $this->syncRevisionesPendientes($usuario_id, $rol);
-            $this->syncNuevosAlumnos($usuario_id, $rol);
-        }
+        $this->syncTareas($usuario_id);
+        $this->syncTareasVencidas($usuario_id);
+        $this->syncEventosCalendario($usuario_id);
+        $this->syncExpiraciones($usuario_id);
+        $this->syncMensajes($usuario_id);
+        $this->syncCampanasCrm($usuario_id);
+        $this->syncExamenTeoricoDisponible($usuario_id);
+        $this->syncExamenPracticoDisponible($usuario_id);
     }
 
     // ── Tareas próximas sin entregar (próximos 3 días) ─────────────────────────
@@ -336,95 +330,6 @@ class Notificacion
                 'Has aprobado el examen teórico. El examen práctico final ya está disponible para ti.',
                 BASE_URL . '/index.php?url=examen-practico&curso=' . $c['curso_id'],
                 (int)$c['curso_id']
-            );
-        }
-    }
-
-    // ── Entregas de examen práctico pendientes de revisión (para staff) ───────────
-    private function syncRevisionesPendientes(int $uid, string $rol): void
-    {
-        // INSTRUCTOR solo ve los cursos que tiene asignados como instructor_id
-        // MODERADOR y ADMINISTRADOR ven todos los cursos
-        $cursoFilter = in_array($rol, ['ADMINISTRADOR', 'MODERADOR'])
-            ? ''
-            : 'AND c.instructor_id = :uid_filter';
-
-        try {
-            $sql = "
-                SELECT ep.id   AS entrega_id,
-                       ep.alumno_id,
-                       u.nombre AS alumno,
-                       c.id    AS curso_id,
-                       c.titulo AS curso,
-                       ep.entregado_en,
-                       COUNT(DISTINCT ep2.id) AS total_entregadas,
-                       (SELECT COUNT(*) FROM tarea_practica tp WHERE tp.curso_id = c.id) AS total_tareas
-                FROM entrega_practica ep
-                JOIN usuario u  ON u.id  = ep.alumno_id
-                JOIN curso c    ON c.id  = ep.curso_id
-                JOIN entrega_practica ep2 ON ep2.alumno_id = ep.alumno_id AND ep2.curso_id = ep.curso_id
-                LEFT JOIN notificacion n ON n.usuario_id = :uid AND n.tipo = 'revision_pendiente' AND n.ref_id = ep.alumno_id * 100000 + ep.curso_id
-                WHERE ep.revisado = 0
-                  AND n.id IS NULL
-                  $cursoFilter
-                GROUP BY ep.alumno_id, ep.curso_id
-                HAVING total_entregadas >= total_tareas AND total_tareas > 0
-            ";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindValue(':uid', $uid, \PDO::PARAM_INT);
-            if (!in_array($rol, ['ADMINISTRADOR', 'MODERADOR'])) {
-                $stmt->bindValue(':uid_filter', $uid, \PDO::PARAM_INT);
-            }
-            $stmt->execute();
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\Exception $e) { return; }
-
-        foreach ($rows as $r) {
-            $refId = (int)$r['alumno_id'] * 100000 + (int)$r['curso_id'];
-            $this->insertar($uid, 'revision_pendiente',
-                'Revisión pendiente: ' . $r['alumno'],
-                'Ha entregado el examen práctico completo de "' . $r['curso'] . '". Pendiente de corrección.',
-                BASE_URL . '/index.php?url=crm&seccion=revision&curso=' . $r['curso_id'] . '&alumno=' . $r['alumno_id'],
-                $refId
-            );
-        }
-    }
-
-    // ── Nuevas matrículas en cursos del instructor ──────────────────────────────
-    private function syncNuevosAlumnos(int $uid, string $rol): void
-    {
-        $cursoFilter = in_array($rol, ['ADMINISTRADOR', 'MODERADOR'])
-            ? ''
-            : 'AND c.instructor_id = :uid_filter';
-
-        try {
-            $sql = "
-                SELECT m.id AS matricula_id, u.nombre AS alumno,
-                       c.id AS curso_id, c.titulo AS curso,
-                       m.fecha
-                FROM matricula m
-                JOIN usuario u ON u.id = m.usuario_id
-                JOIN curso c   ON c.id = m.curso_id
-                LEFT JOIN notificacion n ON n.usuario_id = :uid AND n.tipo = 'nueva_matricula' AND n.ref_id = m.id
-                WHERE n.id IS NULL
-                  AND m.fecha >= date('now', '-7 days')
-                  $cursoFilter
-            ";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindValue(':uid', $uid, \PDO::PARAM_INT);
-            if (!in_array($rol, ['ADMINISTRADOR', 'MODERADOR'])) {
-                $stmt->bindValue(':uid_filter', $uid, \PDO::PARAM_INT);
-            }
-            $stmt->execute();
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\Exception $e) { return; }
-
-        foreach ($rows as $r) {
-            $this->insertar($uid, 'nueva_matricula',
-                'Nuevo alumno: ' . $r['alumno'],
-                'Se ha matriculado en "' . $r['curso'] . '" el ' . substr($r['fecha'], 0, 10) . '.',
-                BASE_URL . '/index.php?url=crm&seccion=alumnos&curso=' . $r['curso_id'],
-                (int)$r['matricula_id']
             );
         }
     }

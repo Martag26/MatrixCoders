@@ -263,12 +263,9 @@ class CrmController
             'eliminar_recurso'          => $this->apiEliminarRecurso(),
             'get_recursos_leccion'      => $this->apiGetRecursosLeccion(),
             'guardar_tareas_curso'      => $this->apiGuardarTareasCurso(),
-            'get_resultados_curso'           => $this->apiGetResultadosCurso(),
-            'get_entregas_alumno'            => $this->apiGetEntregasAlumno(),
-            'revisar_practica'               => $this->apiRevisarPractica(),
-            'get_entregas_entregables'       => $this->apiGetEntregasEntregables(),
-            'revisar_entrega_entregable'     => $this->apiRevisarEntregaEntregable(),
-            'get_entregas_practico'          => $this->apiGetEntregasPractico(),
+            'get_resultados_curso'      => $this->apiGetResultadosCurso(),
+            'get_entregas_alumno'       => $this->apiGetEntregasAlumno(),
+            'revisar_practica'          => $this->apiRevisarPractica(),
             'crear_campana'             => $this->apiCrearCampana(),
             'editar_campana'        => $this->apiEditarCampana(),
             'eliminar_campana'      => $this->apiEliminarCampana(),
@@ -641,22 +638,7 @@ class CrmController
             $tareasCurso = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) { $tareasCurso = []; }
 
-        // Fecha de expiración del examen práctico: matrícula más reciente + 90 días
-        $fechaExpiracionPrac = null;
-        try {
-            $stmtExp = $this->db->prepare("SELECT MAX(fecha) FROM matricula WHERE curso_id=?");
-            $stmtExp->execute([$cursoId]);
-            $ultimaMatricula = $stmtExp->fetchColumn();
-            if ($ultimaMatricula) {
-                $fechaExpiracionPrac = date('Y-m-d', strtotime($ultimaMatricula . ' +90 days'));
-            }
-        } catch (\Exception $e) {}
-        // Si no hay matrículas todavía, fallback a hoy + 90 días
-        if (!$fechaExpiracionPrac) {
-            $fechaExpiracionPrac = date('Y-m-d', strtotime('+90 days'));
-        }
-
-        return compact('curso','unidades','examenTest','examenPractico','preguntas','tareasPracticas','tareasCurso','apuntes','instructores','instructoresAsignados','fechaExpiracionPrac');
+        return compact('curso','unidades','examenTest','examenPractico','preguntas','tareasPracticas','tareasCurso','apuntes','instructores','instructoresAsignados');
     }
 
     private function getCampanasData(): array
@@ -1104,17 +1086,15 @@ class CrmController
 
         if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
 
-        $stmt = $this->db->prepare("SELECT id FROM examen WHERE curso_id=? AND tipo='practico'");
-        $stmt->execute([$cursoId]);
-        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($titulo) {
+            $stmt = $this->db->prepare("SELECT id FROM examen WHERE curso_id=? AND tipo='practico'");
+            $stmt->execute([$cursoId]);
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($existing) {
                 $this->db->prepare("UPDATE examen SET titulo=?,descripcion=?,nota_minima=?,fecha_entrega=?,modo_entrega=? WHERE id=?")->execute([$titulo,$desc,$nota,$fechaEntrega,$modoEntrega,$existing['id']]);
             } else {
                 $this->db->prepare("INSERT INTO examen (curso_id,titulo,descripcion,nota_minima,tipo,fecha_entrega,modo_entrega) VALUES(?,?,?,?,?,?,?)")->execute([$cursoId,$titulo,$desc,$nota,'practico',$fechaEntrega,$modoEntrega]);
             }
-        } elseif ($existing) {
-            $this->db->prepare("DELETE FROM examen WHERE id=?")->execute([$existing['id']]);
         }
 
         $this->db->prepare("DELETE FROM tarea_practica WHERE curso_id=?")->execute([$cursoId]);
@@ -1323,103 +1303,6 @@ class CrmController
         } catch (Exception $e) {
             return ['ok' => true, 'entregas' => []];
         }
-    }
-
-    private function apiGetEntregasPractico(): array
-    {
-        if (!$this->esAdmin && !$this->esInstructor && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
-        $cursoId = (int)($_GET['curso_id'] ?? 0);
-        if (!$cursoId) return ['ok' => false, 'error' => 'Parámetros inválidos'];
-        try {
-            // Un único alumno puede tener 1 entrega por tarea; como solo hay 1 tarea, 1 entrega por alumno
-            $stmt = $this->db->prepare("
-                SELECT ep.id, ep.alumno_id, ep.tarea_id, ep.respuesta_texto, ep.archivo,
-                       ep.nota, ep.feedback, ep.revisado, ep.entregado_en,
-                       tp.titulo AS tarea_titulo,
-                       u.nombre  AS alumno_nombre, u.foto AS alumno_foto
-                FROM entrega_practica ep
-                JOIN tarea_practica tp ON tp.id = ep.tarea_id
-                JOIN usuario u         ON u.id  = ep.alumno_id
-                WHERE ep.curso_id = ?
-                ORDER BY ep.revisado ASC, ep.entregado_en DESC
-            ");
-            $stmt->execute([$cursoId]);
-            $entregas    = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $pendientes  = count(array_filter($entregas, fn($e) => !$e['revisado']));
-            $notas       = array_filter(array_column($entregas, 'nota'), fn($n) => $n !== null);
-            $mediaNotas  = count($notas) ? round(array_sum($notas) / count($notas), 1) : null;
-            return ['ok' => true, 'entregas' => $entregas, 'pendientes' => $pendientes, 'media' => $mediaNotas];
-        } catch (\Exception $e) {
-            return ['ok' => true, 'entregas' => [], 'pendientes' => 0, 'media' => null];
-        }
-    }
-
-    private function apiGetEntregasEntregables(): array
-    {
-        if (!$this->esAdmin && !$this->esInstructor && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
-        $cursoId = (int)($_GET['curso_id'] ?? 0);
-        if (!$cursoId) return ['ok' => false, 'error' => 'Parámetros inválidos'];
-        try {
-            $stmt = $this->db->prepare("
-                SELECT ee.id, ee.tarea_id, ee.alumno_id, ee.respuesta, ee.archivo,
-                       ee.nota, ee.feedback, ee.revisado, ee.entregado_en,
-                       te.titulo AS tarea_titulo, te.descripcion AS tarea_desc, te.fecha_limite,
-                       u.nombre  AS alumno_nombre, u.foto AS alumno_foto
-                FROM entrega_entregable ee
-                JOIN tarea_entregable te ON te.id = ee.tarea_id
-                JOIN usuario u           ON u.id  = ee.alumno_id
-                WHERE te.curso_id = ?
-                ORDER BY ee.revisado ASC, ee.entregado_en DESC
-            ");
-            $stmt->execute([$cursoId]);
-            $entregas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $pendientes = count(array_filter($entregas, fn($e) => !$e['revisado']));
-            return ['ok' => true, 'entregas' => $entregas, 'pendientes' => $pendientes];
-        } catch (Exception $e) {
-            return ['ok' => true, 'entregas' => [], 'pendientes' => 0];
-        }
-    }
-
-    private function apiRevisarEntregaEntregable(): array
-    {
-        if (!$this->esAdmin && !$this->esInstructor && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
-        $d         = $this->input();
-        $entregaId = (int)($d['entrega_id'] ?? 0);
-        $nota      = ($d['nota'] !== '' && $d['nota'] !== null) ? (float)$d['nota'] : null;
-        $feedback  = trim($d['feedback'] ?? '');
-        if (!$entregaId) return ['ok' => false, 'error' => 'ID de entrega inválido'];
-
-        $stmt = $this->db->prepare("
-            SELECT ee.*, te.titulo AS tarea_titulo, te.curso_id, c.titulo AS curso_titulo
-            FROM entrega_entregable ee
-            JOIN tarea_entregable te ON te.id = ee.tarea_id
-            JOIN curso c             ON c.id  = te.curso_id
-            WHERE ee.id = ?
-        ");
-        $stmt->execute([$entregaId]);
-        $entrega = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$entrega) return ['ok' => false, 'error' => 'Entrega no encontrada'];
-
-        $this->db->prepare("
-            UPDATE entrega_entregable SET nota=?, feedback=?, revisado=1 WHERE id=?
-        ")->execute([$nota, $feedback ?: null, $entregaId]);
-
-        $alumnoId  = (int)$entrega['alumno_id'];
-        $cursoId   = (int)$entrega['curso_id'];
-        $urlEntrega = BASE_URL . '/index.php?url=tareas';
-
-        $notifTitulo = '📝 Tarea entregable calificada';
-        $notifCuerpo = 'Tu entrega "' . $entrega['tarea_titulo'] . '" del curso "' . $entrega['curso_titulo'] . '" ha sido revisada';
-        if ($nota !== null) $notifCuerpo .= '. Nota: ' . number_format($nota, 1) . '/10';
-        if ($feedback)      $notifCuerpo .= '. Feedback: ' . mb_substr($feedback, 0, 120);
-
-        try {
-            $this->db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
-                     ->execute([$alumnoId, 'info', $notifTitulo, $notifCuerpo, $urlEntrega, $entregaId]);
-        } catch (Exception $e) {}
-
-        $this->logActividad("Entrega entregable revisada (#{$entregaId})", 'info');
-        return ['ok' => true, 'mensaje' => 'Entrega calificada y alumno notificado'];
     }
 
     private function apiRevisarPractica(): array
