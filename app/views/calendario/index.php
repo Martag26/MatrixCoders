@@ -21,6 +21,15 @@
         *,*::before,*::after{box-sizing:border-box}
         body{font-family:'Saira',sans-serif;background:var(--mc-bg);margin:0;color:var(--mc-dark)}
 
+        /* Protect sidebar from FullCalendar CSS injection */
+        #mainSidebar,#mainSidebar a,#mainSidebar button,#mainSidebar span{
+            font-family:'Saira',sans-serif!important;
+        }
+        #mainSidebar .sidebar__link{font-size:13.5px!important;font-weight:500!important;color:#111827!important;}
+        #mainSidebar .sidebar__link.active{color:#3a6140!important;font-weight:700!important;}
+        #mainSidebar .sidebar__link svg{color:#6b7280!important;}
+        #mainSidebar .sidebar__link.active svg{color:#5f8766!important;}
+
         /* ── PAGE LAYOUT: 3 columnas con espacio compartido ──
            Sidebar expandido  → columna derecha contraída a 0 (prioriza calendario)
            Sidebar colapsado  → columna derecha a 280px visible

@@ -42,7 +42,7 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:#1B2336;margin:0;}
     <div class="blk-header">
       <div class="icon">🔒</div>
       <h1>Examen bloqueado</h1>
-      <p>Debes completar todas las lecciones del curso antes de acceder al examen final.</p>
+      <p>Debes completar todas las lecciones<?= ($tareasRestantes ?? 0) > 0 ? ' y entregar todas las tareas evaluables' : '' ?> antes de acceder al examen final.</p>
     </div>
 
     <div class="blk-body">
@@ -71,6 +71,15 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:#1B2336;margin:0;}
             <span>Te <?= $leccionesRestantes === 1 ? 'queda 1 lección' : "quedan $leccionesRestantes lecciones" ?> por ver</span>
           </div>
         </div>
+        <?php if (($tareasRestantes ?? 0) > 0): ?>
+        <div class="blk-info-row">
+          <div class="ri">📝</div>
+          <div>
+            <strong><?= ($totalTareasEnt ?? 0) - ($tareasRestantes ?? 0) ?> de <?= $totalTareasEnt ?? 0 ?> tareas entregadas</strong>
+            <span>Te <?= ($tareasRestantes ?? 0) === 1 ? 'queda 1 tarea evaluable' : 'quedan ' . ($tareasRestantes ?? 0) . ' tareas evaluables' ?> por entregar</span>
+          </div>
+        </div>
+        <?php endif; ?>
         <div class="blk-info-row" style="background:#fff7ed;border-color:#fed7aa;">
           <div class="ri">💡</div>
           <div>

@@ -129,7 +129,7 @@ class Curso
         $stmt->execute([$cursoId]);
         $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Lecciones de cada unidad
+        // Lecciones y tareas entregables de cada unidad
         foreach ($unidades as &$u) {
             $stmt2 = $this->db->prepare("
                 SELECT * FROM leccion
@@ -138,6 +138,18 @@ class Curso
             ");
             $stmt2->execute([$u['id']]);
             $u['lecciones'] = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+            try {
+                $stmt3 = $this->db->prepare("
+                    SELECT * FROM tarea_entregable
+                    WHERE unidad_id = ?
+                    ORDER BY id ASC
+                ");
+                $stmt3->execute([$u['id']]);
+                $u['tareas_entregables'] = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                $u['tareas_entregables'] = [];
+            }
         }
 
         return $unidades;

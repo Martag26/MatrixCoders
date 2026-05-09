@@ -12,6 +12,9 @@ $fechaEmision = $certificado ? date('d \d\e F \d\e Y', strtotime($certificado['e
 $codigoCert   = $certificado['codigo'] ?? '';
 $notaStr      = number_format($nota, 1);
 $notaDisplay  = str_replace('.', ',', $notaStr);
+// Nota a mostrar en el certificado: si hay práctico aprobado, usar su nota media
+$notaCertStr     = number_format($notaCertificado ?? $nota, 1);
+$notaCertDisplay = str_replace('.', ',', $notaCertStr);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -270,7 +273,7 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                         <p class="cert-curso"><?= $tituloCurso ?></p>
 
                         <div class="cert-nota-row">
-                            <span class="cert-nota-pill">Calificación: <?= $notaDisplay ?> / 10</span>
+                            <span class="cert-nota-pill">Calificación: <?= $notaCertDisplay ?> / 10</span>
                         </div>
 
                         <hr class="cert-rule">

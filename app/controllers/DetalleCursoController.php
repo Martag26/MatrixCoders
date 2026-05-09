@@ -70,8 +70,18 @@ $planPermiteAcceso = match (true) {
     default                             => false, // individual o sin plan: solo comprados
 };
 
-// ── Unidades con lecciones ────────────────────────────────────────
+// ── Unidades con lecciones + tareas entregables ───────────────────
 $unidades = $modeloCurso->getUnidadesConLecciones($id);
+
+// Tareas entregables ya entregadas por el alumno
+$tareasEntregablesEntregadas = [];
+if ($estaMatriculado && $usuarioId) {
+    try {
+        $stmtTE = $db->prepare("SELECT tarea_id FROM entrega_entregable WHERE alumno_id=? AND curso_id=?");
+        $stmtTE->execute([$usuarioId, $id]);
+        $tareasEntregablesEntregadas = array_flip($stmtTE->fetchAll(PDO::FETCH_COLUMN));
+    } catch (\Exception $e) {}
+}
 
 // ── Tareas ────────────────────────────────────────────────────────
 // getTareasByCurso siempre devuelve array (vacío si no hay tareas)

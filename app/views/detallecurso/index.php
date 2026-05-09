@@ -786,8 +786,11 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                 <!-- ── TEMARIO ── -->
                 <?php if (!empty($unidades)): ?>
                     <div class="tab-pane fade" id="tab-temario">
+                        <?php
+                        $totalTareasEnt = array_sum(array_map(fn($u) => count($u['tareas_entregables'] ?? []), $unidades));
+                        ?>
                         <p style="font-size:.85rem;color:var(--mc-muted);margin-bottom:1rem;">
-                            <?= count($unidades) ?> unidad<?= count($unidades) !== 1 ? 'es' : '' ?> · <?= $totalLecciones ?> lección<?= $totalLecciones !== 1 ? 'es' : '' ?>
+                            <?= count($unidades) ?> unidad<?= count($unidades) !== 1 ? 'es' : '' ?> · <?= $totalLecciones ?> lección<?= $totalLecciones !== 1 ? 'es' : '' ?><?= $totalTareasEnt > 0 ? ' · ' . $totalTareasEnt . ' tarea' . ($totalTareasEnt !== 1 ? 's' : '') : '' ?>
                         </p>
                         <?php foreach ($unidades as $i => $u): ?>
                             <div class="unidad-bloque">
@@ -811,6 +814,22 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                             <?php else: ?>
                                                 <span class="licon-lock">🔒</span>
                                                 <span style="color:#9ca3af;"><?= htmlspecialchars($lec['titulo'] ?? 'Lección') ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                    <?php foreach (($u['tareas_entregables'] ?? []) as $te):
+                                        $teEntregada = isset($tareasEntregablesEntregadas[$te['id']]);
+                                    ?>
+                                        <div class="leccion-row" style="border-left:3px solid <?= $teEntregada ? '#6B8F71' : '#f59e0b' ?>;margin-left:2px;">
+                                            <?php if ($estaMatriculado): ?>
+                                                <a href="<?= BASE_URL ?>/index.php?url=tarea-entregable&id=<?= $te['id'] ?>" style="display:flex;align-items:center;gap:6px;width:100%">
+                                                    <span style="font-size:.8rem"><?= $teEntregada ? '✅' : '📝' ?></span>
+                                                    <?= htmlspecialchars($te['titulo'] ?? 'Tarea') ?>
+                                                    <span style="margin-left:auto;font-size:.65rem;font-weight:700;color:<?= $teEntregada ? '#166534' : '#92400e' ?>;background:<?= $teEntregada ? '#dcfce7' : '#fef3c7' ?>;padding:1px 7px;border-radius:99px;white-space:nowrap"><?= $teEntregada ? 'Entregada' : 'Tarea evaluable' ?></span>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="licon-lock">🔒</span>
+                                                <span style="color:#9ca3af;"><?= htmlspecialchars($te['titulo'] ?? 'Tarea') ?></span>
                                             <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>

@@ -106,22 +106,37 @@ if ($todasEntregadas) {
         $revisadas++;
     }
 
-    if ($todasAprobadas && $revisadas === $totalTareas) {
-        $practicoAprobado = true;
+    if ($revisadas === $totalTareas) {
         $notaMedia = $revisadas > 0 ? round($notaMedia / $revisadas, 1) : 0;
 
-        // Generar certificado si no existe
-        $stmtCertEx = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
-        $stmtCertEx->execute([$usuarioId, $cursoId]);
-        $certificadoPractico = $stmtCertEx->fetch(PDO::FETCH_ASSOC);
+        if ($todasAprobadas) {
+            $practicoAprobado = true;
 
-        if (!$certificadoPractico) {
-            $codigoPrac = strtoupper(substr(md5($usuarioId . '-prac-' . $cursoId . '-' . microtime()), 0, 12));
-            $db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
-               ->execute([$usuarioId, $cursoId, $codigoPrac]);
-            $stmtCertEx2 = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
-            $stmtCertEx2->execute([$usuarioId, $cursoId]);
-            $certificadoPractico = $stmtCertEx2->fetch(PDO::FETCH_ASSOC);
+            // Generar certificado si no existe
+            $stmtCertEx = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
+            $stmtCertEx->execute([$usuarioId, $cursoId]);
+            $certificadoPractico = $stmtCertEx->fetch(PDO::FETCH_ASSOC);
+
+            if (!$certificadoPractico) {
+                $codigoPrac = strtoupper(substr(md5($usuarioId . '-prac-' . $cursoId . '-' . microtime()), 0, 12));
+                $db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
+                   ->execute([$usuarioId, $cursoId, $codigoPrac]);
+                $stmtCertEx2 = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
+                $stmtCertEx2->execute([$usuarioId, $cursoId]);
+                $certificadoPractico = $stmtCertEx2->fetch(PDO::FETCH_ASSOC);
+            }
+        } else {
+            // Suspendido en el práctico: revocar matrícula
+            $db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=?")
+               ->execute([$usuarioId, $cursoId]);
+            try {
+                $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion) VALUES(?,?,?,?,?)")
+                   ->execute([$usuarioId, 'info',
+                       'Has perdido el acceso al curso',
+                       'No has superado el examen práctico (nota media: ' . number_format($notaMedia, 1) . '/10). Has perdido el acceso al curso y al certificado.',
+                       BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId
+                   ]);
+            } catch (\Exception $e) {}
         }
     }
 }

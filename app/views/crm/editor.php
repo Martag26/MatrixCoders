@@ -56,6 +56,24 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
 .crm-exam-subtab{padding:10px 20px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:var(--crm-muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .15s;border-radius:8px 8px 0 0}
 .crm-exam-subtab:hover{color:var(--crm-text);background:rgba(255,255,255,.04)}
 .crm-exam-subtab.active{color:var(--crm-primary);border-bottom-color:var(--crm-primary)}
+
+/* ── Question collapse & multi-select ── */
+.crm-exam-question{background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:11px;margin-bottom:10px;overflow:hidden;transition:border-color .15s}
+.crm-exam-question.is-selected{border-color:var(--crm-primary);background:rgba(124,58,237,.03)}
+.crm-exam-question-header{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:default}
+.crm-q-checkbox{width:15px;height:15px;accent-color:var(--crm-primary);cursor:pointer;flex-shrink:0}
+.crm-exam-q-num{width:26px;height:26px;border-radius:7px;background:rgba(124,58,237,.12);color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.crm-q-collapse-btn{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;background:transparent;color:var(--crm-muted);cursor:pointer;border-radius:6px;transition:background .15s,transform .2s;flex-shrink:0;padding:0}
+.crm-q-collapse-btn:hover{background:rgba(255,255,255,.08)}
+.crm-exam-question.is-collapsed .crm-q-collapse-btn{transform:rotate(-90deg)}
+.crm-q-body{transition:max-height .25s ease,opacity .2s;overflow:hidden}
+.crm-exam-question.is-collapsed .crm-q-body{max-height:0!important;opacity:0;pointer-events:none}
+.opciones-list{padding:0 12px 8px}
+.crm-add-opcion-btn{margin:0 12px 10px;display:block}
+/* Bulk delete toolbar */
+.crm-bulk-bar{display:none;align-items:center;gap:8px;padding:8px 12px;background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);border-radius:10px;margin-bottom:10px;font-size:12.5px;font-weight:600;color:var(--crm-primary)}
+.crm-bulk-bar.visible{display:flex}
+.crm-bulk-bar .crm-bulk-count{flex:1}
 .crm-tarea-card{background:var(--crm-bg);border:1px solid var(--crm-border);border-radius:12px;padding:0;margin-bottom:12px;position:relative;overflow:hidden}
 .crm-tarea-card-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--crm-border);background:rgba(124,58,237,.03)}
 .crm-tarea-num{width:28px;height:28px;border-radius:8px;background:var(--crm-primary)20;color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
@@ -537,7 +555,8 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
-        <div style="padding:0 12px 10px;margin-top:-4px">
+        <div class="crm-form-group" style="padding:0 12px 10px;margin-top:-4px;margin-bottom:0">
+          <label class="crm-label">Descripción <small>(opcional)</small></label>
           <textarea class="crm-textarea te-desc" rows="2" placeholder="Descripción de la tarea (opcional)"><?= htmlspecialchars($te['descripcion'] ?? '') ?></textarea>
         </div>
       </div>
@@ -609,17 +628,31 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
           <label class="crm-label">Instrucciones del examen</label>
           <textarea class="crm-textarea" id="exDesc" rows="2" placeholder="Instrucciones para el alumno..."><?= htmlspecialchars($examenTest['descripcion'] ?? '') ?></textarea>
         </div>
+        <!-- Bulk delete toolbar -->
+        <div class="crm-bulk-bar" id="bulkBar">
+          <span class="crm-bulk-count" id="bulkCount">0 seleccionadas</span>
+          <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="seleccionarTodasPreguntas()">Seleccionar todas</button>
+          <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="deseleccionarTodasPreguntas()">Deseleccionar</button>
+          <button type="button" class="crm-btn crm-btn-sm" style="background:var(--crm-danger);color:#fff;border:none" onclick="eliminarPreguntasSeleccionadas()">
+            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            Eliminar seleccionadas
+          </button>
+        </div>
         <div id="preguntasList">
           <?php foreach ($preguntas as $pi => $p): ?>
           <div class="crm-exam-question" data-pregunta="<?= $pi ?>">
             <div class="crm-exam-question-header">
+              <input type="checkbox" class="crm-q-checkbox" onchange="onQCheckChange(this)">
               <div class="crm-exam-q-num"><?= $pi+1 ?></div>
               <input type="text" class="crm-input" style="flex:1" value="<?= htmlspecialchars($p['enunciado']) ?>" placeholder="Enunciado de la pregunta">
+              <button class="crm-q-collapse-btn" onclick="togglePreguntaCollapse(this)" title="Plegar/desplegar">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+              </button>
               <button class="crm-btn-icon danger" onclick="pedirEliminarPregunta(this)" title="Eliminar">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
-            <div class="opciones-list">
+            <div class="opciones-list crm-q-body">
               <?php foreach ($p['opciones'] as $oi => $o): ?>
               <div class="crm-option-row">
                 <input type="radio" name="correcta_<?= $pi ?>" class="crm-option-radio" <?= $o['correcta']?'checked':'' ?> value="<?= $oi ?>">
@@ -630,7 +663,7 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
               </div>
               <?php endforeach; ?>
             </div>
-            <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-top:6px" onclick="agregarOpcion(this)">+ Opción</button>
+            <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm crm-add-opcion-btn crm-q-body" onclick="agregarOpcion(this)">+ Opción</button>
           </div>
           <?php endforeach; ?>
         </div>
@@ -647,18 +680,19 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
     <div class="crm-editor-panel">
       <div class="crm-editor-panel-header">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-        <h3>Examen práctico / Proyecto</h3>
-        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="agregarTarea()">
-          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-          Añadir tarea
-        </button>
+        <h3>Examen práctico / Proyecto final</h3>
       </div>
       <div class="crm-editor-panel-body">
 
-        <!-- General info -->
-        <div style="display:grid;grid-template-columns:1fr 160px 160px;gap:12px;margin-bottom:14px" class="crm-prac-header-grid">
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span>Se desbloquea al alumno al aprobar el examen teórico. Es <strong>diferente</strong> a las Tareas Entregables del curso (Contenido → Tareas Entregables).</span>
+        </div>
+
+        <!-- General -->
+        <div style="display:grid;grid-template-columns:1fr 160px 160px;gap:12px;margin-bottom:12px" class="crm-prac-header-grid">
           <div class="crm-form-group" style="margin-bottom:0">
-            <label class="crm-label">Título del examen práctico</label>
+            <label class="crm-label">Título</label>
             <input type="text" class="crm-input" id="exPracTitulo" value="<?= htmlspecialchars($examenPractico['titulo'] ?? '') ?>" placeholder="Ej: Proyecto final integrador">
           </div>
           <div class="crm-form-group" style="margin-bottom:0">
@@ -670,11 +704,10 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
             <input type="date" class="crm-input" id="exPracFecha" value="<?= htmlspecialchars($examenPractico['fecha_entrega'] ?? '') ?>">
           </div>
         </div>
-
-        <div style="display:grid;grid-template-columns:1fr 200px;gap:12px;margin-bottom:18px">
+        <div style="display:grid;grid-template-columns:1fr 200px;gap:12px;margin-bottom:16px">
           <div class="crm-form-group" style="margin-bottom:0">
-            <label class="crm-label">Descripción / Contexto del proyecto</label>
-            <textarea class="crm-textarea" id="exPracDesc" rows="3" placeholder="Describe el objetivo, alcance y contexto del proyecto. ¿Qué problema resuelve? ¿A quién va dirigido?..."><?= htmlspecialchars($examenPractico['descripcion'] ?? '') ?></textarea>
+            <label class="crm-label">Contexto / Descripción general</label>
+            <textarea class="crm-textarea" id="exPracDesc" rows="3" placeholder="Describe el objetivo y alcance del proyecto..."><?= htmlspecialchars($examenPractico['descripcion'] ?? '') ?></textarea>
           </div>
           <div class="crm-form-group" style="margin-bottom:0">
             <label class="crm-label">Modo de entrega</label>
@@ -683,67 +716,27 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
               <option value="<?= $mv ?>" <?= ($examenPractico['modo_entrega']??'cualquiera')===$mv?'selected':'' ?>><?= $ml ?></option>
               <?php endforeach; ?>
             </select>
-            <p style="font-size:11px;color:var(--crm-muted);margin-top:5px">Cómo entrega el alumno su trabajo</p>
           </div>
         </div>
 
-        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 16px;font-size:12.5px;color:#92400e;display:flex;align-items:flex-start;gap:10px;margin-bottom:16px">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <div>El <strong>Examen Práctico Final</strong> se desbloquea al alumno cuando aprueba el examen teórico. Es diferente a las <strong>Tareas Entregables</strong> del curso (que se configuran en Contenido → Tareas Entregables).</div>
+        <!-- Enunciado + rúbrica (única tarea) -->
+        <?php $t0 = $tareasPracticas[0] ?? []; ?>
+        <div style="border-top:1px solid var(--crm-border);padding-top:16px">
+          <div class="crm-form-group">
+            <label class="crm-label">Enunciado del proyecto</label>
+            <textarea class="crm-textarea" id="exPracEnunciado" rows="4" placeholder="Describe qué debe desarrollar el alumno, requisitos, entregables esperados..."><?= htmlspecialchars($t0['enunciado'] ?? '') ?></textarea>
+          </div>
+          <div class="crm-form-group" style="margin-bottom:0">
+            <label class="crm-label" style="display:flex;align-items:center;gap:6px">
+              Rúbrica de evaluación
+              <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span>
+            </label>
+            <textarea class="crm-textarea" id="exPracCriterios" rows="4" placeholder="Ej: Funcionalidad (40%)&#10;Código limpio (25%)&#10;Documentación (20%)&#10;Diseño (15%)"><?= htmlspecialchars($t0['criterios'] ?? '') ?></textarea>
+          </div>
         </div>
 
-        <!-- Tareas del examen práctico -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div class="crm-pts-summary" style="margin:0">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-            Total: <span id="puntosTotal">0</span> pts — <span id="tareasTotal">0</span> tareas
-          </div>
-          <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" onclick="agregarTarea()">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-            Añadir tarea
-          </button>
-        </div>
-        <div id="tareasList">
-          <?php foreach ($tareasPracticas as $ti => $t):
-            $tipoClass = ['proyecto'=>'crm-tarea-tipo-proyecto','codigo'=>'crm-tarea-tipo-codigo','diseno'=>'crm-tarea-tipo-diseno','texto'=>'crm-tarea-tipo-texto'][$t['tipo']??'texto'] ?? 'crm-tarea-tipo-texto';
-          ?>
-          <div class="crm-tarea-card" data-tarea="<?= $ti ?>">
-            <div class="crm-tarea-card-head">
-              <div class="crm-tarea-num"><?= $ti+1 ?></div>
-              <input type="text" class="crm-input" style="flex:1;min-width:0" value="<?= htmlspecialchars($t['titulo']) ?>" placeholder="Título de la tarea">
-              <select class="crm-select tarea-tipo-sel" style="width:195px;flex-shrink:0" onchange="updateTipoVisual(this)">
-                <?php foreach ($tiposTarea as $tv => $tl): ?>
-                <option value="<?= $tv ?>" <?= ($t['tipo']??'texto')===$tv?'selected':'' ?>><?= $tl ?></option>
-                <?php endforeach; ?>
-              </select>
-              <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
-                <input type="number" class="crm-input tarea-pts-input" style="width:76px;text-align:center" value="<?= $t['puntos'] ?? 10 ?>" min="0.5" max="100" step="0.5" title="Puntos" oninput="actualizarPuntosTotales()">
-                <span style="font-size:11px;color:var(--crm-muted);font-weight:600">pts</span>
-              </div>
-              <button class="crm-btn-icon danger crm-btn-sm" onclick="pedirEliminarTarea(this)" title="Eliminar tarea">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div class="crm-tarea-body">
-              <div class="crm-form-group">
-                <label class="crm-label">Enunciado</label>
-                <textarea class="crm-textarea" rows="3" placeholder="Describe qué debe hacer el alumno..."><?= htmlspecialchars($t['enunciado'] ?? '') ?></textarea>
-              </div>
-              <div class="crm-form-group">
-                <label class="crm-label" style="display:flex;align-items:center;gap:6px">
-                  Rúbrica de evaluación
-                  <span style="font-size:10px;font-weight:500;color:var(--crm-muted);background:var(--crm-border);padding:1px 6px;border-radius:99px">Criterios con % de peso</span>
-                </label>
-                <textarea class="crm-textarea tarea-criterios" rows="3" placeholder="Ej: Funcionalidad (40%)&#10;Código limpio (25%)..."><?= htmlspecialchars($t['criterios'] ?? '') ?></textarea>
-              </div>
-            </div>
-          </div>
-          <?php endforeach; ?>
-        </div>
-        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="width:100%;margin-top:8px;justify-content:center" onclick="agregarTarea()">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-          Añadir tarea al examen
-        </button>
+        <!-- hidden list for save compat -->
+        <div id="tareasList" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -1241,6 +1234,7 @@ function resetLeccionModal() {
   document.getElementById('lecVideoPreview').innerHTML     = '';
   document.getElementById('lecPlatformBadge').innerHTML    = '';
   document.getElementById('lecApuntes').value              = '';
+  document.getElementById('lecApuntes').dispatchEvent(new Event('input'));
   document.getElementById('formRecurso').style.display    = 'none';
   document.getElementById('recursosLeccionList').innerHTML = '<div id="recursosLoading" style="text-align:center;padding:12px;color:var(--crm-muted);font-size:12px">Cargando recursos…</div>';
 }
@@ -1276,6 +1270,7 @@ function editarLeccion(id, data) {
   document.getElementById('btnLeccion').textContent = 'Guardar cambios';
   resetLeccionModal();
   document.getElementById('lecApuntes').value = data.apuntes || '';
+  document.getElementById('lecApuntes').dispatchEvent(new Event('input'));
   cargarRecursosLeccion(id);
   openModal('modalLeccion');
 }
@@ -1384,6 +1379,51 @@ async function añadirInstructor() {
 /* ===== Test exam builder ===== */
 let pregCount = document.querySelectorAll('.crm-exam-question').length;
 
+// Init collapse heights
+document.querySelectorAll('.crm-exam-question').forEach(q => {
+  const bodies = q.querySelectorAll('.crm-q-body');
+  bodies.forEach(b => { b.style.maxHeight = b.scrollHeight + 'px'; });
+});
+
+function togglePreguntaCollapse(btn) {
+  const q = btn.closest('.crm-exam-question');
+  const collapsed = q.classList.toggle('is-collapsed');
+  if (!collapsed) {
+    q.querySelectorAll('.crm-q-body').forEach(b => { b.style.maxHeight = b.scrollHeight + 'px'; });
+  }
+}
+
+function onQCheckChange(cb) {
+  const q = cb.closest('.crm-exam-question');
+  q.classList.toggle('is-selected', cb.checked);
+  const checked = document.querySelectorAll('.crm-q-checkbox:checked').length;
+  const bar = document.getElementById('bulkBar');
+  bar.classList.toggle('visible', checked > 0);
+  document.getElementById('bulkCount').textContent = checked + ' seleccionada' + (checked !== 1 ? 's' : '');
+}
+
+function seleccionarTodasPreguntas() {
+  document.querySelectorAll('.crm-q-checkbox').forEach(cb => { cb.checked = true; cb.closest('.crm-exam-question').classList.add('is-selected'); });
+  onQCheckChange(document.querySelector('.crm-q-checkbox') || {closest:()=>({classList:{toggle:()=>{}}})});
+  const checked = document.querySelectorAll('.crm-q-checkbox:checked').length;
+  document.getElementById('bulkBar').classList.toggle('visible', checked > 0);
+  document.getElementById('bulkCount').textContent = checked + ' seleccionada' + (checked !== 1 ? 's' : '');
+}
+
+function deseleccionarTodasPreguntas() {
+  document.querySelectorAll('.crm-q-checkbox').forEach(cb => { cb.checked = false; cb.closest('.crm-exam-question').classList.remove('is-selected'); });
+  document.getElementById('bulkBar').classList.remove('visible');
+}
+
+async function eliminarPreguntasSeleccionadas() {
+  const selected = document.querySelectorAll('.crm-exam-question.is-selected');
+  if (!selected.length) return;
+  const ok = await CRM.confirm(`¿Eliminar ${selected.length} pregunta${selected.length!==1?'s':''}?`, { title: 'Eliminar preguntas', okLabel: 'Eliminar' });
+  if (!ok) return;
+  selected.forEach(q => q.remove());
+  document.getElementById('bulkBar').classList.remove('visible');
+}
+
 function agregarPregunta() {
   const pi  = pregCount++;
   const div = document.createElement('div');
@@ -1391,13 +1431,17 @@ function agregarPregunta() {
   div.dataset.pregunta = pi;
   div.innerHTML = `
     <div class="crm-exam-question-header">
+      <input type="checkbox" class="crm-q-checkbox" onchange="onQCheckChange(this)">
       <div class="crm-exam-q-num">${pi+1}</div>
       <input type="text" class="crm-input" style="flex:1" placeholder="Enunciado de la pregunta">
+      <button class="crm-q-collapse-btn" onclick="togglePreguntaCollapse(this)" title="Plegar/desplegar">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
+      </button>
       <button class="crm-btn-icon danger" onclick="pedirEliminarPregunta(this)">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="opciones-list">
+    <div class="opciones-list crm-q-body" style="max-height:500px">
       ${[0,1,2,3].map(i=>`
       <div class="crm-option-row">
         <input type="radio" name="correcta_${pi}" class="crm-option-radio" value="${i}">
@@ -1407,7 +1451,7 @@ function agregarPregunta() {
         </button>
       </div>`).join('')}
     </div>
-    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-top:6px" onclick="agregarOpcion(this)">+ Opción</button>`;
+    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm crm-add-opcion-btn crm-q-body" style="max-height:50px" onclick="agregarOpcion(this)">+ Opción</button>`;
   document.getElementById('preguntasList').appendChild(div);
   div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -1512,10 +1556,12 @@ function agregarTareaEntregable() {
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
-    <div style="padding:0 12px 10px;margin-top:-4px">
+    <div class="crm-form-group" style="padding:0 12px 10px;margin-top:-4px;margin-bottom:0">
+      <label class="crm-label">Descripción <small>(opcional)</small></label>
       <textarea class="crm-textarea te-desc" rows="2" placeholder="Descripción de la tarea (opcional)"></textarea>
     </div>`;
   document.getElementById('tarasEntList').appendChild(div);
+  initAllFBlocks(div);
   div.querySelector('.te-titulo').focus();
 }
 
@@ -1700,20 +1746,14 @@ async function guardarTodo() {
     });
   }
 
-  // 5. Practical exam
-  const tareas = [...document.querySelectorAll('.crm-tarea-card')].map(tEl => {
-    const tituloInput = tEl.querySelector('input[type=text]');
-    const ptsInput    = tEl.querySelector('.tarea-pts-input');
-    const tipoSel     = tEl.querySelector('.tarea-tipo-sel') || tEl.querySelector('select');
-    const txts        = tEl.querySelectorAll('textarea');
-    return {
-      titulo:    tituloInput?.value || '',
-      tipo:      tipoSel?.value || 'texto',
-      puntos:    parseFloat(ptsInput?.value) || 10,
-      enunciado: txts[0]?.value || '',
-      criterios: tEl.querySelector('.tarea-criterios')?.value || txts[1]?.value || '',
-    };
-  });
+  // 5. Practical exam (single task)
+  const tareas = [{
+    titulo:    document.getElementById('exPracTitulo')?.value?.trim() || '',
+    tipo:      'proyecto',
+    puntos:    10,
+    enunciado: document.getElementById('exPracEnunciado')?.value || '',
+    criterios: document.getElementById('exPracCriterios')?.value || '',
+  }];
   const exPracTitulo = document.getElementById('exPracTitulo').value.trim();
   await CRM.api('guardar_examen_practico', {
     curso_id:       CURSO_ID,
@@ -2025,4 +2065,141 @@ function previewExamenTest() {
   bodyEl.innerHTML = html;
   openModal('modalPreviewExamen');
 }
+
+/* ================================================================
+   COLLAPSIBLE TEXT FIELDS
+   ================================================================ */
+const FBLOCK_ICONS = {
+  'descripci': '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h12"/></svg>',
+  'instruc':   '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>',
+  'enunci':    '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>',
+  'rubrica':   '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138"/></svg>',
+  'aprend':    '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>',
+  'default':   '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 6h16M4 10h16M4 14h8"/></svg>',
+};
+
+function getFBlockIcon(labelText) {
+  const t = labelText.toLowerCase();
+  for (const [key, svg] of Object.entries(FBLOCK_ICONS)) {
+    if (t.includes(key)) return svg;
+  }
+  return FBLOCK_ICONS.default;
+}
+
+function updateFBlock(ta, previewEl, charsEl) {
+  const val = ta.value.trim();
+  const chars = ta.value.length;
+  if (previewEl) {
+    const firstLine = val.split('\n')[0].slice(0, 55);
+    previewEl.textContent = firstLine
+      ? (firstLine + (val.length > 55 ? '…' : ''))
+      : ta.placeholder.slice(0, 50) + '…';
+  }
+  if (charsEl) charsEl.textContent = chars > 0 ? chars + ' c' : '';
+}
+
+function toggleFBlock(group) {
+  const body = group.querySelector('.crm-fblock-body');
+  const isNowCollapsed = group.classList.toggle('crm-fblock-collapsed');
+  if (isNowCollapsed) {
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => { body.style.maxHeight = '0'; });
+  } else {
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.addEventListener('transitionend', () => {
+      if (!group.classList.contains('crm-fblock-collapsed')) body.style.maxHeight = 'none';
+    }, { once: true });
+  }
+}
+
+function initFBlock(group) {
+  if (group.classList.contains('crm-fblock')) return;
+  const ta = group.querySelector('textarea');
+  if (!ta) return;
+
+  const labelEl = group.querySelector('.crm-label, label');
+  const labelHTML = labelEl ? labelEl.innerHTML : '';
+  const labelText = labelEl ? (labelEl.textContent || '') : '';
+
+  // Build header
+  const hd = document.createElement('div');
+  hd.className = 'crm-fblock-hd';
+
+  const iconWrap = document.createElement('span');
+  iconWrap.className = 'crm-fblock-icon';
+  iconWrap.innerHTML = getFBlockIcon(labelText);
+
+  const labelSpan = document.createElement('span');
+  labelSpan.className = 'crm-fblock-label';
+  labelSpan.innerHTML = labelHTML;
+
+  const previewSpan = document.createElement('span');
+  previewSpan.className = 'crm-fblock-preview';
+
+  const charsSpan = document.createElement('span');
+  charsSpan.className = 'crm-fblock-chars';
+
+  const chevron = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  chevron.setAttribute('class', 'crm-fblock-chevron');
+  chevron.setAttribute('fill', 'none');
+  chevron.setAttribute('stroke', 'currentColor');
+  chevron.setAttribute('stroke-width', '2');
+  chevron.setAttribute('viewBox', '0 0 24 24');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('d', 'M19 9l-7 7-7-7');
+  chevron.appendChild(path);
+
+  hd.append(iconWrap, labelSpan, previewSpan, charsSpan, chevron);
+  hd.addEventListener('click', (e) => {
+    if (e.target.closest('button, input, a')) return;
+    toggleFBlock(group);
+  });
+
+  // Build body
+  const body = document.createElement('div');
+  body.className = 'crm-fblock-body';
+
+  // Move textarea + any sibling non-label nodes into body
+  const toMove = [...group.childNodes].filter(n => n !== labelEl);
+  toMove.forEach(n => body.appendChild(n));
+
+  // Footer with char count
+  const footer = document.createElement('div');
+  footer.className = 'crm-fblock-body-footer';
+  const charsFooter = document.createElement('span');
+  footer.appendChild(charsFooter);
+  body.appendChild(footer);
+
+  // Rebuild group
+  if (labelEl) labelEl.remove();
+  group.classList.add('crm-fblock');
+  group.appendChild(hd);
+  group.appendChild(body);
+
+  // Set open height
+  body.style.maxHeight = 'none';
+
+  // Init preview/chars
+  updateFBlock(ta, previewSpan, charsFooter);
+  ta.addEventListener('input', () => {
+    updateFBlock(ta, previewSpan, charsFooter);
+    if (!group.classList.contains('crm-fblock-collapsed')) {
+      body.style.maxHeight = 'none';
+    }
+  });
+
+  // Auto-collapse if empty
+  if (!ta.value.trim()) {
+    group.classList.add('crm-fblock-collapsed');
+    body.style.maxHeight = '0';
+  }
+}
+
+function initAllFBlocks(root) {
+  (root || document).querySelectorAll('.crm-form-group').forEach(g => initFBlock(g));
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', () => { initAllFBlocks(); });
 </script>

@@ -169,6 +169,10 @@ switch ($url) {
         require_once "../app/controllers/ExamenPracticoController.php";
         break;
 
+    case 'tarea-entregable':
+        require_once "../app/controllers/TareaEntregableController.php";
+        break;
+
     case 'apuntes-ia':
         require_once "../app/controllers/ApuntesIaController.php";
         break;

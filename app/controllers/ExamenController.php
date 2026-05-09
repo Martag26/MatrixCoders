@@ -91,33 +91,16 @@ try {
         $tareasRestantes = (int)$stmtPendTE->fetchColumn();
 
         if ($tareasRestantes > 0) {
-            $progresoExamen     = round(($leccionesVistas / max($totalLecciones, 1)) * 100);
+            $tareasEntregadas   = $totalTareasEnt - $tareasRestantes;
+            $progresoExamen     = round(
+                ($leccionesVistas + $tareasEntregadas) / max($totalLecciones + $totalTareasEnt, 1) * 100
+            );
             $leccionesRestantes = 0;
             require __DIR__ . '/../views/examen/bloqueado.php';
             exit;
         }
     }
 } catch (Exception $e) { /* tabla no existe todavía */ }
-
-// Crear notificación "examen teórico disponible" si aún no existe
-try {
-    $stmtExId = $db->prepare("SELECT id FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
-    $stmtExId->execute([$cursoId]);
-    $exIdForNotif = (int)($stmtExId->fetchColumn() ?: 0);
-    if ($exIdForNotif) {
-        $stmtChkNotif = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='examen_teorico' AND ref_id=?");
-        $stmtChkNotif->execute([$usuarioId, $exIdForNotif]);
-        if (!(int)$stmtChkNotif->fetchColumn()) {
-            $tituloCursoNotif = $curso['titulo'] ?? '';
-            $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
-               ->execute([$usuarioId, 'examen_teorico',
-                   '¡Ya puedes hacer el examen teórico! — ' . $tituloCursoNotif,
-                   'Has completado todas las lecciones y tareas. Accede al examen cuando estés listo.',
-                   BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
-                   $exIdForNotif]);
-        }
-    }
-} catch (Exception $e) {}
 
 // Cargar examen tipo test del curso
 $stmtEx = $db->prepare("SELECT * FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
@@ -143,6 +126,20 @@ $stmtU = $db->prepare("SELECT nombre FROM usuario WHERE id=?");
 $stmtU->execute([$usuarioId]);
 $usuario = $stmtU->fetch(PDO::FETCH_ASSOC);
 
+// Crear notificación "examen teórico disponible" si aún no existe
+try {
+    $stmtChkNotif = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='examen_teorico' AND ref_id=?");
+    $stmtChkNotif->execute([$usuarioId, $examen['id']]);
+    if (!(int)$stmtChkNotif->fetchColumn()) {
+        $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
+           ->execute([$usuarioId, 'examen_teorico',
+               '¡Ya puedes hacer el examen teórico! — ' . ($curso['titulo'] ?? ''),
+               'Has completado todas las lecciones y tareas. Accede al examen cuando estés listo.',
+               BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
+               $examen['id']]);
+    }
+} catch (Exception $e) {}
+
 // Resultado previo del test
 $stmtR = $db->prepare("SELECT * FROM resultado_examen WHERE usuario_id=? AND examen_id=?");
 $stmtR->execute([$usuarioId, $examen['id']]);
@@ -153,10 +150,23 @@ $intentosUsados = (int)($resultadoPrevio['intentos'] ?? 0);
 
 // Certificado previo
 $certificado = null;
+$notaCertificado = $resultadoPrevio ? (float)($resultadoPrevio['nota'] ?? 0) : 0.0;
 if ($resultadoPrevio && $resultadoPrevio['aprobado']) {
     $stmtCert = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
     $stmtCert->execute([$usuarioId, $cursoId]);
     $certificado = $stmtCert->fetch(PDO::FETCH_ASSOC);
+
+    // Si el certificado viene del examen práctico, usar la nota media del práctico
+    if ($certificado && $tieneExamenPractico) {
+        try {
+            $stmtNP = $db->prepare("SELECT AVG(nota) FROM entrega_practica WHERE alumno_id=? AND curso_id=? AND revisado=1");
+            $stmtNP->execute([$usuarioId, $cursoId]);
+            $notaMediaPrac = $stmtNP->fetchColumn();
+            if ($notaMediaPrac !== null && $notaMediaPrac !== false) {
+                $notaCertificado = round((float)$notaMediaPrac, 1);
+            }
+        } catch (Exception $e) {}
+    }
 }
 
 // ── Procesar envío del examen ────────────────────────────────────

@@ -18,11 +18,11 @@ $nPreguntas   = count($preguntas);
 body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--mc-dark);margin:0;}
 
 /* Layout */
-.exam-layout{display:grid;grid-template-columns:1fr 280px;gap:24px;max-width:1160px;margin:0 auto;padding:28px 20px 60px;}
+.exam-layout{display:grid;grid-template-columns:1fr 280px;gap:24px;max-width:1160px;margin:0 auto;padding:28px 20px 60px;padding-top:calc(28px + 46px);}
 @media(max-width:900px){.exam-layout{grid-template-columns:1fr;}.exam-sidebar{display:none;}}
 
 /* Sticky header */
-.exam-sticky-header{position:sticky;top:66px;z-index:50;background:#fff;border-bottom:1px solid var(--mc-border);padding:0;}
+.exam-sticky-header{position:fixed;bottom:0;left:0;right:0;z-index:50;background:#fff;border-top:1px solid var(--mc-border);border-bottom:none;padding:0;}
 .exam-progress-track{display:flex;align-items:center;gap:14px;padding:10px 24px;max-width:1160px;margin:0 auto;}
 .exam-progress-bar-wrap{flex:1;height:10px;background:#e5e7eb;border-radius:99px;overflow:visible;position:relative;}
 .exam-progress-bar-fill{height:100%;background:linear-gradient(90deg,#4a6b50,var(--mc-green));border-radius:99px;transition:width .3s;position:relative;min-width:0;}
@@ -63,6 +63,20 @@ input[type=radio].opcion-radio{display:none;}
 .btn-submit-exam:disabled{opacity:.5;cursor:not-allowed;}
 .btn-back-exam{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:1.5px solid var(--mc-border);border-radius:9px;text-decoration:none;font-size:.85rem;font-weight:600;color:var(--mc-muted);transition:all .15s;}
 .btn-back-exam:hover{border-color:var(--mc-green);color:var(--mc-green);}
+
+/* Pagination */
+.exam-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:16px 24px;}
+.btn-page{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.2rem;border-radius:9px;font-size:.88rem;font-weight:700;font-family:'Saira',sans-serif;cursor:pointer;transition:all .15s;border:1.5px solid var(--mc-border);background:#fff;color:var(--mc-dark);}
+.btn-page:hover:not(:disabled){border-color:var(--mc-green);color:var(--mc-green);}
+.btn-page:disabled{opacity:.35;cursor:not-allowed;}
+.btn-page-next{background:var(--mc-green);color:#fff;border-color:var(--mc-green);}
+.btn-page-next:hover:not(:disabled){background:var(--mc-green-d);border-color:var(--mc-green-d);color:#fff;}
+.page-info{font-size:.85rem;font-weight:700;color:var(--mc-muted);}
+.page-dots{display:flex;gap:5px;align-items:center;}
+.page-dot{width:8px;height:8px;border-radius:50%;background:var(--mc-border);transition:background .2s,transform .2s;}
+.page-dot.active{background:var(--mc-green);transform:scale(1.3);}
+.page-dot.has-answer{background:#86efac;}
+.q-nav-btn.page-active-nav{outline:2px solid var(--mc-green);outline-offset:2px;}
 
 /* Sidebar */
 .exam-sidebar{position:sticky;top:100px;align-self:start;}
@@ -125,8 +139,10 @@ input[type=radio].opcion-radio{display:none;}
     </div>
 
     <!-- Questions -->
-    <?php foreach ($preguntas as $idx => $p): ?>
-    <div class="q-card" id="qcard-<?= $p['id'] ?>" data-idx="<?= $idx ?>">
+    <?php foreach ($preguntas as $idx => $p):
+      $pageNum = (int)floor($idx / 10) + 1;
+    ?>
+    <div class="q-card" id="qcard-<?= $p['id'] ?>" data-idx="<?= $idx ?>" data-page="<?= $pageNum ?>" style="display:none">
       <div class="q-num-tag">
         <span class="q-num-badge"><?= $idx+1 ?></span>
         Pregunta <?= $idx+1 ?> de <?= $nPreguntas ?>
@@ -145,6 +161,16 @@ input[type=radio].opcion-radio{display:none;}
       </div>
     </div>
     <?php endforeach; ?>
+
+    <!-- Pagination controls -->
+    <div class="exam-pagination" id="paginationBar">
+      <button type="button" class="btn-page" id="btnPrev" onclick="changePage(-1)" disabled>← Anterior</button>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <span class="page-info" id="pageInfo"></span>
+        <div class="page-dots" id="pageDots"></div>
+      </div>
+      <button type="button" class="btn-page btn-page-next" id="btnNext" onclick="changePage(1)">Siguiente →</button>
+    </div>
 
     <!-- Footer -->
     <div class="exam-footer">
@@ -194,47 +220,108 @@ input[type=radio].opcion-radio{display:none;}
 </div>
 
 <script>
-const TOTAL = <?= $nPreguntas ?>;
-let answered = 0;
+const TOTAL    = <?= $nPreguntas ?>;
+const PER_PAGE = 10;
+const N_PAGES  = Math.ceil(TOTAL / PER_PAGE);
+let currentPage = 1;
+let answered    = 0;
 const answeredSet = new Set();
 
+/* ── Pagination ── */
+function showPage(p) {
+  currentPage = Math.max(1, Math.min(p, N_PAGES));
+  document.querySelectorAll('.q-card').forEach(card => {
+    card.style.display = parseInt(card.dataset.page) === currentPage ? 'block' : 'none';
+  });
+  // Sidebar: highlight current page's nav buttons
+  document.querySelectorAll('.q-nav-btn').forEach(btn => {
+    const card = document.getElementById('qcard-' + btn.dataset.qid);
+    btn.classList.toggle('page-active-nav', card && parseInt(card.dataset.page) === currentPage);
+  });
+  updatePaginationUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function changePage(delta) {
+  showPage(currentPage + delta);
+}
+
+function updatePaginationUI() {
+  document.getElementById('pageInfo').textContent = `Página ${currentPage} de ${N_PAGES}`;
+  document.getElementById('btnPrev').disabled = currentPage === 1;
+
+  const btnNext = document.getElementById('btnNext');
+  if (currentPage === N_PAGES) {
+    btnNext.style.display = 'none';
+  } else {
+    btnNext.style.display = '';
+    // Count unanswered on this page
+    const unansweredPage = [...document.querySelectorAll('.q-card')]
+      .filter(c => parseInt(c.dataset.page) === currentPage && !c.classList.contains('answered')).length;
+    btnNext.textContent = unansweredPage > 0
+      ? `Siguiente → (${unansweredPage} sin responder)`
+      : 'Siguiente →';
+  }
+
+  // Dots
+  const dotsEl = document.getElementById('pageDots');
+  dotsEl.innerHTML = '';
+  for (let i = 1; i <= N_PAGES; i++) {
+    const dot = document.createElement('span');
+    dot.className = 'page-dot' + (i === currentPage ? ' active' : '');
+    // Check if all on this page answered
+    const pageCards = [...document.querySelectorAll('.q-card')].filter(c => parseInt(c.dataset.page) === i);
+    const allAnswered = pageCards.length > 0 && pageCards.every(c => c.classList.contains('answered'));
+    if (allAnswered && i !== currentPage) dot.classList.add('has-answer');
+    dot.title = `Página ${i}`;
+    dot.style.cursor = 'pointer';
+    dot.onclick = () => showPage(i);
+    dotsEl.appendChild(dot);
+  }
+}
+
+/* ── Question selection ── */
 function onSelect(radio, preguntaId, idx) {
-  // Deselect all options for this question
   document.querySelectorAll(`input[name="p${preguntaId}"]`).forEach(r => {
     document.getElementById('lbl-' + r.value)?.classList.remove('selected');
   });
-  // Select the clicked one
   radio.closest('label').classList.add('selected');
 
-  const wasAnswered = answeredSet.has(preguntaId);
   answeredSet.add(preguntaId);
   answered = answeredSet.size;
 
-  // Update card style
   const card = document.getElementById('qcard-' + preguntaId);
   if (card) card.classList.add('answered');
 
-  // Update nav button
   const navBtn = document.getElementById('nav-' + preguntaId);
   if (navBtn) navBtn.classList.add('answered');
 
-  // Update progress
   const pct = Math.round((answered / TOTAL) * 100);
   const fill = document.getElementById('progressFill');
   fill.style.width = pct + '%';
   fill.style.setProperty('--dot-display', answered > 0 ? 'block' : 'none');
   document.getElementById('progressText').textContent = answered + ' / ' + TOTAL + ' respondidas';
   document.getElementById('footerAnswered').textContent = answered;
+
+  updatePaginationUI();
 }
 
 function scrollToQuestion(qid) {
   const card = document.getElementById('qcard-' + qid);
-  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (!card) return;
+  const page = parseInt(card.dataset.page);
+  if (page !== currentPage) {
+    showPage(page);
+    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+  } else {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
+/* ── Confirm & submit ── */
 function confirmarEnvio() {
   const sin = TOTAL - answered;
-  const msg = document.getElementById('confirmMsg');
+  const msg  = document.getElementById('confirmMsg');
   const warn = document.getElementById('confirmWarn');
   const okBtn = document.getElementById('confirmOkBtn');
 
@@ -263,6 +350,9 @@ function closeConfirm() {
 document.getElementById('confirmOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeConfirm();
 });
+
+// Init
+showPage(1);
 </script>
 </body>
 </html>
