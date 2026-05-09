@@ -15,7 +15,8 @@ $usuario_id = (int)$_SESSION['usuario_id'];
 $model      = new Notificacion($db);
 
 // Sync automatic notifications before loading
-$model->sincronizarAutomaticas($usuario_id);
+$rol = $_SESSION['usuario_rol'] ?? 'USUARIO';
+$model->sincronizarAutomaticas($usuario_id, $rol);
 
 // Filters
 $filtroTipo = $_GET['tipo'] ?? '';

@@ -248,7 +248,7 @@ $tieneExamen = (int)$stmtEx->fetchColumn() > 0;
 
 // Comprobar si tiene examen práctico
 try {
-    $stmtExPrac = $db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
+    $stmtExPrac = $db->prepare("SELECT COUNT(*) FROM examen WHERE curso_id=? AND tipo='practico'");
     $stmtExPrac->execute([$cursoId]);
     $tieneExamenPractico = (int)$stmtExPrac->fetchColumn() > 0;
 } catch (Exception $e) { $tieneExamenPractico = false; }
