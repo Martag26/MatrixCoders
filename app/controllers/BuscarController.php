@@ -33,14 +33,16 @@ class BuscarController
         $ordenar = in_array($_GET['orden'] ?? '', ['popular', 'recientes', 'precio_asc', 'precio_desc'])
             ? $_GET['orden'] : 'popular';
 
-        // Matrículas del usuario activo
+        // Matrículas del usuario activo: [curso_id => estado]
         $matriculasUsuario = [];
         $esUsuario = !empty($_SESSION['usuario_id']) && ($_SESSION['usuario_rol'] ?? '') === 'USUARIO';
         $usuarioId = $esUsuario ? $_SESSION['usuario_id'] : null;
         if ($usuarioId) {
-            $stmtM = $db->prepare('SELECT curso_id FROM matricula WHERE usuario_id = ?');
+            $stmtM = $db->prepare("SELECT curso_id, estado FROM matricula WHERE usuario_id = ? AND estado IN ('activa','completado')");
             $stmtM->execute([(int)$usuarioId]);
-            $matriculasUsuario = $stmtM->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($stmtM->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $matriculasUsuario[$row['curso_id']] = $row['estado'];
+            }
         }
 
         $cursoModel = new Curso($db);

@@ -46,6 +46,14 @@ $estaMatriculado = $usuarioId
     ? $modeloCurso->estaMatriculado($usuarioId, $id)
     : false;
 
+// ── Matrícula revocada (agotó intentos de examen) ─────────────────
+$matriculaRevocada = false;
+if ($usuarioId && !$estaMatriculado) {
+    $stmtRev = $db->prepare("SELECT 1 FROM matricula WHERE usuario_id=? AND curso_id=? AND estado='revocada'");
+    $stmtRev->execute([$usuarioId, $id]);
+    $matriculaRevocada = (bool)$stmtRev->fetchColumn();
+}
+
 // ── Fecha de matriculación y expiración (90 días) ─────────────────
 $fechaMatricula   = null;
 $fechaExpiracion  = null;

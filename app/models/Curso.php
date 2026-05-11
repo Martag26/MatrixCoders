@@ -182,7 +182,7 @@ class Curso
     {
         $stmt = $this->db->prepare("
         SELECT COUNT(*) FROM matricula
-        WHERE usuario_id = ? AND curso_id = ? AND estado = 'activa'
+        WHERE usuario_id = ? AND curso_id = ? AND estado IN ('activa', 'completado')
     ");
         $stmt->execute([$usuarioId, $cursoId]);
         return (int)$stmt->fetchColumn() > 0;
@@ -198,9 +198,12 @@ class Curso
             return false;
         }
         $stmt = $this->db->prepare("
-        INSERT INTO matricula (usuario_id, curso_id, fecha, estado)
-        VALUES (?, ?, datetime('now'), 'activa')
-    ");
+            INSERT INTO matricula (usuario_id, curso_id, fecha, estado)
+            VALUES (?, ?, datetime('now'), 'activa')
+            ON CONFLICT(usuario_id, curso_id) DO UPDATE
+                SET estado = 'activa', fecha = datetime('now')
+                WHERE matricula.estado = 'revocada'
+        ");
         return $stmt->execute([$usuarioId, $cursoId]);
     }
 

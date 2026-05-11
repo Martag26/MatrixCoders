@@ -155,12 +155,25 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
       <a href="<?= $volverUrl ?>" class="btn-back">← Volver al curso</a>
     </div>
   </div>
-  <?php elseif ($todasRevisadas && !$aprobadoPrac): ?>
+  <?php elseif ($todasRevisadas && !$aprobadoPrac):
+    $planActualPrac   = $_SESSION['usuario_plan'] ?? 'gratuito';
+    $esPlanIndivPrac  = !in_array($planActualPrac, ['estudiantes', 'empresas']);
+    $esCursoPagoPrac  = (float)($curso['precio'] ?? 0) > 0;
+  ?>
   <div class="completed-banner" style="background:linear-gradient(135deg,#7f1d1d,#991b1b)">
     <div style="font-size:2.5rem;margin-bottom:10px">📋</div>
-    <h2>Examen práctico revisado</h2>
-    <p>Nota media: <strong><?= $mediaNotas !== null ? number_format($mediaNotas, 1) : '—' ?>/10</strong>. No has superado la nota mínima.</p>
-    <a href="<?= $volverUrl ?>" class="btn-back">← Volver al curso</a>
+    <h2>Examen práctico no superado</h2>
+    <p>Nota media: <strong><?= $mediaNotas !== null ? number_format($mediaNotas, 1) : '—' ?>/10</strong>. No has alcanzado la nota mínima.</p>
+    <?php if ($esPlanIndivPrac && $esCursoPagoPrac): ?>
+      <p style="margin-top:10px;font-size:.88rem;opacity:.95">Lo sentimos. Para poder obtener el certificado deberás <strong>volver a adquirir el curso</strong>.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+        <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#991b1b;border-radius:8px;padding:9px 18px;font-size:.85rem;font-weight:700;text-decoration:none">
+          🛒 Volver a adquirir el curso
+        </a>
+      </div>
+    <?php else: ?>
+      <p style="margin-top:10px;font-size:.88rem;opacity:.95">Contacta con un administrador si deseas recuperar el acceso.</p>
+    <?php endif; ?>
   </div>
   <?php elseif ($todasEntregadas): ?>
   <div class="completed-banner">

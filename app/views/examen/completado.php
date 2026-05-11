@@ -116,7 +116,7 @@ body{font-family:'Saira',sans-serif;background:#0f172a;color:#fff;margin:0;min-h
     <?php endif; ?>
     <div class="comp-actions" style="margin-top:20px">
       <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>" class="btn-cert btn-cert-primary">
-        ⬇️ Descargar certificado
+        🏅 Ver certificado
       </a>
     </div>
   </div>

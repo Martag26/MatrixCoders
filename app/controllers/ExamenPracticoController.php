@@ -92,6 +92,9 @@ $todasEntregadas  = $totalEntregadas >= $totalTareas;
 // Comprobar si todas las entregas están revisadas y generar certificado automáticamente
 $certificadoPractico = null;
 $practicoAprobado    = false;
+$practicoReprobado   = false;
+$notaMediaFinal      = 0.0;
+$notaMinimaPracFinal = 0.0;
 if ($todasEntregadas) {
     $notaMinimaPrac = (float)($examenPractico['nota_minima'] ?? 5.0);
     $notaMedia      = 0;
@@ -107,6 +110,8 @@ if ($todasEntregadas) {
     if ($todasRevisadas && $revisadas === $totalTareas) {
         $notaMedia = $revisadas > 0 ? round($notaMedia / $revisadas, 1) : 0;
         $aprobadoPorMedia = $notaMedia >= $notaMinimaPrac;
+        $notaMediaFinal      = $notaMedia;
+        $notaMinimaPracFinal = $notaMinimaPrac;
 
         if ($aprobadoPorMedia) {
             $practicoAprobado = true;
@@ -130,6 +135,7 @@ if ($todasEntregadas) {
                ->execute([$usuarioId, $cursoId]);
         } else {
             // Suspendido en el práctico: revocar matrícula
+            $practicoReprobado = true;
             $db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=?")
                ->execute([$usuarioId, $cursoId]);
             try {

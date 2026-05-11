@@ -101,7 +101,7 @@ class DashboardController
                 ) AS ultima_leccion_id
             FROM matricula m
             JOIN curso c ON c.id = m.curso_id
-            WHERE m.usuario_id = ? AND m.estado IN ('activa','completado')
+            WHERE m.usuario_id = ? AND m.estado = 'activa'
             ORDER BY m.fecha DESC
         ");
         $stmt->execute([$usuario_id, $usuario_id, $usuario_id]);
@@ -111,7 +111,7 @@ class DashboardController
             $total  = (int)$c['total_lecciones'];
             $vistos = (int)$c['lecciones_vistas'];
             $c['progreso']   = $total > 0 ? round(($vistos / $total) * 100) : 0;
-            $c['completado'] = ($c['matricula_estado'] ?? '') === 'completado';
+            $c['completado'] = false;
 
             if (!$c['ultima_leccion_id']) {
                 $stmt2 = $conexion->prepare("

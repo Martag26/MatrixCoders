@@ -156,21 +156,73 @@ $intentosUsados = (int)($resultadoPrevio['intentos'] ?? 0);
 // Certificado previo
 $certificado = null;
 $notaCertificado = $resultadoPrevio ? (float)($resultadoPrevio['nota'] ?? 0) : 0.0;
+
+// Estado del examen práctico
+$practicoEntregado  = false;   // alumno entregó al menos una tarea práctica
+$practicoRevisado   = false;   // todas las entregas revisadas (corrección completa)
+$notaMediaPractico  = null;
+if ($tieneExamenPractico) {
+    try {
+        $stmtPE = $db->prepare("
+            SELECT COUNT(*) AS total,
+                   SUM(CASE WHEN revisado=1 THEN 1 ELSE 0 END) AS revisadas,
+                   AVG(CASE WHEN revisado=1 THEN nota ELSE NULL END) AS media
+            FROM entrega_practica
+            WHERE alumno_id=? AND curso_id=?
+        ");
+        $stmtPE->execute([$usuarioId, $cursoId]);
+        $rowPE = $stmtPE->fetch(PDO::FETCH_ASSOC);
+        if ($rowPE && (int)$rowPE['total'] > 0) {
+            $practicoEntregado = true;
+            $practicoRevisado  = (int)$rowPE['revisadas'] >= (int)$rowPE['total'];
+            if ($practicoRevisado && $rowPE['media'] !== null) {
+                $notaMediaPractico = round((float)$rowPE['media'], 1);
+            }
+        }
+    } catch (Exception $e) {}
+}
+
+// Notas de tareas entregables (con corrección)
+$notasEntregables    = [];
+$mediaEntregables    = null;
+try {
+    $stmtNE = $db->prepare("
+        SELECT te.titulo, ee.nota
+        FROM entrega_entregable ee
+        JOIN tarea_entregable te ON te.id = ee.tarea_id
+        WHERE ee.alumno_id = ? AND te.curso_id = ? AND ee.nota IS NOT NULL
+        ORDER BY ee.entregado_en ASC
+    ");
+    $stmtNE->execute([$usuarioId, $cursoId]);
+    $notasEntregables = $stmtNE->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($notasEntregables)) {
+        $mediaEntregables = round(array_sum(array_column($notasEntregables, 'nota')) / count($notasEntregables), 1);
+    }
+} catch (Exception $e) {}
+
+// Nota final ponderada (solo cuando el práctico está corregido)
+// Con entregables:    Test 20% + Entregables 30% + Práctico 50%
+// Sin entregables:    Test 40% + Práctico 60%
+$notaFinalPonderada = null;
+if ($practicoRevisado && $notaMediaPractico !== null) {
+    $notaTest = $resultadoPrevio ? (float)($resultadoPrevio['nota'] ?? 0) : 0.0;
+    if ($mediaEntregables !== null) {
+        $notaFinalPonderada = round($notaTest * 0.20 + $mediaEntregables * 0.30 + $notaMediaPractico * 0.50, 1);
+    } else {
+        $notaFinalPonderada = round($notaTest * 0.40 + $notaMediaPractico * 0.60, 1);
+    }
+}
+
 if ($resultadoPrevio && $resultadoPrevio['aprobado']) {
     $stmtCert = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
     $stmtCert->execute([$usuarioId, $cursoId]);
     $certificado = $stmtCert->fetch(PDO::FETCH_ASSOC);
 
-    // Si el certificado viene del examen práctico, usar la nota media del práctico
-    if ($certificado && $tieneExamenPractico) {
-        try {
-            $stmtNP = $db->prepare("SELECT AVG(nota) FROM entrega_practica WHERE alumno_id=? AND curso_id=? AND revisado=1");
-            $stmtNP->execute([$usuarioId, $cursoId]);
-            $notaMediaPrac = $stmtNP->fetchColumn();
-            if ($notaMediaPrac !== null && $notaMediaPrac !== false) {
-                $notaCertificado = round((float)$notaMediaPrac, 1);
-            }
-        } catch (Exception $e) {}
+    // Nota del certificado = nota ponderada final
+    if ($notaFinalPonderada !== null) {
+        $notaCertificado = $notaFinalPonderada;
+    } elseif ($notaMediaPractico !== null) {
+        $notaCertificado = $notaMediaPractico;
     }
 }
 

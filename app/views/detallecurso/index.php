@@ -713,6 +713,34 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                 </div>
             <?php endif; ?>
 
+            <?php if (!empty($matriculaRevocada)):
+                $planDetalle   = $_SESSION['usuario_plan'] ?? 'gratuito';
+                $esIndivDetalle = !in_array($planDetalle, ['estudiantes', 'empresas']);
+                $esPagoDetalle  = (float)($curso['precio'] ?? 0) > 0;
+            ?>
+            <div style="margin-bottom:1.2rem;padding:16px 20px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;display:flex;align-items:flex-start;gap:14px">
+                <span style="font-size:1.6rem;flex-shrink:0">🚫</span>
+                <div style="flex:1">
+                    <div style="font-weight:800;font-size:.95rem;color:#7f1d1d;margin-bottom:4px">Has perdido el acceso a este curso</div>
+                    <?php if ($esIndivDetalle && $esPagoDetalle): ?>
+                        <div style="font-size:.85rem;color:#991b1b;line-height:1.6">
+                            Lo sentimos, agotaste los intentos disponibles sin superar el examen. Para volver a acceder y optar al certificado deberás <strong>adquirir el curso de nuevo</strong>.
+                        </div>
+                        <div style="margin-top:12px">
+                            <button class="btn-mc" style="background:#ef4444;width:auto;padding:.55rem 1.3rem;font-size:.87rem"
+                                onclick="abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precioFinal ?? $precio ?>, <?= $precio ?>, <?= $descuentoActivo ?? 0 ?>, '<?= htmlspecialchars(addslashes($imagen ?? '')) ?>')">
+                                🛒 Volver a adquirir el curso
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div style="font-size:.85rem;color:#991b1b;line-height:1.6">
+                            Agotaste los intentos disponibles sin superar el examen. Contacta con un administrador para recuperar el acceso.
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- TABS -->
             <div class="tabs-header-row">
                 <ul class="nav curso-tabs border-bottom mb-1" style="flex:1;border-bottom:none!important;margin-bottom:0!important">
