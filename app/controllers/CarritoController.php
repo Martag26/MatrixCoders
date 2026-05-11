@@ -444,12 +444,26 @@ class CarritoController
     {
         $cursoIds = array_values(array_filter(array_map('intval', $cursoIds), fn($id) => $id > 0));
         if ($usuarioId <= 0 || empty($cursoIds)) return;
+
+        // Verificar que el usuario existe
+        $stmtU = $db->prepare("SELECT COUNT(*) FROM usuario WHERE id = ?");
+        $stmtU->execute([$usuarioId]);
+        if (!(int)$stmtU->fetchColumn()) return;
+
         $stmt = $db->prepare("
             INSERT OR IGNORE INTO matricula (usuario_id, curso_id, fecha, estado)
             VALUES (?, ?, datetime('now'), 'activa')
         ");
         foreach ($cursoIds as $id) {
-            $stmt->execute([$usuarioId, $id]);
+            // Verificar que el curso existe antes de insertar
+            try {
+                $stmtC = $db->prepare("SELECT COUNT(*) FROM curso WHERE id = ?");
+                $stmtC->execute([$id]);
+                if (!(int)$stmtC->fetchColumn()) continue;
+                $stmt->execute([$usuarioId, $id]);
+            } catch (\Exception $e) {
+                // FK violation u otro error: continuar con el siguiente curso
+            }
         }
     }
 

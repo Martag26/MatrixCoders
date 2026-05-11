@@ -232,7 +232,12 @@ $notaCertDisplay = str_replace('.', ',', $notaCertStr);
                 <?php endif; ?>
 
                 <div class="res-actions">
-                    <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" class="btn-outline-mc">
+                    <?php
+                    $volverUrl = !empty($primeraLeccionId)
+                        ? BASE_URL . '/index.php?url=leccion&id=' . $primeraLeccionId
+                        : BASE_URL . '/index.php?url=detallecurso&id=' . (int)$curso['id'];
+                    ?>
+                    <a href="<?= $volverUrl ?>" class="btn-outline-mc">
                         ← Volver al curso
                     </a>
                     <?php if (!$aprobado && $intentosRestantes > 0): ?>

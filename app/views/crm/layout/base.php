@@ -109,7 +109,7 @@
       </a>
       <?php endif; ?>
 
-      <?php if ($esAdmin || $esModerador || $esInstructor): ?>
+      <?php if ($esAdmin || $esModerador): ?>
       <a href="<?= $crmBase ?>campanas"
          class="crm-sidebar__link <?= $seccion==='campanas'?'active':'' ?>"
          data-tooltip="Campañas">
@@ -351,30 +351,46 @@ function renderNotifs(alerts, notifs, unread) {
 
   if (alerts.length) {
     html += '<div class="crm-np-label">Alertas del sistema</div>';
-    html += alerts.map(a => `
-      <a href="${a.url_accion || '#'}" class="crm-ni unread" onclick="toggleNotifPanel()">
+    html += alerts.map(a => {
+      const isInfo = a.tipo === 'info';
+      const badge = a.badge ? `<span style="width:8px;height:8px;border-radius:50%;background:${NOTIF_BADGE_COLORS[a.badge]||'var(--crm-info)'};flex-shrink:0;margin-top:5px"></span>` : '';
+      const inner = `
         <span class="crm-ni-icon">${NOTIF_TIPO_ICONS[a.tipo] || 'ℹ️'}</span>
         <div class="crm-ni-body">
           <div class="crm-ni-title">${escHtml(a.titulo)}</div>
           ${a.cuerpo ? `<div class="crm-ni-sub">${escHtml(a.cuerpo)}</div>` : ''}
         </div>
-        ${a.badge ? `<span style="width:8px;height:8px;border-radius:50%;background:${NOTIF_BADGE_COLORS[a.badge]||'var(--crm-info)'};flex-shrink:0;margin-top:5px"></span>` : ''}
-      </a>`).join('');
+        ${badge}`;
+      if (isInfo) {
+        return `<div class="crm-ni unread" style="cursor:default">${inner}</div>`;
+      }
+      return `<a href="${escHtml(a.url_accion || '#')}" class="crm-ni unread" onclick="toggleNotifPanel()">${inner}</a>`;
+    }).join('');
   }
 
   if (notifs.length) {
     html += '<div class="crm-np-label">Mis notificaciones</div>';
-    html += notifs.map(n => `
-      <div class="crm-ni ${n.leido ? '' : 'unread'}" data-id="${n.id}"
-        onclick="notifClick(${n.id}, '${(n.url_accion||'').replace(/'/g,"\\'")}')">
+    html += notifs.map(n => {
+      const isInfo = n.tipo === 'info';
+      const isTarea = n.tipo === 'tarea' || n.tipo === 'revision';
+      const inner = `
         <span class="crm-ni-icon">${NOTIF_TIPO_ICONS[n.tipo] || 'ℹ️'}</span>
         <div class="crm-ni-body">
           <div class="crm-ni-title">${escHtml(n.titulo)}</div>
           ${n.cuerpo ? `<div class="crm-ni-sub">${escHtml(n.cuerpo)}</div>` : ''}
           <div class="crm-ni-time">${fmtNotifDate(n.creado_en)}</div>
         </div>
-        ${!n.leido ? '<span class="crm-ni-dot"></span>' : ''}
-      </div>`).join('');
+        ${!n.leido ? '<span class="crm-ni-dot"></span>' : ''}`;
+      if (isInfo) {
+        return `<div class="crm-ni ${n.leido ? '' : 'unread'}" data-id="${n.id}" style="cursor:default">${inner}</div>`;
+      }
+      if (isTarea && n.url_accion) {
+        return `<a href="${escHtml(n.url_accion)}" class="crm-ni ${n.leido ? '' : 'unread'}" data-id="${n.id}"
+          onclick="notifClick(${n.id}, '')">${inner}</a>`;
+      }
+      return `<div class="crm-ni ${n.leido ? '' : 'unread'}" data-id="${n.id}"
+        onclick="notifClick(${n.id}, '${(n.url_accion||'').replace(/'/g,"\\'")}')">${inner}</div>`;
+    }).join('');
   }
 
   if (!alerts.length && !notifs.length) {

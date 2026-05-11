@@ -135,6 +135,14 @@ input[type=radio].opcion-radio{display:none;}
         <span>✅ Nota mínima <?= number_format((float)$examen['nota_minima'],1) ?>/10</span>
         <span>📚 <?= $tituloCurso ?></span>
         <span>⏱️ Sin límite de tiempo</span>
+        <?php
+        $intentosUsadosHero    = (int)($resultadoPrevio['intentos'] ?? 0);
+        $maxIntentosHero       = 2;
+        $intentosRestantesHero = max(0, $maxIntentosHero - $intentosUsadosHero);
+        ?>
+        <span style="color:<?= $intentosRestantesHero <= 1 ? '#fcd34d' : '#a3d9a8' ?>">
+            🔁 <?= $intentosRestantesHero ?> intento<?= $intentosRestantesHero !== 1 ? 's' : '' ?> restante<?= $intentosRestantesHero !== 1 ? 's' : '' ?>
+        </span>
       </div>
     </div>
 

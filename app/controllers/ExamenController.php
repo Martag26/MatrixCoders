@@ -121,6 +121,11 @@ $stmtC = $db->prepare("SELECT * FROM curso WHERE id=?");
 $stmtC->execute([$cursoId]);
 $curso = $stmtC->fetch(PDO::FETCH_ASSOC);
 
+// Primera lección del curso (para el botón "Volver al curso")
+$stmtFL = $db->prepare("SELECT l.id FROM leccion l JOIN unidad u ON l.unidad_id=u.id WHERE u.curso_id=? ORDER BY u.orden,u.id,l.orden,l.id LIMIT 1");
+$stmtFL->execute([$cursoId]);
+$primeraLeccionId = (int)$stmtFL->fetchColumn();
+
 // Datos del usuario
 $stmtU = $db->prepare("SELECT nombre FROM usuario WHERE id=?");
 $stmtU->execute([$usuarioId]);
@@ -264,8 +269,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
     exit;
 }
 
-// ── Si ya tiene resultado, mostrar resultado directamente ────────
-if ($resultadoPrevio) {
+// ── Si ya tiene resultado, mostrar resultado solo si no puede repetir ────────
+if ($resultadoPrevio && ($resultadoPrevio['aprobado'] || $intentosUsados >= $maxIntentos)) {
     require __DIR__ . '/../views/examen/resultado.php';
     exit;
 }

@@ -151,7 +151,11 @@ $leccionesVistas = $modeloCurso->getLeccionesVistas($usuarioId, $cursoId);
 
 $tareasEntregablesEntregadas = [];
 try {
-    $stmtAllTE = $db->prepare("SELECT tarea_id FROM entrega_entregable WHERE alumno_id=? AND curso_id=?");
+    $stmtAllTE = $db->prepare("
+        SELECT ee.tarea_id FROM entrega_entregable ee
+        JOIN tarea_entregable te ON te.id = ee.tarea_id
+        WHERE ee.alumno_id = ? AND te.curso_id = ?
+    ");
     $stmtAllTE->execute([$usuarioId, $cursoId]);
     $tareasEntregablesEntregadas = array_flip($stmtAllTE->fetchAll(PDO::FETCH_COLUMN));
 } catch (\Exception $e) {}

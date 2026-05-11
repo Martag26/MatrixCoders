@@ -258,7 +258,7 @@ $resultadoExamenTest = null;
 if ($tieneExamen) {
     try {
         $stmtResTest = $db->prepare("
-            SELECT re.nota, re.aprobado FROM resultado_examen re
+            SELECT re.nota, re.aprobado, re.intentos FROM resultado_examen re
             JOIN examen e ON e.id=re.examen_id
             WHERE re.usuario_id=? AND e.curso_id=? AND (e.tipo='test' OR e.tipo IS NULL)
             ORDER BY re.realizado_en DESC LIMIT 1

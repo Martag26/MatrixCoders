@@ -143,7 +143,7 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m0 4h.01"/></svg>
     Evaluación
   </button>
-  <button class="crm-editor-tab" data-tab="resultados" onclick="switchTab('resultados'); cargarResultados()">
+  <button class="crm-editor-tab" data-tab="resultados" onclick="switchTab('resultados')">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     Resultados
   </button>
@@ -678,11 +678,12 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
   <!-- Sub-panel: Práctico -->
   <div id="etab-practico" class="crm-exam-subpanel" style="display:none">
     <div class="crm-editor-panel">
-      <div class="crm-editor-panel-header">
+      <div class="crm-editor-panel-header" style="cursor:pointer;user-select:none" onclick="togglePracConfig()">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-        <h3>Examen práctico / Proyecto final</h3>
+        <h3>Configuración del examen</h3>
+        <svg id="pracConfigChevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-left:auto;transition:transform .2s"><path stroke-linecap="round" d="M6 9l6 6 6-6"/></svg>
       </div>
-      <div class="crm-editor-panel-body">
+      <div id="pracConfigBody" class="crm-editor-panel-body">
 
         <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px 14px;font-size:12px;color:#92400e;display:flex;align-items:flex-start;gap:8px;margin-bottom:16px">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -737,6 +738,25 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
 
         <!-- hidden list for save compat -->
         <div id="tareasList" style="display:none"></div>
+      </div><!-- /pracConfigBody -->
+    </div>
+
+    <!-- ── Entregas recibidas ── -->
+    <div class="crm-editor-panel" style="margin-top:14px">
+      <div class="crm-editor-panel-header" style="cursor:pointer;user-select:none" onclick="toggleEntregasPracPanel()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <h3>Entregas recibidas</h3>
+        <span id="entregasPracBadge" style="margin-left:6px;background:var(--crm-warning)25;color:var(--crm-warning);font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;display:none"></span>
+        <svg id="entregasPracChevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-left:auto;transition:transform .2s"><path stroke-linecap="round" d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div id="entregasPracBody" style="display:none">
+        <div class="crm-editor-panel-body" style="padding:0">
+          <div id="entregasPracLoading" style="text-align:center;padding:24px;color:var(--crm-muted)">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;display:block;margin:0 auto 8px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+            Cargando entregas…
+          </div>
+          <div id="entregasPracList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -750,21 +770,54 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
 <!-- ================================================================ -->
 <div id="tab-resultados" class="crm-tab-panel">
   <div class="crm-editor-panel">
+
+    <!-- Header -->
     <div class="crm-editor-panel-header">
       <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
       <h3>Resultados de alumnos</h3>
-      <button class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="cargarResultados(true)">
+      <button class="crm-btn crm-btn-secondary crm-btn-sm" style="margin-left:auto" onclick="_resPag=1;resultadosLoaded=false;cargarResultados(true)">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Actualizar
       </button>
     </div>
+
     <div class="crm-editor-panel-body" style="padding:0">
+
+      <!-- Stats strip -->
+      <div id="resultadosStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px;border-bottom:1px solid var(--crm-border)"></div>
+
+      <!-- Toolbar: búsqueda + filtro + per-page -->
+      <div id="resultadosToolbar" style="display:none;padding:10px 14px;border-bottom:1px solid var(--crm-border);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div class="crm-search-wrap" style="flex:1;min-width:160px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="resQ" class="crm-search-input" placeholder="Buscar alumno…"
+            oninput="CRM.debounce(()=>{ _resPag=1; cargarResultados(true); },500)()">
+        </div>
+        <select id="resFiltro" class="crm-filter-select" onchange="_resPag=1;cargarResultados(true)">
+          <option value="todos">Todos</option>
+          <option value="test_aprobado">Test aprobado</option>
+          <option value="test_pendiente">Test pendiente</option>
+          <option value="prac_pendiente">Práctico por revisar</option>
+          <option value="certificado">Con certificado</option>
+        </select>
+        <select id="resPer" class="crm-filter-select" style="width:auto" onchange="_resPag=1;cargarResultados(true)">
+          <option value="5">5 por página</option>
+          <option value="10" selected>10 por página</option>
+          <option value="15">15 por página</option>
+          <option value="20">20 por página</option>
+          <option value="25">25 por página</option>
+          <option value="50">50 por página</option>
+        </select>
+      </div>
+
+      <!-- Loading -->
       <div id="resultadosLoading" style="text-align:center;padding:40px;color:var(--crm-muted)">
         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;display:block;margin:0 auto 10px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
         Cargando resultados…
       </div>
+
+      <!-- Tabla -->
       <div id="resultadosContent" style="display:none">
-        <div id="resultadosStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px;border-bottom:1px solid var(--crm-border)"></div>
         <div class="crm-table-wrap" style="margin:0">
           <table class="crm-table" id="resultadosTable">
             <thead>
@@ -779,11 +832,20 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
             <tbody id="resultadosTbody"></tbody>
           </table>
         </div>
+
+        <!-- Paginación -->
+        <div id="resultadosPagBar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--crm-border);gap:10px;flex-wrap:wrap">
+          <span id="resultadosPagInfo" style="font-size:12px;color:var(--crm-muted)"></span>
+          <div id="resultadosPagBtns" style="display:flex;gap:4px;align-items:center"></div>
+        </div>
       </div>
+
+      <!-- Empty -->
       <div id="resultadosEmpty" style="display:none;text-align:center;padding:40px;color:var(--crm-muted)">
         <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         <p style="font-size:13px">Ningún alumno matriculado todavía.</p>
       </div>
+
     </div>
   </div>
 </div>
@@ -810,17 +872,38 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
 
 <!-- Modal: Revisar práctica -->
 <div class="modal fade crm-modal" id="modalRevisarPractica" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalRevisarTitle">Revisar entrega práctica</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width:820px">
+    <div class="modal-content" style="border-radius:18px;border:none;box-shadow:0 24px 64px rgba(0,0,0,.22)">
+
+      <!-- Header -->
+      <div style="padding:20px 24px 0;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--crm-border);padding-bottom:16px">
+        <div id="modalRevisarAvatar" style="width:42px;height:42px;border-radius:50%;background:rgba(124,58,237,.15);color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:700;color:var(--crm-text)" id="modalRevisarTitle">Entregas</div>
+          <div style="font-size:12px;color:var(--crm-muted);margin-top:1px" id="modalRevisarSubtitle"></div>
+        </div>
+        <button type="button" class="btn-close" onclick="cerrarModalRevisar()" style="margin:0"></button>
       </div>
-      <div class="modal-body" id="modalRevisarBody" style="max-height:70vh;overflow-y:auto"></div>
-      <div class="modal-footer">
-        <button class="crm-btn crm-btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button class="crm-btn crm-btn-primary" onclick="guardarCalificaciones()">Guardar calificaciones</button>
+
+      <div id="modalRevisarBody" style="padding:20px 24px;max-height:65vh;overflow-y:auto">
+        <div style="text-align:center;padding:32px;color:var(--crm-muted)">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;display:block;margin:0 auto 10px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+          Cargando…
+        </div>
       </div>
+
+      <!-- Footer -->
+      <div style="padding:14px 24px;border-top:1px solid var(--crm-border);display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <span id="modalRevisarProgress" style="font-size:12px;color:var(--crm-muted)"></span>
+        <div style="display:flex;gap:8px">
+          <button class="crm-btn crm-btn-secondary" onclick="cerrarModalRevisar()">Cerrar</button>
+          <button class="crm-btn crm-btn-primary" id="btnGuardarTodo" onclick="guardarCalificaciones()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+            Guardar calificaciones
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -990,8 +1073,10 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
 </div>
 
 <script>
-const CURSO_ID  = <?= $curso['id'] ?>;
-const INSTR_MAP = <?= json_encode($instructoresMap, JSON_UNESCAPED_UNICODE) ?>;
+const CURSO_ID       = <?= $curso['id'] ?>;
+const INSTR_MAP      = <?= json_encode($instructoresMap, JSON_UNESCAPED_UNICODE) ?>;
+const PRAC_NOTA_MIN  = <?= (float)($examenPractico['nota_minima'] ?? 5) ?>;
+const PRAC_TIENE_EXAM = <?= (!empty($tareasPracticas) || !empty($examenPractico)) ? 'true' : 'false' ?>;
 
 /* ===== Unsaved-changes guard ===== */
 const _FIELDS_INFO = ['cTitulo','cDesc','cInfoExtra','cQueAprenderas','cPrecio','cNivel','cCategoria','cDestacado','cActivo'];
@@ -1025,17 +1110,24 @@ async function _confirmLeave() {
   );
 }
 
-/* ===== Tabs ===== */
-async function switchTab(name) {
+/* ===== Tabs (con persistencia localStorage) ===== */
+const LS_TAB      = `mc_ed_tab_${CURSO_ID}`;
+const LS_CTAB     = `mc_ed_ctab_${CURSO_ID}`;
+const LS_ETAB     = `mc_ed_etab_${CURSO_ID}`;
+const LS_PRAC_CFG = `mc_ed_praccfg_${CURSO_ID}`;
+
+async function switchTab(name, save = true) {
   if (!await _confirmLeave()) return;
   document.querySelectorAll('.crm-tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.crm-editor-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+  if (save) localStorage.setItem(LS_TAB, name);
+  if (name === 'resultados') cargarResultados();
 }
 
 /* ===== Contenido sub-tabs ===== */
-async function switchContenidoTab(name) {
+async function switchContenidoTab(name, save = true) {
   if (!await _confirmLeave()) return;
   document.querySelectorAll('.crm-ctab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.crm-contenido-subtab').forEach(t => t.classList.remove('active'));
@@ -1045,15 +1137,41 @@ async function switchContenidoTab(name) {
     const el = document.getElementById('ctab-action-' + k);
     if (el) el.style.display = (k === name) ? 'block' : 'none';
   });
+  if (save) localStorage.setItem(LS_CTAB, name);
 }
 
-async function switchExamTab(name) {
+async function switchExamTab(name, save = true) {
   if (!await _confirmLeave()) return;
   document.querySelectorAll('.crm-exam-subpanel').forEach(p => p.style.display = 'none');
   document.querySelectorAll('.crm-exam-subtab').forEach(t => t.classList.remove('active'));
   document.getElementById('etab-' + name).style.display = '';
   document.querySelector(`[data-etab="${name}"]`).classList.add('active');
+  if (save) localStorage.setItem(LS_ETAB, name);
 }
+
+/* ===== Config panel práctico plegable ===== */
+function togglePracConfig(forceOpen) {
+  const body    = document.getElementById('pracConfigBody');
+  const chevron = document.getElementById('pracConfigChevron');
+  const isOpen  = forceOpen !== undefined ? forceOpen : body.style.display === 'none';
+  body.style.display    = isOpen ? '' : 'none';
+  chevron.style.transform = isOpen ? '' : 'rotate(-90deg)';
+  localStorage.setItem(LS_PRAC_CFG, isOpen ? '1' : '0');
+}
+
+/* ===== Restore tabs on load ===== */
+// setTimeout(0) defers until after all <script> tags have run (including CRM_API_URL in base.php)
+setTimeout(function restoreTabs() {
+  const tab   = localStorage.getItem(LS_TAB)  || 'info';
+  const ctab  = localStorage.getItem(LS_CTAB) || 'lecciones';
+  const etab  = localStorage.getItem(LS_ETAB) || 'test';
+  const pracCfgOpen = localStorage.getItem(LS_PRAC_CFG) !== '0';
+
+  switchTab(tab, false);
+  switchContenidoTab(ctab, false);
+  switchExamTab(etab, false);
+  togglePracConfig(pracCfgOpen);
+}, 0);
 
 /* ===== Image upload ===== */
 const imgDropArea = document.getElementById('imgDropArea');
@@ -1867,49 +1985,160 @@ async function eliminarRecurso(id) {
   } else CRM.toast(res.error, 'error');
 }
 
-/* ===== Resultados tab ===== */
-let resultadosLoaded = false;
-async function cargarResultados(force = false) {
-  if (resultadosLoaded && !force) return;
-  document.getElementById('resultadosLoading').style.display  = '';
-  document.getElementById('resultadosContent').style.display  = 'none';
-  document.getElementById('resultadosEmpty').style.display    = 'none';
+/* ===== Entregas recibidas (pestaña Práctico) ===== */
+let _entregasPracLoaded = false;
+let _entregasPracOpen   = false;
 
+function toggleEntregasPracPanel() {
+  _entregasPracOpen = !_entregasPracOpen;
+  const body    = document.getElementById('entregasPracBody');
+  const chevron = document.getElementById('entregasPracChevron');
+  body.style.display    = _entregasPracOpen ? '' : 'none';
+  chevron.style.transform = _entregasPracOpen ? 'rotate(180deg)' : '';
+  if (_entregasPracOpen && !_entregasPracLoaded) cargarEntregasPrac();
+}
+
+async function cargarEntregasPrac() {
+  _entregasPracLoaded = true;
+  document.getElementById('entregasPracLoading').style.display = '';
+  document.getElementById('entregasPracList').innerHTML = '';
+
+  // Load all students enrolled
   let res;
   try {
     res = await fetch(`${window.CRM_API_URL}&action=get_resultados_curso&curso_id=${CURSO_ID}`).then(r=>r.json());
   } catch(e) {
-    document.getElementById('resultadosLoading').style.display = 'none';
-    document.getElementById('resultadosEmpty').style.display   = '';
-    document.getElementById('resultadosEmpty').innerHTML = '<svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M12 9v2m0 4h.01"/></svg><p style="font-size:13px">Error de conexión. <a href="#" onclick="cargarResultados(true);return false">Reintentar</a></p>';
+    document.getElementById('entregasPracLoading').style.display = 'none';
+    document.getElementById('entregasPracList').innerHTML = '<p style="text-align:center;padding:16px;color:var(--crm-danger);font-size:13px">Error al cargar entregas.</p>';
     return;
   }
-  resultadosLoaded = true;
+  document.getElementById('entregasPracLoading').style.display = 'none';
+  if (!res.ok) {
+    document.getElementById('entregasPracList').innerHTML = `<p style="text-align:center;padding:16px;color:var(--crm-danger);font-size:13px">${res.error}</p>`;
+    return;
+  }
+
+  const alumnos = (res.alumnos || []).filter(a => (a.practico?.total || 0) > 0);
+  const totalT  = res.total_tareas || 0;
+
+  // Update badge
+  const pendientes = alumnos.filter(a => (a.practico?.revisadas || 0) < (a.practico?.total || 0)).length;
+  const badge = document.getElementById('entregasPracBadge');
+  if (pendientes > 0) { badge.textContent = pendientes + ' pendiente' + (pendientes > 1 ? 's' : ''); badge.style.display = ''; }
+  else badge.style.display = 'none';
+
+  if (!alumnos.length) {
+    document.getElementById('entregasPracList').innerHTML = '<p style="text-align:center;padding:24px;color:var(--crm-muted);font-size:13px">Ningún alumno ha entregado todavía.</p>';
+    return;
+  }
+
+  document.getElementById('entregasPracList').innerHTML = `
+    <table class="crm-table">
+      <thead><tr>
+        <th>Alumno</th>
+        <th style="text-align:center">Entregas</th>
+        <th style="text-align:center">Revisadas</th>
+        <th style="text-align:center">Media</th>
+        <th style="text-align:right">Acción</th>
+      </tr></thead>
+      <tbody>${alumnos.map(al => {
+        const p = al.practico;
+        const revisadas = p?.revisadas || 0;
+        const total = p?.total || 0;
+        const media = p?.nota_media != null ? parseFloat(p.nota_media).toFixed(1) : '—';
+        const isPending = revisadas < total;
+        return `<tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:28px;height:28px;border-radius:50%;background:rgba(124,58,237,.15);color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">${al.nombre.charAt(0).toUpperCase()}</div>
+              <div>
+                <div style="font-size:13px;font-weight:600">${CRM.escapeHtml(al.nombre)}</div>
+                <div style="font-size:11px;color:var(--crm-muted)">${CRM.escapeHtml(al.email)}</div>
+              </div>
+            </div>
+          </td>
+          <td style="text-align:center;font-weight:700">${total}</td>
+          <td style="text-align:center">
+            <span class="crm-badge ${revisadas >= total ? 'activo' : 'warning'}" style="${revisadas < total ? 'background:rgba(245,158,11,.15);color:var(--crm-warning)' : ''}">${revisadas}/${total}</span>
+          </td>
+          <td style="text-align:center;font-weight:600">${media !== '—' ? media + '/10' : media}</td>
+          <td style="text-align:right">
+            <button class="crm-btn ${isPending ? 'crm-btn-primary' : 'crm-btn-secondary'} crm-btn-sm"
+              onclick="verEntregasPractica(${al.id}, '${CRM.escapeHtml(al.nombre)}')">
+              ${isPending ? 'Revisar' : 'Ver entrega'}
+            </button>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+/* ===== Resultados tab ===== */
+let resultadosLoaded = false;
+let _resPag = 1;
+
+async function cargarResultados(force = false) {
+  if (resultadosLoaded && !force) return;
+
+  document.getElementById('resultadosLoading').style.display  = '';
+  document.getElementById('resultadosContent').style.display  = 'none';
+  document.getElementById('resultadosEmpty').style.display    = 'none';
+
+  const q      = document.getElementById('resQ')?.value      || '';
+  const filtro = document.getElementById('resFiltro')?.value  || 'todos';
+  const per    = document.getElementById('resPer')?.value     || '10';
+  const url    = `${window.CRM_API_URL}&action=get_resultados_curso&curso_id=${CURSO_ID}&page=${_resPag}&per=${per}&q=${encodeURIComponent(q)}&filtro=${filtro}`;
+
+  let res;
+  try {
+    res = await fetch(url).then(r=>r.json());
+  } catch(e) {
+    document.getElementById('resultadosLoading').style.display = 'none';
+    document.getElementById('resultadosEmpty').style.display   = '';
+    document.getElementById('resultadosEmpty').innerHTML = `<p style="font-size:13px">Error de conexión. <a href="#" onclick="cargarResultados(true);return false">Reintentar</a></p>`;
+    return;
+  }
+
   document.getElementById('resultadosLoading').style.display = 'none';
   if (!res.ok) {
     document.getElementById('resultadosEmpty').style.display = '';
-    document.getElementById('resultadosEmpty').innerHTML = `<p style="font-size:13px;color:var(--crm-danger)">${res.error || 'Error al cargar resultados'}</p><button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="cargarResultados(true)">Reintentar</button>`;
+    document.getElementById('resultadosEmpty').innerHTML = `<p style="font-size:13px;color:var(--crm-danger)">${res.error || 'Error'}</p><button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="cargarResultados(true)">Reintentar</button>`;
     return;
   }
+  resultadosLoaded = true;
 
-  const alumnos = res.alumnos || [];
-  if (!alumnos.length) { document.getElementById('resultadosEmpty').style.display = ''; return; }
+  const alumnos    = res.alumnos    || [];
+  const totalRows  = res.total_rows || 0;
+  const totalPags  = res.total_pags || 1;
+  const gs         = res.global_stats || {};
 
-  const aprobadosTest    = alumnos.filter(a => a.test?.aprobado).length;
-  const entregadosPrac   = alumnos.filter(a => (a.practico?.total || 0) > 0).length;
-  const pendientesRevision = alumnos.filter(a => (a.practico?.total || 0) > 0 && (a.practico?.revisadas || 0) < (a.practico?.total || 0)).length;
-
+  // Stats strip (always global)
   document.getElementById('resultadosStats').innerHTML = [
-    ['Matriculados', alumnos.length, 'var(--crm-primary)'],
-    ['Aprobaron test', aprobadosTest, 'var(--crm-success)'],
-    ['Entregaron práctico', entregadosPrac, 'var(--crm-info)'],
-    ['Pendiente revisión', pendientesRevision, 'var(--crm-warning)'],
+    ['Matriculados',       gs.total_matriculados || 0, 'var(--crm-primary)'],
+    ['Test aprobado',      gs.aprobados_test     || 0, 'var(--crm-success)'],
+    ['Práctico pendiente', gs.prac_pendientes    || 0, 'var(--crm-warning)'],
+    ['Mostrando',          totalRows,                  'var(--crm-info)'],
   ].map(([lbl, val, color]) => `
-    <div class="crm-card" style="padding:12px 14px;text-align:center">
+    <div class="crm-card" style="padding:12px 14px;text-align:center;cursor:${lbl==='Test aprobado'||lbl==='Práctico pendiente'?'pointer':'default'}"
+      ${lbl==='Test aprobado'?'onclick="document.getElementById(\'resFiltro\').value=\'test_aprobado\';_resPag=1;cargarResultados(true)"':''}
+      ${lbl==='Práctico pendiente'?'onclick="document.getElementById(\'resFiltro\').value=\'prac_pendiente\';_resPag=1;cargarResultados(true)"':''}>
       <div style="font-size:22px;font-weight:800;color:${color}">${val}</div>
       <div style="font-size:11px;color:var(--crm-muted);margin-top:2px">${lbl}</div>
     </div>`).join('');
 
+  // Show toolbar always
+  document.getElementById('resultadosToolbar').style.display = 'flex';
+
+  if (!alumnos.length) {
+    document.getElementById('resultadosEmpty').style.display = '';
+    document.getElementById('resultadosEmpty').innerHTML = `
+      <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.4"><path stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      <p style="font-size:13px">${q || filtro !== 'todos' ? 'Sin resultados para este filtro.' : 'Ningún alumno matriculado todavía.'}</p>
+      ${q||filtro!=='todos'?'<button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="document.getElementById(\'resQ\').value=\'\';document.getElementById(\'resFiltro\').value=\'todos\';_resPag=1;cargarResultados(true)">Limpiar filtros</button>':''}`;
+    return;
+  }
+
+  // Render rows
   document.getElementById('resultadosTbody').innerHTML = alumnos.map(al => {
     const test = al.test;
     const prac = al.practico;
@@ -1934,6 +2163,17 @@ async function cargarResultados(force = false) {
       ? `<button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="verEntregasPractica(${al.id}, '${CRM.escapeHtml(al.nombre)}')">Ver entrega</button>`
       : '';
 
+    // Certificado: requiere test aprobado Y (sin práctico configurado O práctico completamente revisado Y nota media >= mínima)
+    const pracRevisadoOk = totalT === 0 ||
+      ((prac?.revisadas || 0) >= totalT && (prac?.nota_media ?? 0) >= PRAC_NOTA_MIN);
+    const aprobadoFinal = !!test?.aprobado && pracRevisadoOk;
+
+    const certCell = aprobadoFinal
+      ? `<span class="crm-badge activo" title="Test aprobado${totalT > 0 ? ' + Práctico revisado' : ''}">✓</span>`
+      : (test?.aprobado && totalT > 0 && !pracRevisadoOk)
+        ? `<span style="font-size:10px;color:var(--crm-warning);font-weight:600" title="Test aprobado · Práctico pendiente de revisión">⏳ Test ✓</span>`
+        : `<span style="font-size:11px;color:var(--crm-muted)">—</span>`;
+
     return `<tr>
       <td>
         <div style="display:flex;align-items:center;gap:8px">
@@ -1946,53 +2186,262 @@ async function cargarResultados(force = false) {
       </td>
       <td style="text-align:center">${testCell}</td>
       <td style="text-align:center">${pracCell}</td>
-      <td style="text-align:center">
-        ${test?.aprobado ? '<span class="crm-badge activo">✓</span>' : '<span style="font-size:11px;color:var(--crm-muted)">—</span>'}
-      </td>
+      <td style="text-align:center">${certCell}</td>
       <td style="text-align:right">${accionPrac}</td>
     </tr>`;
   }).join('');
+
+  // Paginación info
+  const perN   = parseInt(per);
+  const from   = (_resPag - 1) * perN + 1;
+  const to     = Math.min(_resPag * perN, totalRows);
+  document.getElementById('resultadosPagInfo').textContent =
+    totalRows > 0 ? `Mostrando ${from}–${to} de ${totalRows} alumno${totalRows !== 1 ? 's' : ''}` : '';
+
+  // Botones de paginación
+  const btnContainer = document.getElementById('resultadosPagBtns');
+  if (totalPags <= 1) {
+    btnContainer.innerHTML = '';
+  } else {
+    const pagStyle = (active) =>
+      `style="min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1px solid ${active ? 'var(--crm-primary)' : 'var(--crm-border)'};background:${active ? 'var(--crm-primary)' : 'var(--crm-card)'};color:${active ? '#fff' : 'var(--crm-text)'};font-size:12.5px;font-weight:${active ? '700' : '500'};cursor:${active ? 'default' : 'pointer'};display:inline-flex;align-items:center;justify-content:center;transition:all .15s"`;
+
+    let btns = '';
+    // Prev
+    btns += `<button ${pagStyle(false)} ${_resPag === 1 ? 'disabled style="opacity:.4;cursor:default;min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--crm-border);background:var(--crm-card);color:var(--crm-text);font-size:12.5px"' : ''}
+      onclick="_resPag=${_resPag-1};cargarResultados(true)">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>`;
+
+    // Page numbers with ellipsis
+    const pages = [];
+    if (totalPags <= 7) {
+      for (let i = 1; i <= totalPags; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (_resPag > 3) pages.push('…');
+      for (let i = Math.max(2, _resPag-1); i <= Math.min(totalPags-1, _resPag+1); i++) pages.push(i);
+      if (_resPag < totalPags - 2) pages.push('…');
+      pages.push(totalPags);
+    }
+
+    for (const p of pages) {
+      if (p === '…') {
+        btns += `<span style="min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;color:var(--crm-muted);font-size:13px">…</span>`;
+      } else {
+        const isActive = p === _resPag;
+        btns += `<button ${pagStyle(isActive)} ${isActive ? 'disabled' : `onclick="_resPag=${p};cargarResultados(true)"`}
+          onmouseover="${!isActive ? 'this.style.borderColor=\'var(--crm-primary)\';this.style.color=\'var(--crm-primary)\'' : ''}"
+          onmouseout="${!isActive ? 'this.style.borderColor=\'var(--crm-border)\';this.style.color=\'var(--crm-text)\'' : ''}">${p}</button>`;
+      }
+    }
+
+    // Next
+    btns += `<button ${pagStyle(false)} ${_resPag === totalPags ? 'disabled style="opacity:.4;cursor:default;min-width:32px;height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--crm-border);background:var(--crm-card);color:var(--crm-text);font-size:12.5px"' : ''}
+      onclick="_resPag=${_resPag+1};cargarResultados(true)">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg>
+    </button>`;
+
+    btnContainer.innerHTML = btns;
+  }
 
   document.getElementById('resultadosContent').style.display = '';
 }
 
 let _revisionAlumnoId = null;
+
+function _notaColor(val) {
+  if (val === '' || val === null) return 'var(--crm-muted)';
+  const n = parseFloat(val);
+  if (n >= 7) return 'var(--crm-success)';
+  if (n >= 5) return 'var(--crm-warning)';
+  return 'var(--crm-danger)';
+}
+
 async function verEntregasPractica(alumnoId, nombre) {
   _revisionAlumnoId = alumnoId;
-  document.getElementById('modalRevisarTitle').textContent = `Entregas de ${nombre}`;
-  const body = document.getElementById('modalRevisarBody');
-  body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--crm-muted)">Cargando…</div>';
+
+  // Set header
+  const initial = nombre.charAt(0).toUpperCase();
+  document.getElementById('modalRevisarAvatar').textContent = initial;
+  document.getElementById('modalRevisarTitle').textContent  = nombre;
+  document.getElementById('modalRevisarSubtitle').textContent = 'Cargando…';
+  document.getElementById('modalRevisarProgress').textContent = '';
+  document.getElementById('modalRevisarBody').innerHTML = `
+    <div style="text-align:center;padding:32px;color:var(--crm-muted)">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;display:block;margin:0 auto 10px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+      Cargando entregas…
+    </div>`;
   openModal('modalRevisarPractica');
 
   const res = await fetch(`${window.CRM_API_URL}&action=get_entregas_alumno&alumno_id=${alumnoId}&curso_id=${CURSO_ID}`).then(r=>r.json());
-  if (!res.ok) { body.innerHTML = `<p style="color:var(--crm-danger)">${res.error}</p>`; return; }
+  if (!res.ok) {
+    document.getElementById('modalRevisarBody').innerHTML = `<p style="color:var(--crm-danger);text-align:center;padding:20px">${res.error}</p>`;
+    return;
+  }
 
   const entregas = res.entregas || [];
-  body.innerHTML = entregas.map((e, i) => `
-    <div style="border:1px solid var(--crm-border);border-radius:10px;padding:16px;margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <div style="width:24px;height:24px;border-radius:6px;background:var(--crm-primary)20;color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">${i+1}</div>
-        <div style="font-size:13px;font-weight:700;flex:1">${CRM.escapeHtml(e.tarea_titulo || 'Tarea')}</div>
-        <span class="crm-badge ${e.revisado ? 'activo' : 'warning'}">${e.revisado ? 'Revisada' : 'Pendiente'}</span>
+  const pendientes = entregas.filter(e => !e.revisado).length;
+  document.getElementById('modalRevisarSubtitle').textContent =
+    `${entregas.length} entrega${entregas.length !== 1 ? 's' : ''} · ${pendientes} pendiente${pendientes !== 1 ? 's' : ''}`;
+  document.getElementById('modalRevisarProgress').textContent =
+    pendientes > 0 ? `${pendientes} sin revisar` : '✓ Todo revisado';
+
+  if (!entregas.length) {
+    document.getElementById('modalRevisarBody').innerHTML =
+      '<p style="color:var(--crm-muted);text-align:center;padding:32px;font-size:13px">Sin entregas todavía.</p>';
+    return;
+  }
+
+  document.getElementById('modalRevisarBody').innerHTML = entregas.map((e, i) => {
+    const notaVal  = e.nota !== null ? e.nota : '';
+    const notaClr  = _notaColor(notaVal);
+    const fechaStr = e.entregado_en ? new Date(e.entregado_en.replace(' ','T')).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+
+    return `
+    <div id="entrega-card-${e.id}" style="border:1px solid var(--crm-border);border-radius:14px;overflow:hidden;margin-bottom:14px;transition:border-color .2s ${e.revisado ? ';border-left:3px solid var(--crm-success)' : ''}">
+
+      <!-- Card header -->
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--crm-bg);border-bottom:1px solid var(--crm-border)">
+        <div style="width:26px;height:26px;border-radius:8px;background:var(--crm-primary)18;color:var(--crm-primary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">${i+1}</div>
+        <div style="font-size:13.5px;font-weight:700;color:var(--crm-text);flex:1">${CRM.escapeHtml(e.tarea_titulo || 'Tarea')}</div>
+        ${fechaStr ? `<span style="font-size:10.5px;color:var(--crm-muted)">${fechaStr}</span>` : ''}
+        <span id="badge-${e.id}" class="crm-badge ${e.revisado ? 'activo' : ''}" style="${!e.revisado ? 'background:rgba(245,158,11,.15);color:var(--crm-warning)' : ''}">${e.revisado ? '✓ Revisada' : 'Pendiente'}</span>
       </div>
-      <div style="font-size:12.5px;color:var(--crm-text);background:var(--crm-bg);border-radius:8px;padding:10px;margin-bottom:10px;min-height:60px;white-space:pre-wrap;line-height:1.6">${CRM.escapeHtml(e.respuesta_texto || 'Sin respuesta de texto.')}</div>
-      ${e.archivo ? `<a href="${e.archivo}" target="_blank" style="font-size:12px;color:var(--crm-info)">📎 Descargar archivo adjunto</a>` : ''}
-      <div style="display:grid;grid-template-columns:100px 1fr;gap:10px;margin-top:12px">
-        <div>
-          <label style="font-size:11px;color:var(--crm-muted);display:block;margin-bottom:4px">Nota (0-10)</label>
-          <input type="number" class="crm-input entrega-nota" data-id="${e.id}" value="${e.nota !== null ? e.nota : ''}" min="0" max="10" step="0.5" placeholder="—">
+
+      <!-- Card body: respuesta + evaluación -->
+      <div style="display:grid;grid-template-columns:1fr 220px;gap:0">
+
+        <!-- Izquierda: respuesta + archivo -->
+        <div style="padding:14px 16px;border-right:1px solid var(--crm-border)">
+          <div style="font-size:10.5px;font-weight:700;color:var(--crm-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Respuesta del alumno</div>
+          <div style="font-size:12.5px;color:var(--crm-text);background:var(--crm-bg);border-radius:9px;padding:10px 12px;min-height:72px;white-space:pre-wrap;line-height:1.65;border:1px solid var(--crm-border)">${e.respuesta_texto ? CRM.escapeHtml(e.respuesta_texto) : '<span style="color:var(--crm-muted);font-style:italic">Sin respuesta de texto.</span>'}</div>
+          ${e.archivo ? `
+          <a href="${CRM.escapeHtml(e.archivo)}" target="_blank"
+             style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:var(--crm-info);text-decoration:none;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);padding:5px 11px;border-radius:8px;transition:background .15s"
+             onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.08)'">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+            Archivo adjunto
+          </a>` : ''}
         </div>
-        <div>
-          <label style="font-size:11px;color:var(--crm-muted);display:block;margin-bottom:4px">Feedback</label>
-          <input type="text" class="crm-input entrega-feedback" data-id="${e.id}" value="${CRM.escapeHtml(e.feedback || '')}" placeholder="Comentario al alumno…">
+
+        <!-- Derecha: evaluación -->
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:10.5px;font-weight:700;color:var(--crm-muted);text-transform:uppercase;letter-spacing:.5px">Evaluación</div>
+
+          <!-- Nota con indicador visual -->
+          <div>
+            <label style="font-size:11px;color:var(--crm-muted);display:block;margin-bottom:5px">Nota (0 – 10)</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="number" class="crm-input entrega-nota" data-id="${e.id}"
+                value="${notaVal}" min="0" max="10" step="0.5" placeholder="—"
+                style="width:72px;font-size:18px;font-weight:800;text-align:center;color:${notaClr};padding:6px 8px"
+                oninput="this.style.color=_notaColor(this.value);document.getElementById('nota-bar-${e.id}').style.width=(Math.min(parseFloat(this.value)||0,10)*10)+'%';document.getElementById('nota-bar-${e.id}').style.background=_notaColor(this.value)">
+              <div style="flex:1">
+                <div style="height:5px;background:var(--crm-border);border-radius:99px;overflow:hidden">
+                  <div id="nota-bar-${e.id}" style="height:100%;border-radius:99px;transition:width .2s,background .2s;width:${notaVal !== '' ? Math.min(parseFloat(notaVal)||0,10)*10 : 0}%;background:${notaClr}"></div>
+                </div>
+                <div style="font-size:10px;color:var(--crm-muted);margin-top:3px">${notaVal !== '' ? (parseFloat(notaVal) >= PRAC_NOTA_MIN ? '✓ Aprobado' : '✗ Suspenso') : 'Sin nota'}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feedback -->
+          <div style="flex:1;display:flex;flex-direction:column">
+            <label style="font-size:11px;color:var(--crm-muted);display:block;margin-bottom:5px">Feedback al alumno</label>
+            <textarea class="crm-textarea entrega-feedback" data-id="${e.id}"
+              rows="3" placeholder="Comentario, sugerencias de mejora…"
+              style="flex:1;resize:none;font-size:12.5px;line-height:1.5">${CRM.escapeHtml(e.feedback || '')}</textarea>
+          </div>
+
+          <!-- Guardar individual -->
+          <button class="crm-btn crm-btn-primary crm-btn-sm" style="width:100%;justify-content:center"
+            onclick="guardarEntregaIndividual('${e.id}')">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+            Guardar
+          </button>
         </div>
+
       </div>
-    </div>`).join('') || '<p style="color:var(--crm-muted);text-align:center;padding:20px">Sin entregas todavía.</p>';
+    </div>`;
+  }).join('');
+}
+
+async function guardarEntregaIndividual(id) {
+  const notaEl     = document.querySelector(`.entrega-nota[data-id="${id}"]`);
+  const feedbackEl = document.querySelector(`.entrega-feedback[data-id="${id}"]`);
+  const btn = notaEl?.closest('[id^="entrega-card-"]')?.querySelector('button.crm-btn-primary');
+
+  if (!notaEl?.value || notaEl.value === '') {
+    const ok = await CRM.confirm(
+      'No has introducido ninguna nota para esta entrega. El alumno no recibirá calificación.',
+      { title: '¿Guardar sin nota?', okLabel: 'Guardar igualmente', type: 'warning' }
+    );
+    if (!ok) return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+
+  const res = await CRM.api('revisar_practica', {
+    entrega_id: id,
+    nota:       notaEl?.value !== '' ? notaEl.value : null,
+    feedback:   feedbackEl?.value || ''
+  });
+
+  if (res.ok) {
+    const card  = document.getElementById('entrega-card-' + id);
+    const badge = document.getElementById('badge-' + id);
+    if (card)  { card.style.borderLeftWidth = '3px'; card.style.borderLeftColor = 'var(--crm-success)'; }
+    if (badge) { badge.className = 'crm-badge activo'; badge.style = ''; badge.textContent = '✓ Revisada'; }
+    if (btn)   { btn.disabled = false; btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Guardado'; btn.style.background='var(--crm-success)'; }
+    CRM.toast('Entrega calificada', 'success');
+    _actualizarProgressModal();
+  } else {
+    if (btn) { btn.disabled = false; btn.textContent = 'Guardar'; }
+    CRM.toast(res.error || 'Error al guardar', 'error');
+  }
+}
+
+function _actualizarProgressModal() {
+  const badges  = [...document.querySelectorAll('[id^="badge-"]')];
+  const total   = badges.length;
+  const revisadas = badges.filter(b => b.textContent.includes('✓')).length;
+  const pend    = total - revisadas;
+  document.getElementById('modalRevisarProgress').textContent = pend > 0 ? `${pend} sin revisar` : '✓ Todo revisado';
+  document.getElementById('modalRevisarSubtitle').textContent = `${total} entrega${total !== 1 ? 's' : ''} · ${pend} pendiente${pend !== 1 ? 's' : ''}`;
+}
+
+async function cerrarModalRevisar() {
+  const sinRevisar = [...document.querySelectorAll('[id^="badge-"]')]
+    .filter(b => b.textContent.includes('Pendiente')).length;
+  const sinNota = [...document.querySelectorAll('.entrega-nota')]
+    .filter(n => n.value === '').length;
+
+  if (sinRevisar > 0 || sinNota > 0) {
+    const msg = sinNota > 0
+      ? `${sinNota} entrega${sinNota > 1 ? 's quedan' : ' queda'} sin nota. ¿Salir sin guardar?`
+      : `${sinRevisar} entrega${sinRevisar > 1 ? 's quedan' : ' queda'} pendiente${sinRevisar > 1 ? 's' : ''} de revisión. ¿Salir de todas formas?`;
+    const ok = await CRM.confirm(msg, { title: '¿Salir sin guardar?', okLabel: 'Salir', type: 'warning' });
+    if (!ok) return;
+  }
+  closeModal('modalRevisarPractica');
 }
 
 async function guardarCalificaciones() {
   const notas    = [...document.querySelectorAll('.entrega-nota')];
   const feedbacks = [...document.querySelectorAll('.entrega-feedback')];
+
+  const sinNota = notas.filter(n => n.value === '').length;
+  if (sinNota > 0) {
+    const ok = await CRM.confirm(
+      `${sinNota} entrega${sinNota > 1 ? 's' : ''} no tiene${sinNota > 1 ? 'n' : ''} nota asignada. ${sinNota > 1 ? 'Esos alumnos' : 'El alumno'} no recibirá${sinNota > 1 ? 'n' : ''} calificación.`,
+      { title: `¿Guardar ${sinNota > 1 ? sinNota + ' entregas' : 'la entrega'} sin nota?`, okLabel: 'Guardar igualmente', type: 'warning' }
+    );
+    if (!ok) return;
+  }
+
+  const btn = document.getElementById('btnGuardarTodo');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
   let saved = 0;
   for (let i = 0; i < notas.length; i++) {
     const id       = notas[i].dataset.id;
@@ -2003,7 +2452,8 @@ async function guardarCalificaciones() {
   }
   CRM.toast(`${saved} entrega(s) calificada(s)`, 'success');
   closeModal('modalRevisarPractica');
-  cargarResultados(true);
+  resultadosLoaded = false; cargarResultados(true);
+  if (_entregasPracLoaded) { _entregasPracLoaded = false; cargarEntregasPrac(); }
 }
 
 const _spinStyle = document.createElement('style');

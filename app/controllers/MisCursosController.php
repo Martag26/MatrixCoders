@@ -35,6 +35,7 @@ class MisCursosController
                 c.categoria,
                 c.duracion_min,
                 m.fecha AS fecha_matricula,
+                m.estado AS matricula_estado,
                 (
                     SELECT COUNT(l.id)
                     FROM leccion l
@@ -61,7 +62,7 @@ class MisCursosController
                 ) AS ultima_leccion_id
             FROM matricula m
             JOIN curso c ON c.id = m.curso_id
-            WHERE m.usuario_id = ?
+            WHERE m.usuario_id = ? AND m.estado IN ('activa','completado')
             ORDER BY m.fecha DESC
         ");
         $stmt->execute([$usuario_id, $usuario_id, $usuario_id]);
@@ -72,7 +73,31 @@ class MisCursosController
             $vistos = (int)$c['lecciones_vistas'];
             $c['progreso'] = $total > 0 ? round(($vistos / $total) * 100) : 0;
 
-            if ($total > 0 && $vistos >= $total) {
+            // Comprobar si el curso tiene examen y si el alumno lo ha aprobado
+            $tieneExamen    = false;
+            $examenAprobado = false;
+            try {
+                $stmtEx = $conexion->prepare(
+                    "SELECT COUNT(*) FROM examen WHERE curso_id = ?"
+                );
+                $stmtEx->execute([$c['id']]);
+                $tieneExamen = (int)$stmtEx->fetchColumn() > 0;
+
+                if ($tieneExamen) {
+                    $stmtRes = $conexion->prepare("
+                        SELECT COUNT(*) FROM resultado_examen re
+                        JOIN examen e ON e.id = re.examen_id
+                        WHERE e.curso_id = ? AND re.usuario_id = ? AND re.aprobado = 1
+                    ");
+                    $stmtRes->execute([$c['id'], $usuario_id]);
+                    $examenAprobado = (int)$stmtRes->fetchColumn() > 0;
+                }
+            } catch (\Exception $e) { /* tablas aún no creadas */ }
+
+            // Si la matrícula ya está marcada como completada en BD, es definitivo
+            if (($c['matricula_estado'] ?? '') === 'completado') {
+                $c['estado'] = 'completado';
+            } elseif ($total > 0 && $vistos >= $total && (!$tieneExamen || $examenAprobado)) {
                 $c['estado'] = 'completado';
             } elseif ($vistos > 0) {
                 $c['estado'] = 'en_progreso';

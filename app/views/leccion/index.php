@@ -1084,6 +1084,10 @@ $ytId = ytId($videoUrl);
                 $testHecho    = $resultadoExamenTest !== null;
                 ?>
 
+                <?php
+                $intentosUsadosSb    = (int)(($resultadoExamenTest ?? [])['intentos'] ?? 0);
+                $intentosRestSb      = max(0, 2 - $intentosUsadosSb);
+                ?>
                 <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>"
                    style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:9px;text-decoration:none;font-size:.83rem;font-weight:600;margin-bottom:.4rem;
                           background:<?= $testAprobado ? '#f0fdf4' : ($testHecho ? '#fff7ed' : '#fff') ?>;
@@ -1094,7 +1098,9 @@ $ytId = ytId($videoUrl);
                     <?php if ($testAprobado): ?>
                         <span style="margin-left:auto;font-size:.7rem;background:#dcfce7;color:#166534;border-radius:99px;padding:1px 7px"><?= number_format((float)$resultadoExamenTest['nota'],1) ?>/10</span>
                     <?php elseif ($testHecho): ?>
-                        <span style="margin-left:auto;font-size:.7rem;background:#fef3c7;color:#92400e;border-radius:99px;padding:1px 7px">Repetir</span>
+                        <span style="margin-left:auto;font-size:.7rem;background:#fef3c7;color:#92400e;border-radius:99px;padding:1px 7px">Repetir · <?= $intentosRestSb ?> intento<?= $intentosRestSb !== 1 ? 's' : '' ?></span>
+                    <?php else: ?>
+                        <span style="margin-left:auto;font-size:.7rem;background:#f1f5f9;color:#475569;border-radius:99px;padding:1px 7px">2 intentos</span>
                     <?php endif; ?>
                 </a>
 

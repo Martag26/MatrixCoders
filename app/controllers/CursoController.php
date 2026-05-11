@@ -32,7 +32,8 @@ class CursoController
 
         // IDs de cursos en los que el usuario ya está matriculado
         $matriculasUsuario = [];
-        $usuarioId = $_SESSION['usuario_id'] ?? null;
+        $esUsuario = !empty($_SESSION['usuario_id']) && ($_SESSION['usuario_rol'] ?? '') === 'USUARIO';
+        $usuarioId = $esUsuario ? $_SESSION['usuario_id'] : null;
         if ($usuarioId) {
             $stmtM = $db->prepare('SELECT curso_id FROM matricula WHERE usuario_id = ?');
             $stmtM->execute([(int)$usuarioId]);

@@ -23,7 +23,7 @@ if ($cursoId <= 0) {
 }
 
 // Verify enrollment
-$stmtM = $db->prepare("SELECT COUNT(*) FROM matricula WHERE usuario_id=? AND curso_id=? AND estado='activa'");
+$stmtM = $db->prepare("SELECT COUNT(*) FROM matricula WHERE usuario_id=? AND curso_id=? AND estado IN ('activa','completado')");
 $stmtM->execute([$usuarioId, $cursoId]);
 if (!(int)$stmtM->fetchColumn()) {
     header('Location: ' . BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId);
@@ -94,22 +94,21 @@ $certificadoPractico = null;
 $practicoAprobado    = false;
 if ($todasEntregadas) {
     $notaMinimaPrac = (float)($examenPractico['nota_minima'] ?? 5.0);
-    $todasAprobadas = true;
     $notaMedia      = 0;
     $revisadas      = 0;
+    $todasRevisadas = true;
 
     foreach ($entregasExistentes as $ent) {
-        if (!(int)$ent['revisado']) { $todasAprobadas = false; break; }
-        $notaEnt = (float)($ent['nota'] ?? 0);
-        if ($notaEnt < $notaMinimaPrac) { $todasAprobadas = false; }
-        $notaMedia += $notaEnt;
+        if (!(int)$ent['revisado']) { $todasRevisadas = false; break; }
+        $notaMedia += (float)($ent['nota'] ?? 0);
         $revisadas++;
     }
 
-    if ($revisadas === $totalTareas) {
+    if ($todasRevisadas && $revisadas === $totalTareas) {
         $notaMedia = $revisadas > 0 ? round($notaMedia / $revisadas, 1) : 0;
+        $aprobadoPorMedia = $notaMedia >= $notaMinimaPrac;
 
-        if ($todasAprobadas) {
+        if ($aprobadoPorMedia) {
             $practicoAprobado = true;
 
             // Generar certificado si no existe
@@ -125,6 +124,10 @@ if ($todasEntregadas) {
                 $stmtCertEx2->execute([$usuarioId, $cursoId]);
                 $certificadoPractico = $stmtCertEx2->fetch(PDO::FETCH_ASSOC);
             }
+
+            // Marcar matrícula como completada
+            $db->prepare("UPDATE matricula SET estado='completado' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
+               ->execute([$usuarioId, $cursoId]);
         } else {
             // Suspendido en el práctico: revocar matrícula
             $db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=?")
@@ -140,6 +143,33 @@ if ($todasEntregadas) {
         }
     }
 }
+
+// Primera lección (para el botón Volver al curso del sidebar)
+$stmtFL = $db->prepare("SELECT l.id FROM leccion l JOIN unidad u ON l.unidad_id=u.id WHERE u.curso_id=? ORDER BY u.orden,u.id,l.orden,l.id LIMIT 1");
+$stmtFL->execute([$cursoId]);
+$primeraLeccionId = (int)$stmtFL->fetchColumn();
+
+// Unidades y lecciones para el sidebar
+$unidades = [];
+try {
+    $stmtUn = $db->prepare("SELECT * FROM unidad WHERE curso_id=? ORDER BY orden,id");
+    $stmtUn->execute([$cursoId]);
+    $unidades = $stmtUn->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($unidades as &$u) {
+        $stmtLec = $db->prepare("SELECT id,titulo FROM leccion WHERE unidad_id=? ORDER BY orden,id");
+        $stmtLec->execute([$u['id']]);
+        $u['lecciones'] = $stmtLec->fetchAll(PDO::FETCH_ASSOC);
+    }
+    unset($u);
+} catch (Exception $e) { $unidades = []; }
+
+// Lecciones vistas por el alumno
+$leccionesVistasPrac = [];
+try {
+    $stmtLV = $db->prepare("SELECT lv.leccion_id FROM leccion_vista lv JOIN leccion l ON l.id=lv.leccion_id JOIN unidad u ON l.unidad_id=u.id WHERE u.curso_id=? AND lv.usuario_id=?");
+    $stmtLV->execute([$cursoId, $usuarioId]);
+    foreach ($stmtLV->fetchAll(PDO::FETCH_COLUMN) as $lid) $leccionesVistasPrac[$lid] = true;
+} catch (Exception $e) {}
 
 // Check deadline
 $plazoSuperado = false;
@@ -230,6 +260,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmtCount = $db->prepare("SELECT COUNT(*) FROM entrega_practica WHERE alumno_id=? AND curso_id=?");
     $stmtCount->execute([$usuarioId, $cursoId]);
     $nuevasEntregadas = (int)$stmtCount->fetchColumn();
+
+    // Notificar al instructor: recoge el nombre del alumno y el título de la tarea
+    try {
+        $nombreAlumno  = trim((string)($_SESSION['usuario_nombre'] ?? 'Un alumno'));
+        $stmtTitTarea  = $db->prepare("SELECT titulo FROM tarea_practica WHERE id=?");
+        $stmtTitTarea->execute([$tareaId]);
+        $titTarea = $stmtTitTarea->fetchColumn() ?: 'Tarea práctico';
+
+        // Reúne todos los instructores del curso (principal + tabla curso_instructor)
+        $instructorIds = [];
+        $stmtInst = $db->prepare("SELECT instructor_id FROM curso WHERE id=? AND instructor_id IS NOT NULL");
+        $stmtInst->execute([$cursoId]);
+        $primary = $stmtInst->fetchColumn();
+        if ($primary) $instructorIds[] = (int)$primary;
+
+        try {
+            $stmtCI = $db->prepare("SELECT usuario_id FROM curso_instructor WHERE curso_id=?");
+            $stmtCI->execute([$cursoId]);
+            foreach ($stmtCI->fetchAll(PDO::FETCH_COLUMN) as $id) {
+                $instructorIds[] = (int)$id;
+            }
+        } catch (Exception $e) {}
+
+        $instructorIds = array_unique($instructorIds);
+        $esCompleto    = $nuevasEntregadas >= $totalTareas;
+        $tituloCursoN  = $curso['titulo'] ?? 'el curso';
+        $crmUrl        = BASE_URL . '/index.php?url=crm&seccion=comunicacion&curso_id=' . $cursoId;
+
+        foreach ($instructorIds as $instId) {
+            if ($esCompleto) {
+                $titulo = $nombreAlumno . ' ha completado el examen práctico';
+                $cuerpo = $nombreAlumno . ' ha entregado todas las tareas del examen práctico de «' . $tituloCursoN . '». Ya puedes revisarlas.';
+            } else {
+                $titulo = $nombreAlumno . ' ha entregado una tarea práctica';
+                $cuerpo = $nombreAlumno . ' ha entregado «' . $titTarea . '» en «' . $tituloCursoN . '».';
+            }
+            $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+               ->execute([$instId, 'entrega_practica', $titulo, $cuerpo, $crmUrl, $tareaId]);
+        }
+    } catch (Exception $e) {}
 
     echo json_encode([
         'ok'          => true,

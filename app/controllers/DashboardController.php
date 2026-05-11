@@ -74,6 +74,7 @@ class DashboardController
                 c.titulo,
                 c.imagen,
                 m.fecha AS fecha_matricula,
+                m.estado AS matricula_estado,
                 (
                     SELECT COUNT(l.id)
                     FROM leccion l
@@ -100,7 +101,7 @@ class DashboardController
                 ) AS ultima_leccion_id
             FROM matricula m
             JOIN curso c ON c.id = m.curso_id
-            WHERE m.usuario_id = ?
+            WHERE m.usuario_id = ? AND m.estado IN ('activa','completado')
             ORDER BY m.fecha DESC
         ");
         $stmt->execute([$usuario_id, $usuario_id, $usuario_id]);
@@ -109,7 +110,8 @@ class DashboardController
         foreach ($cursosEnProgreso as &$c) {
             $total  = (int)$c['total_lecciones'];
             $vistos = (int)$c['lecciones_vistas'];
-            $c['progreso'] = $total > 0 ? round(($vistos / $total) * 100) : 0;
+            $c['progreso']   = $total > 0 ? round(($vistos / $total) * 100) : 0;
+            $c['completado'] = ($c['matricula_estado'] ?? '') === 'completado';
 
             if (!$c['ultima_leccion_id']) {
                 $stmt2 = $conexion->prepare("

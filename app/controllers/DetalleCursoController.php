@@ -77,7 +77,11 @@ $unidades = $modeloCurso->getUnidadesConLecciones($id);
 $tareasEntregablesEntregadas = [];
 if ($estaMatriculado && $usuarioId) {
     try {
-        $stmtTE = $db->prepare("SELECT tarea_id FROM entrega_entregable WHERE alumno_id=? AND curso_id=?");
+        $stmtTE = $db->prepare("
+            SELECT ee.tarea_id FROM entrega_entregable ee
+            JOIN tarea_entregable te ON te.id = ee.tarea_id
+            WHERE ee.alumno_id = ? AND te.curso_id = ?
+        ");
         $stmtTE->execute([$usuarioId, $id]);
         $tareasEntregablesEntregadas = array_flip($stmtTE->fetchAll(PDO::FETCH_COLUMN));
     } catch (\Exception $e) {}
@@ -89,18 +93,20 @@ $tareas = $modeloCurso->getTareasByCurso($id);
 
 // Si el usuario está matriculado, enriquecemos las tareas con su estado de entrega
 if ($estaMatriculado && $usuarioId && !empty($tareas)) {
-    $tareaIds = array_column($tareas, 'id');
-    $placeholders = implode(',', array_fill(0, count($tareaIds), '?'));
-    $stmtEnt = $db->prepare("
-        SELECT tarea_id, id AS entrega_id, nota, entregado_en
-        FROM entrega
-        WHERE usuario_id = ? AND tarea_id IN ($placeholders)
-    ");
-    $stmtEnt->execute(array_merge([$usuarioId], $tareaIds));
     $entregas = [];
-    foreach ($stmtEnt->fetchAll(PDO::FETCH_ASSOC) as $e) {
-        $entregas[$e['tarea_id']] = $e;
-    }
+    try {
+        $tareaIds = array_column($tareas, 'id');
+        $placeholders = implode(',', array_fill(0, count($tareaIds), '?'));
+        $stmtEnt = $db->prepare("
+            SELECT tarea_id, id AS entrega_id, nota, entregado_en
+            FROM entrega
+            WHERE usuario_id = ? AND tarea_id IN ($placeholders)
+        ");
+        $stmtEnt->execute(array_merge([$usuarioId], $tareaIds));
+        foreach ($stmtEnt->fetchAll(PDO::FETCH_ASSOC) as $e) {
+            $entregas[$e['tarea_id']] = $e;
+        }
+    } catch (\Exception $e) {}
     foreach ($tareas as &$t) {
         $entrega = $entregas[$t['id']] ?? null;
         $hoy = strtotime(date('Y-m-d'));
