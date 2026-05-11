@@ -1461,23 +1461,38 @@ class CrmController
                     $this->db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
                              ->execute([$alumnoId, $cursoId, $codigo]);
                 } catch (Exception $e) {}
-                // Marcar matrícula como completada
                 try {
                     $this->db->prepare("UPDATE matricula SET estado='completado' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
                              ->execute([$alumnoId, $cursoId]);
                 } catch (Exception $e) {}
-                $notifTitulo = '🎓 ¡Has completado el curso!';
-                $notifCuerpo = "¡Enhorabuena! Has superado el examen práctico de \"$tituloCurso\" con un " . number_format($mediaNotas, 1) . "/10. Tu certificado ya está disponible.";
                 try {
-                    $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
-                             ->execute([$alumnoId, 'crm', $notifTitulo, $notifCuerpo, $urlComplet]);
+                    $chkC = $this->db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_completado' AND ref_id=?");
+                    $chkC->execute([$alumnoId, $cursoId]);
+                    if (!(int)$chkC->fetchColumn()) {
+                        $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                                 ->execute([$alumnoId, 'curso_completado',
+                                     '🎓 ¡Has completado el curso!',
+                                     "¡Enhorabuena! Has superado el examen práctico de \"$tituloCurso\" con un " . number_format($mediaNotas, 1) . "/10. Tu certificado ya está disponible.",
+                                     $urlComplet, $cursoId,
+                                 ]);
+                    }
                 } catch (Exception $e) {}
             } else {
-                $notifTitulo = '📋 Examen práctico calificado';
-                $notifCuerpo = "Tu examen práctico de \"$tituloCurso\" ha sido calificado. Nota media: " . number_format($mediaNotas, 1) . "/10. Consulta el feedback de cada tarea.";
                 try {
-                    $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
-                             ->execute([$alumnoId, 'crm', $notifTitulo, $notifCuerpo, $urlPrac]);
+                    $this->db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
+                             ->execute([$alumnoId, $cursoId]);
+                } catch (Exception $e) {}
+                try {
+                    $chkF = $this->db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_fallido' AND ref_id=?");
+                    $chkF->execute([$alumnoId, $cursoId]);
+                    if (!(int)$chkF->fetchColumn()) {
+                        $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                                 ->execute([$alumnoId, 'curso_fallido',
+                                     '❌ Has perdido el acceso al curso',
+                                     "No has superado el examen práctico de \"$tituloCurso\" (nota media: " . number_format($mediaNotas, 1) . "/10). Deberás volver a matricularte para intentarlo de nuevo.",
+                                     $urlPrac, $cursoId,
+                                 ]);
+                    }
                 } catch (Exception $e) {}
             }
         } else {

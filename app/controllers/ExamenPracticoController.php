@@ -133,18 +133,37 @@ if ($todasEntregadas) {
             // Marcar matrícula como completada
             $db->prepare("UPDATE matricula SET estado='completado' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
                ->execute([$usuarioId, $cursoId]);
+            // Notificar aprobación (solo una vez; el CRM puede haberla enviado ya)
+            try {
+                $chkC = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_completado' AND ref_id=?");
+                $chkC->execute([$usuarioId, $cursoId]);
+                if (!(int)$chkC->fetchColumn()) {
+                    $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                       ->execute([$usuarioId, 'curso_completado',
+                           '🎓 ¡Has completado el curso!',
+                           '¡Enhorabuena! Has superado el examen práctico de "' . ($curso['titulo'] ?? '') . '" con un ' . number_format($notaMedia, 1) . '/10. Tu certificado ya está disponible.',
+                           BASE_URL . '/index.php?url=examen-practico&curso=' . $cursoId,
+                           $cursoId,
+                       ]);
+                }
+            } catch (\Exception $e) {}
         } else {
             // Suspendido en el práctico: revocar matrícula
             $practicoReprobado = true;
             $db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=?")
                ->execute([$usuarioId, $cursoId]);
             try {
-                $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion) VALUES(?,?,?,?,?)")
-                   ->execute([$usuarioId, 'info',
-                       'Has perdido el acceso al curso',
-                       'No has superado el examen práctico (nota media: ' . number_format($notaMedia, 1) . '/10). Has perdido el acceso al curso y al certificado.',
-                       BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId
-                   ]);
+                $chkF = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_fallido' AND ref_id=?");
+                $chkF->execute([$usuarioId, $cursoId]);
+                if (!(int)$chkF->fetchColumn()) {
+                    $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                       ->execute([$usuarioId, 'curso_fallido',
+                           '❌ Has perdido el acceso al curso',
+                           'No has superado el examen práctico de "' . ($curso['titulo'] ?? '') . '" (nota media: ' . number_format($notaMedia, 1) . '/10). Deberás volver a matricularte para intentarlo de nuevo.',
+                           BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId,
+                           $cursoId,
+                       ]);
+                }
             } catch (\Exception $e) {}
         }
     }

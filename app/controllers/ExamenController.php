@@ -272,14 +272,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
     if (!$aprobado && $intentosUsados >= $maxIntentos) {
         $db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=?")
            ->execute([$usuarioId, $cursoId]);
-        // Notificar al usuario
         try {
-            $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
-               ->execute([$usuarioId, 'info',
-                   'Has perdido el acceso al curso',
-                   'Has agotado los 2 intentos del examen sin aprobar. Has perdido el acceso al curso y al certificado.',
-                   BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId
-               ]);
+            $chkF = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_fallido' AND ref_id=?");
+            $chkF->execute([$usuarioId, $cursoId]);
+            if (!(int)$chkF->fetchColumn()) {
+                $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                   ->execute([$usuarioId, 'curso_fallido',
+                       '❌ Has perdido el acceso al curso',
+                       'Has agotado los ' . $maxIntentos . ' intentos del examen teórico de "' . ($curso['titulo'] ?? '') . '" sin superar la nota mínima. Deberás volver a matricularte para intentarlo de nuevo.',
+                       BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId,
+                       $cursoId,
+                   ]);
+            }
         } catch (\Exception $e) {}
     }
 
@@ -294,6 +298,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
             $codigo = strtoupper(substr(md5($usuarioId . '-' . $cursoId . '-' . microtime()), 0, 12));
             $db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
                ->execute([$usuarioId, $cursoId, $codigo]);
+            $db->prepare("UPDATE matricula SET estado='completado' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
+               ->execute([$usuarioId, $cursoId]);
+            try {
+                $chkC = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_completado' AND ref_id=?");
+                $chkC->execute([$usuarioId, $cursoId]);
+                if (!(int)$chkC->fetchColumn()) {
+                    $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                       ->execute([$usuarioId, 'curso_completado',
+                           '🎓 ¡Has completado el curso!',
+                           '¡Enhorabuena! Has superado el examen de "' . ($curso['titulo'] ?? '') . '" con un ' . number_format($nota, 1) . '/10. Tu certificado ya está disponible.',
+                           BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
+                           $cursoId,
+                       ]);
+                }
+            } catch (\Exception $e) {}
         } else {
             // Notificar que el examen práctico ya está disponible
             try {
