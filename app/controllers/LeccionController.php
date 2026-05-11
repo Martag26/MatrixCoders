@@ -65,7 +65,50 @@ if (in_array($planUsuario, $planesAccesoTotal)) {
 // ── AJAX: marcar lección como vista ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'marcar_vista') {
     header('Content-Type: application/json');
-    $modeloCurso->marcarVista($usuarioId, $leccionId);
+    $targetId = isset($_POST['leccion_id']) ? (int)$_POST['leccion_id'] : $leccionId;
+    $modeloCurso->marcarVista($usuarioId, $targetId);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ── AJAX: desmarcar lección como vista ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'desmarcar_vista') {
+    header('Content-Type: application/json');
+    $targetId = isset($_POST['leccion_id']) ? (int)$_POST['leccion_id'] : $leccionId;
+    $db->prepare("DELETE FROM leccion_vista WHERE usuario_id=? AND leccion_id=?")->execute([$usuarioId, $targetId]);
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ── AJAX: marcar todas las lecciones de una unidad ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'marcar_unidad') {
+    header('Content-Type: application/json');
+    $unidadTargetId = (int)($_POST['unidad_id'] ?? 0);
+    if ($unidadTargetId > 0) {
+        $stmtLecs = $db->prepare("SELECT id FROM leccion WHERE unidad_id=?");
+        $stmtLecs->execute([$unidadTargetId]);
+        foreach ($stmtLecs->fetchAll(PDO::FETCH_COLUMN) as $lid) {
+            $modeloCurso->marcarVista($usuarioId, (int)$lid);
+        }
+    }
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
+// ── AJAX: desmarcar todas las lecciones de una unidad ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['accion'] ?? '') === 'desmarcar_unidad') {
+    header('Content-Type: application/json');
+    $unidadTargetId = (int)($_POST['unidad_id'] ?? 0);
+    if ($unidadTargetId > 0) {
+        $stmtLecs = $db->prepare("SELECT id FROM leccion WHERE unidad_id=?");
+        $stmtLecs->execute([$unidadTargetId]);
+        $ids = $stmtLecs->fetchAll(PDO::FETCH_COLUMN);
+        if ($ids) {
+            $ph = implode(',', array_fill(0, count($ids), '?'));
+            $db->prepare("DELETE FROM leccion_vista WHERE usuario_id=? AND leccion_id IN ($ph)")
+               ->execute(array_merge([$usuarioId], $ids));
+        }
+    }
     echo json_encode(['ok' => true]);
     exit;
 }
@@ -141,8 +184,16 @@ $leccionesVistas = $usuarioId
     ? $modeloCurso->getLeccionesVistas($usuarioId, $cursoId)
     : [];
 
-// Todas las unidades + lecciones (para el sidebar)
+// Todas las unidades + lecciones + tareas entregables (para el sidebar)
 $unidades = $modeloCurso->getUnidadesConLecciones($cursoId);
+
+// Tareas entregables ya entregadas por el alumno en este curso
+$tareasEntregablesEntregadas = [];
+try {
+    $stmtTE = $db->prepare("SELECT tarea_id FROM entrega_entregable WHERE alumno_id=? AND curso_id=?");
+    $stmtTE->execute([$usuarioId, $cursoId]);
+    $tareasEntregablesEntregadas = array_flip($stmtTE->fetchAll(PDO::FETCH_COLUMN));
+} catch (\Exception $e) {}
 
 // Lección anterior y siguiente
 $leccionAnterior  = $modeloCurso->getLeccionAnterior($leccionId, $cursoId);
@@ -207,7 +258,7 @@ $resultadoExamenTest = null;
 if ($tieneExamen) {
     try {
         $stmtResTest = $db->prepare("
-            SELECT re.nota, re.aprobado FROM resultado_examen re
+            SELECT re.nota, re.aprobado, re.intentos FROM resultado_examen re
             JOIN examen e ON e.id=re.examen_id
             WHERE re.usuario_id=? AND e.curso_id=? AND (e.tipo='test' OR e.tipo IS NULL)
             ORDER BY re.realizado_en DESC LIMIT 1

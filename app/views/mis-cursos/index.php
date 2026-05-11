@@ -100,9 +100,11 @@ $totalCursos      = count($cursos ?? []);
                         $imgSrc   = matrixcoders_curso_image($curso['imagen'] ?? null, $curso['titulo'] ?? '');
                         $progreso = (int)($curso['progreso'] ?? 0);
                         $estado   = $curso['estado'] ?? 'sin_empezar';
-                        $urlLeccion = $curso['ultima_leccion_id']
-                            ? BASE_URL . '/index.php?url=leccion&id=' . (int)$curso['ultima_leccion_id']
-                            : BASE_URL . '/index.php?url=detallecurso&id=' . (int)$curso['id'];
+                        $urlLeccion = $estado === 'completado'
+                            ? BASE_URL . '/index.php?url=curso-completado&curso=' . (int)$curso['id']
+                            : ($curso['ultima_leccion_id']
+                                ? BASE_URL . '/index.php?url=leccion&id=' . (int)$curso['ultima_leccion_id']
+                                : BASE_URL . '/index.php?url=detallecurso&id=' . (int)$curso['id']);
                     ?>
                     <div class="mis-cursos-card">
                         <a href="<?= htmlspecialchars($urlLeccion) ?>" class="mis-cursos-card-img-wrap">
@@ -169,7 +171,7 @@ $totalCursos      = count($cursos ?? []);
                             <div class="mis-cursos-acciones">
                                 <a href="<?= htmlspecialchars($urlLeccion) ?>" class="mis-cursos-btn-continuar">
                                     <?php if ($estado === 'completado'): ?>
-                                        Repasar
+                                        🏆 Ver certificado
                                     <?php elseif ($estado === 'en_progreso'): ?>
                                         Continuar
                                     <?php else: ?>

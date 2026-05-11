@@ -91,33 +91,16 @@ try {
         $tareasRestantes = (int)$stmtPendTE->fetchColumn();
 
         if ($tareasRestantes > 0) {
-            $progresoExamen     = round(($leccionesVistas / max($totalLecciones, 1)) * 100);
+            $tareasEntregadas   = $totalTareasEnt - $tareasRestantes;
+            $progresoExamen     = round(
+                ($leccionesVistas + $tareasEntregadas) / max($totalLecciones + $totalTareasEnt, 1) * 100
+            );
             $leccionesRestantes = 0;
             require __DIR__ . '/../views/examen/bloqueado.php';
             exit;
         }
     }
 } catch (Exception $e) { /* tabla no existe todavía */ }
-
-// Crear notificación "examen teórico disponible" si aún no existe
-try {
-    $stmtExId = $db->prepare("SELECT id FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
-    $stmtExId->execute([$cursoId]);
-    $exIdForNotif = (int)($stmtExId->fetchColumn() ?: 0);
-    if ($exIdForNotif) {
-        $stmtChkNotif = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='examen_teorico' AND ref_id=?");
-        $stmtChkNotif->execute([$usuarioId, $exIdForNotif]);
-        if (!(int)$stmtChkNotif->fetchColumn()) {
-            $tituloCursoNotif = $curso['titulo'] ?? '';
-            $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
-               ->execute([$usuarioId, 'examen_teorico',
-                   '¡Ya puedes hacer el examen teórico! — ' . $tituloCursoNotif,
-                   'Has completado todas las lecciones y tareas. Accede al examen cuando estés listo.',
-                   BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
-                   $exIdForNotif]);
-        }
-    }
-} catch (Exception $e) {}
 
 // Cargar examen tipo test del curso
 $stmtEx = $db->prepare("SELECT * FROM examen WHERE curso_id=? AND (tipo='test' OR tipo IS NULL OR tipo='') LIMIT 1");
@@ -138,10 +121,29 @@ $stmtC = $db->prepare("SELECT * FROM curso WHERE id=?");
 $stmtC->execute([$cursoId]);
 $curso = $stmtC->fetch(PDO::FETCH_ASSOC);
 
+// Primera lección del curso (para el botón "Volver al curso")
+$stmtFL = $db->prepare("SELECT l.id FROM leccion l JOIN unidad u ON l.unidad_id=u.id WHERE u.curso_id=? ORDER BY u.orden,u.id,l.orden,l.id LIMIT 1");
+$stmtFL->execute([$cursoId]);
+$primeraLeccionId = (int)$stmtFL->fetchColumn();
+
 // Datos del usuario
 $stmtU = $db->prepare("SELECT nombre FROM usuario WHERE id=?");
 $stmtU->execute([$usuarioId]);
 $usuario = $stmtU->fetch(PDO::FETCH_ASSOC);
+
+// Crear notificación "examen teórico disponible" si aún no existe
+try {
+    $stmtChkNotif = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='examen_teorico' AND ref_id=?");
+    $stmtChkNotif->execute([$usuarioId, $examen['id']]);
+    if (!(int)$stmtChkNotif->fetchColumn()) {
+        $db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
+           ->execute([$usuarioId, 'examen_teorico',
+               '¡Ya puedes hacer el examen teórico! — ' . ($curso['titulo'] ?? ''),
+               'Has completado todas las lecciones y tareas. Accede al examen cuando estés listo.',
+               BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
+               $examen['id']]);
+    }
+} catch (Exception $e) {}
 
 // Resultado previo del test
 $stmtR = $db->prepare("SELECT * FROM resultado_examen WHERE usuario_id=? AND examen_id=?");
@@ -153,10 +155,75 @@ $intentosUsados = (int)($resultadoPrevio['intentos'] ?? 0);
 
 // Certificado previo
 $certificado = null;
+$notaCertificado = $resultadoPrevio ? (float)($resultadoPrevio['nota'] ?? 0) : 0.0;
+
+// Estado del examen práctico
+$practicoEntregado  = false;   // alumno entregó al menos una tarea práctica
+$practicoRevisado   = false;   // todas las entregas revisadas (corrección completa)
+$notaMediaPractico  = null;
+if ($tieneExamenPractico) {
+    try {
+        $stmtPE = $db->prepare("
+            SELECT COUNT(*) AS total,
+                   SUM(CASE WHEN revisado=1 THEN 1 ELSE 0 END) AS revisadas,
+                   AVG(CASE WHEN revisado=1 THEN nota ELSE NULL END) AS media
+            FROM entrega_practica
+            WHERE alumno_id=? AND curso_id=?
+        ");
+        $stmtPE->execute([$usuarioId, $cursoId]);
+        $rowPE = $stmtPE->fetch(PDO::FETCH_ASSOC);
+        if ($rowPE && (int)$rowPE['total'] > 0) {
+            $practicoEntregado = true;
+            $practicoRevisado  = (int)$rowPE['revisadas'] >= (int)$rowPE['total'];
+            if ($practicoRevisado && $rowPE['media'] !== null) {
+                $notaMediaPractico = round((float)$rowPE['media'], 1);
+            }
+        }
+    } catch (Exception $e) {}
+}
+
+// Notas de tareas entregables (con corrección)
+$notasEntregables    = [];
+$mediaEntregables    = null;
+try {
+    $stmtNE = $db->prepare("
+        SELECT te.titulo, ee.nota
+        FROM entrega_entregable ee
+        JOIN tarea_entregable te ON te.id = ee.tarea_id
+        WHERE ee.alumno_id = ? AND te.curso_id = ? AND ee.nota IS NOT NULL
+        ORDER BY ee.entregado_en ASC
+    ");
+    $stmtNE->execute([$usuarioId, $cursoId]);
+    $notasEntregables = $stmtNE->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($notasEntregables)) {
+        $mediaEntregables = round(array_sum(array_column($notasEntregables, 'nota')) / count($notasEntregables), 1);
+    }
+} catch (Exception $e) {}
+
+// Nota final ponderada (solo cuando el práctico está corregido)
+// Con entregables:    Test 20% + Entregables 30% + Práctico 50%
+// Sin entregables:    Test 40% + Práctico 60%
+$notaFinalPonderada = null;
+if ($practicoRevisado && $notaMediaPractico !== null) {
+    $notaTest = $resultadoPrevio ? (float)($resultadoPrevio['nota'] ?? 0) : 0.0;
+    if ($mediaEntregables !== null) {
+        $notaFinalPonderada = round($notaTest * 0.20 + $mediaEntregables * 0.30 + $notaMediaPractico * 0.50, 1);
+    } else {
+        $notaFinalPonderada = round($notaTest * 0.40 + $notaMediaPractico * 0.60, 1);
+    }
+}
+
 if ($resultadoPrevio && $resultadoPrevio['aprobado']) {
     $stmtCert = $db->prepare("SELECT * FROM certificado WHERE usuario_id=? AND curso_id=?");
     $stmtCert->execute([$usuarioId, $cursoId]);
     $certificado = $stmtCert->fetch(PDO::FETCH_ASSOC);
+
+    // Nota del certificado = nota ponderada final
+    if ($notaFinalPonderada !== null) {
+        $notaCertificado = $notaFinalPonderada;
+    } elseif ($notaMediaPractico !== null) {
+        $notaCertificado = $notaMediaPractico;
+    }
 }
 
 // ── Procesar envío del examen ────────────────────────────────────
@@ -205,14 +272,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
     if (!$aprobado && $intentosUsados >= $maxIntentos) {
         $db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=?")
            ->execute([$usuarioId, $cursoId]);
-        // Notificar al usuario
         try {
-            $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
-               ->execute([$usuarioId, 'info',
-                   'Has perdido el acceso al curso',
-                   'Has agotado los 2 intentos del examen sin aprobar. Has perdido el acceso al curso y al certificado.',
-                   BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId
-               ]);
+            $chkF = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_fallido' AND ref_id=?");
+            $chkF->execute([$usuarioId, $cursoId]);
+            if (!(int)$chkF->fetchColumn()) {
+                $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                   ->execute([$usuarioId, 'curso_fallido',
+                       '❌ Has perdido el acceso al curso',
+                       'Has agotado los ' . $maxIntentos . ' intentos del examen teórico de "' . ($curso['titulo'] ?? '') . '" sin superar la nota mínima. Deberás volver a matricularte para intentarlo de nuevo.',
+                       BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId,
+                       $cursoId,
+                   ]);
+            }
         } catch (\Exception $e) {}
     }
 
@@ -227,6 +298,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
             $codigo = strtoupper(substr(md5($usuarioId . '-' . $cursoId . '-' . microtime()), 0, 12));
             $db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
                ->execute([$usuarioId, $cursoId, $codigo]);
+            $db->prepare("UPDATE matricula SET estado='completado' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
+               ->execute([$usuarioId, $cursoId]);
+            try {
+                $chkC = $db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_completado' AND ref_id=?");
+                $chkC->execute([$usuarioId, $cursoId]);
+                if (!(int)$chkC->fetchColumn()) {
+                    $db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                       ->execute([$usuarioId, 'curso_completado',
+                           '🎓 ¡Has completado el curso!',
+                           '¡Enhorabuena! Has superado el examen de "' . ($curso['titulo'] ?? '') . '" con un ' . number_format($nota, 1) . '/10. Tu certificado ya está disponible.',
+                           BASE_URL . '/index.php?url=examen&curso=' . $cursoId,
+                           $cursoId,
+                       ]);
+                }
+            } catch (\Exception $e) {}
         } else {
             // Notificar que el examen práctico ya está disponible
             try {
@@ -254,8 +340,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
     exit;
 }
 
-// ── Si ya tiene resultado, mostrar resultado directamente ────────
-if ($resultadoPrevio) {
+// ── Si ya tiene resultado, mostrar resultado solo si no puede repetir ────────
+if ($resultadoPrevio && ($resultadoPrevio['aprobado'] || $intentosUsados >= $maxIntentos)) {
     require __DIR__ . '/../views/examen/resultado.php';
     exit;
 }

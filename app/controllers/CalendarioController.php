@@ -137,6 +137,37 @@ class CalendarioController
             ];
         }
 
+        // Eventos FullCalendar: tareas entregables — deadline = expiración del curso (matrícula + 90 días)
+        try {
+            $stmtTE = $conexion->prepare("
+                SELECT te.id, te.titulo, te.descripcion,
+                       date(m.fecha, '+90 days') AS fecha_vencimiento,
+                       c.titulo AS curso_titulo,
+                       CASE WHEN ee.id IS NOT NULL THEN 1 ELSE 0 END AS entregada
+                FROM tarea_entregable te
+                JOIN unidad u  ON u.id  = te.unidad_id
+                JOIN curso c   ON c.id  = u.curso_id
+                JOIN matricula m ON m.curso_id = c.id AND m.usuario_id = ? AND m.estado = 'activa'
+                LEFT JOIN entrega_entregable ee ON ee.tarea_id = te.id AND ee.alumno_id = ?
+            ");
+            $stmtTE->execute([$usuario_id, $usuario_id]);
+            foreach ($stmtTE->fetchAll(PDO::FETCH_ASSOC) as $te) {
+                $entregada = (bool)(int)$te['entregada'];
+                $fcEvents[] = [
+                    'id'            => 'te_' . $te['id'],
+                    'title'         => ($entregada ? '✓ ' : '📝 ') . $te['titulo'],
+                    'start'         => $te['fecha_vencimiento'],
+                    'color'         => $entregada ? '#6B8F71' : '#f59e0b',
+                    'extendedProps' => [
+                        'tipo'        => 'tarea_entregable',
+                        'curso'       => $te['curso_titulo'] ?? '',
+                        'descripcion' => ($entregada ? 'Entregada · ' : 'Pendiente · Límite: expiración del curso · ') . ($te['descripcion'] ?? ''),
+                        'editable'    => false,
+                    ],
+                ];
+            }
+        } catch (\Exception $e) {}
+
         // Eventos FullCalendar: expiraciones de cursos
         foreach ($cursosEnProgreso as $cp) {
             $fcEvents[] = [

@@ -30,13 +30,16 @@ class CursoController
         $cursoModel = new Curso($db);
         $cursos = $cursoModel->obtenerDestacados();
 
-        // IDs de cursos en los que el usuario ya está matriculado
+        // Matrículas del usuario activo: [curso_id => estado]
         $matriculasUsuario = [];
-        $usuarioId = $_SESSION['usuario_id'] ?? null;
+        $esUsuario = !empty($_SESSION['usuario_id']) && ($_SESSION['usuario_rol'] ?? '') === 'USUARIO';
+        $usuarioId = $esUsuario ? $_SESSION['usuario_id'] : null;
         if ($usuarioId) {
-            $stmtM = $db->prepare('SELECT curso_id FROM matricula WHERE usuario_id = ?');
+            $stmtM = $db->prepare("SELECT curso_id, estado FROM matricula WHERE usuario_id = ? AND estado IN ('activa','completado')");
             $stmtM->execute([(int)$usuarioId]);
-            $matriculasUsuario = $stmtM->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($stmtM->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $matriculasUsuario[$row['curso_id']] = $row['estado'];
+            }
         }
 
         // Cargar la vista que renderiza el listado de cursos

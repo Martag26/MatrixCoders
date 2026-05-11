@@ -1,4 +1,20 @@
 <?php
+// Variables inyectadas por ExamenController / CursoCompletadoController vía require
+$curso                = $curso                ?? [];
+$examen               = $examen               ?? [];
+$usuario              = $usuario              ?? [];
+$resultadoPrevio      = $resultadoPrevio      ?? [];
+$certificado          = $certificado          ?? null;
+$primeraLeccionId     = $primeraLeccionId     ?? 0;
+$tieneExamenPractico  = $tieneExamenPractico  ?? false;
+$notaCertificado      = $notaCertificado      ?? null;
+$practicoEntregado    = $practicoEntregado    ?? false;
+$practicoRevisado     = $practicoRevisado     ?? false;
+$notaMediaPractico    = $notaMediaPractico    ?? null;
+$notasEntregables     = $notasEntregables     ?? [];
+$mediaEntregables     = $mediaEntregables     ?? null;
+$notaFinalPonderada   = $notaFinalPonderada   ?? null;
+
 $nota              = (float)($resultadoPrevio['nota'] ?? 0);
 $aprobado          = (bool)($resultadoPrevio['aprobado'] ?? false);
 $notaMinima        = (float)($examen['nota_minima'] ?? 5.0);
@@ -12,6 +28,9 @@ $fechaEmision = $certificado ? date('d \d\e F \d\e Y', strtotime($certificado['e
 $codigoCert   = $certificado['codigo'] ?? '';
 $notaStr      = number_format($nota, 1);
 $notaDisplay  = str_replace('.', ',', $notaStr);
+// Nota a mostrar en el certificado: si hay práctico aprobado, usar su nota media
+$notaCertStr     = number_format($notaCertificado ?? $nota, 1);
+$notaCertDisplay = str_replace('.', ',', $notaCertStr);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -148,12 +167,6 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
 
         .cert-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
 
-        @media print {
-            body > *:not(.cert-print-wrap) { display: none !important; }
-            .cert-print-wrap { display: block !important; }
-            .certificado { border-color: #d4af37 !important; box-shadow: none !important; }
-            @page { margin: 1.5cm; }
-        }
         .cert-print-wrap { display: contents; }
     </style>
 </head>
@@ -201,45 +214,139 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                     <div style="margin-top:16px;padding:12px 16px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:.85rem;color:#7c2d12;">
                         💡 No has alcanzado la nota mínima. Te queda <strong><?= $intentosRestantes ?> intento<?= $intentosRestantes > 1 ? 's' : '' ?></strong>. Repasa el material del curso antes de volver a intentarlo.
                     </div>
-                    <?php else: ?>
+                    <?php else:
+                        $planActual = $_SESSION['usuario_plan'] ?? 'gratuito';
+                        $esPlanIndividual = !in_array($planActual, ['estudiantes', 'empresas']);
+                        $esCursoDePago = (float)($curso['precio'] ?? 0) > 0;
+                    ?>
                     <div style="margin-top:16px;padding:16px 18px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;font-size:.85rem;color:#7f1d1d">
                         <div style="font-weight:800;font-size:.9rem;margin-bottom:6px">❌ Intentos agotados</div>
-                        Has utilizado los <?= $maxIntentos ?> intentos disponibles sin superar la nota mínima.
-                        Para volver a intentarlo debes <strong>matricularte de nuevo en el curso</strong>. Contacta con un administrador o adquiere el acceso de nuevo.
-                        <div style="margin-top:10px">
-                            <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" style="display:inline-flex;align-items:center;gap:6px;background:#ef4444;color:#fff;border-radius:8px;padding:7px 14px;font-size:.82rem;font-weight:700;text-decoration:none">
-                                Ver ficha del curso →
-                            </a>
-                        </div>
+                        <?php if ($esPlanIndividual && $esCursoDePago): ?>
+                            Lo sentimos, has utilizado los <?= $maxIntentos ?> intentos disponibles sin superar la nota mínima. <strong>Para poder obtener el certificado deberás volver a adquirir el curso.</strong>
+                            <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                                <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" style="display:inline-flex;align-items:center;gap:6px;background:#ef4444;color:#fff;border-radius:8px;padding:8px 16px;font-size:.82rem;font-weight:700;text-decoration:none">
+                                    🛒 Volver a adquirir el curso
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            Has utilizado los <?= $maxIntentos ?> intentos disponibles sin superar la nota mínima.
+                            Para volver a intentarlo debes <strong>matricularte de nuevo en el curso</strong>. Contacta con un administrador para recuperar el acceso.
+                            <div style="margin-top:10px">
+                                <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" style="display:inline-flex;align-items:center;gap:6px;background:#ef4444;color:#fff;border-radius:8px;padding:7px 14px;font-size:.82rem;font-weight:700;text-decoration:none">
+                                    Ver ficha del curso →
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
                 <?php endif; ?>
 
                 <?php if ($aprobado && !empty($tieneExamenPractico)): ?>
-                    <div style="margin-top:16px;padding:14px 18px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;display:flex;align-items:center;gap:12px">
-                        <span style="font-size:1.5rem">🛠️</span>
-                        <div style="flex:1">
-                            <div style="font-size:.9rem;font-weight:700;color:#1e40af;margin-bottom:2px">Siguiente paso: Examen Práctico</div>
-                            <div style="font-size:.8rem;color:#3b82f6">Has superado el test teórico. Ahora debes completar el examen práctico para obtener el certificado.</div>
+                    <?php if ($practicoRevisado && $notaMediaPractico !== null): ?>
+                        <?php /* Práctico corregido: mostrar desglose de notas */ ?>
+                    <?php elseif ($practicoEntregado): ?>
+                        <div style="margin-top:16px;padding:14px 18px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;display:flex;align-items:center;gap:12px">
+                            <span style="font-size:1.5rem">⏳</span>
+                            <div>
+                                <div style="font-size:.9rem;font-weight:700;color:#166534;margin-bottom:2px">Examen práctico entregado</div>
+                                <div style="font-size:.8rem;color:#16a34a">Tu entrega está siendo revisada. Recibirás una notificación cuando esté corregida.</div>
+                            </div>
                         </div>
-                        <a href="<?= BASE_URL ?>/index.php?url=examen-practico&curso=<?= (int)$curso['id'] ?>" class="btn-primary-mc" style="flex:none;background:#2563eb;white-space:nowrap">
-                            Ir al práctico →
-                        </a>
+                    <?php else: ?>
+                        <div style="margin-top:16px;padding:14px 18px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;display:flex;align-items:center;gap:12px">
+                            <span style="font-size:1.5rem">🛠️</span>
+                            <div style="flex:1">
+                                <div style="font-size:.9rem;font-weight:700;color:#1e40af;margin-bottom:2px">Siguiente paso: Examen Práctico</div>
+                                <div style="font-size:.8rem;color:#3b82f6">Has superado el test teórico. Ahora debes completar el examen práctico para obtener el certificado.</div>
+                            </div>
+                            <a href="<?= BASE_URL ?>/index.php?url=examen-practico&curso=<?= (int)$curso['id'] ?>" class="btn-primary-mc" style="flex:none;background:#2563eb;white-space:nowrap">
+                                Ir al práctico →
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <?php
+                $mostrarDesglose = $aprobado && (!empty($notasEntregables) || ($practicoRevisado && $notaMediaPractico !== null));
+                $hayEntregables  = !empty($notasEntregables);
+                // Pesos según si hay entregables calificados
+                $pesoTest  = $hayEntregables ? 20 : 40;
+                $pesoPrac  = $hayEntregables ? 50 : 60;
+                ?>
+                <?php if ($mostrarDesglose): ?>
+                    <div style="margin-top:16px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;">
+                        <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:1rem">📊</span>
+                            <span style="font-size:.85rem;font-weight:800;color:var(--mc-dark);text-transform:uppercase;letter-spacing:.4px;">Desglose de calificaciones</span>
+                        </div>
+                        <div style="padding:12px 16px;display:grid;gap:8px;">
+
+                            <!-- Teórico -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;">
+                                <span style="color:var(--mc-muted);">
+                                    📝 Examen teórico
+                                    <span style="font-size:.72rem;background:#e5e7eb;border-radius:20px;padding:1px 7px;margin-left:4px;"><?= $pesoTest ?>%</span>
+                                </span>
+                                <span style="font-weight:700;color:var(--mc-dark);"><?= $notaDisplay ?> / 10</span>
+                            </div>
+
+                            <!-- Entregables -->
+                            <?php if ($hayEntregables): ?>
+                                <?php foreach ($notasEntregables as $ne): ?>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;padding-left:12px;border-left:2px solid #e5e7eb;">
+                                        <span style="color:var(--mc-muted);">📁 <?= htmlspecialchars($ne['titulo']) ?></span>
+                                        <span style="font-weight:700;color:var(--mc-dark);"><?= number_format((float)$ne['nota'], 1) ?> / 10</span>
+                                    </div>
+                                <?php endforeach; ?>
+                                <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;">
+                                    <span style="color:var(--mc-muted);">
+                                        📁 Media entregables
+                                        <span style="font-size:.72rem;background:#e5e7eb;border-radius:20px;padding:1px 7px;margin-left:4px;">30%</span>
+                                    </span>
+                                    <span style="font-weight:700;color:var(--mc-dark);"><?= str_replace('.', ',', number_format((float)$mediaEntregables, 1)) ?> / 10</span>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Práctico -->
+                            <?php if ($practicoRevisado && $notaMediaPractico !== null): ?>
+                                <div style="display:flex;justify-content:space-between;align-items:center;font-size:.85rem;">
+                                    <span style="color:var(--mc-muted);">
+                                        🛠️ Examen práctico
+                                        <span style="font-size:.72rem;background:#e5e7eb;border-radius:20px;padding:1px 7px;margin-left:4px;"><?= $pesoPrac ?>%</span>
+                                    </span>
+                                    <span style="font-weight:700;color:var(--mc-dark);"><?= str_replace('.', ',', number_format($notaMediaPractico, 1)) ?> / 10</span>
+                                </div>
+                                <hr style="border:none;border-top:1.5px solid #e5e7eb;margin:4px 0;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <span style="font-size:.9rem;font-weight:800;color:var(--mc-dark);">🏆 Nota final</span>
+                                    <span style="font-size:1.15rem;font-weight:800;color:#166534;"><?= str_replace('.', ',', number_format($notaFinalPonderada, 1)) ?> / 10</span>
+                                </div>
+                                <p style="font-size:.72rem;color:var(--mc-muted);margin:0;">
+                                    <?php if ($hayEntregables): ?>
+                                        Test (20%) + Entregables (30%) + Práctico (50%)
+                                    <?php else: ?>
+                                        Test (40%) + Práctico (60%) — sin entregables calificados
+                                    <?php endif; ?>
+                                </p>
+                            <?php endif; ?>
+
+                        </div>
                     </div>
                 <?php endif; ?>
 
                 <div class="res-actions">
-                    <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= (int)$curso['id'] ?>" class="btn-outline-mc">
+                    <?php
+                    $volverUrl = !empty($primeraLeccionId)
+                        ? BASE_URL . '/index.php?url=leccion&id=' . $primeraLeccionId
+                        : BASE_URL . '/index.php?url=detallecurso&id=' . (int)$curso['id'];
+                    ?>
+                    <a href="<?= $volverUrl ?>" class="btn-outline-mc">
                         ← Volver al curso
                     </a>
                     <?php if (!$aprobado && $intentosRestantes > 0): ?>
                         <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= (int)$curso['id'] ?>" class="btn-primary-mc">
                             Repetir examen →
                         </a>
-                    <?php elseif (empty($tieneExamenPractico)): ?>
-                        <button onclick="imprimirCertificado()" class="btn-primary-mc">
-                            🖨️ Imprimir certificado
-                        </button>
                     <?php endif; ?>
                 </div>
             </div>
@@ -270,7 +377,7 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
                         <p class="cert-curso"><?= $tituloCurso ?></p>
 
                         <div class="cert-nota-row">
-                            <span class="cert-nota-pill">Calificación: <?= $notaDisplay ?> / 10</span>
+                            <span class="cert-nota-pill">Calificación: <?= $notaCertDisplay ?> / 10</span>
                         </div>
 
                         <hr class="cert-rule">
@@ -295,8 +402,8 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
             </div>
 
             <div class="cert-actions">
-                <button onclick="imprimirCertificado()" class="btn-primary-mc">
-                    🖨️ Guardar como PDF
+                <button id="btn-pdf" onclick="descargarPDF()" class="btn-primary-mc">
+                    ⬇️ Descargar PDF
                 </button>
                 <a href="<?= BASE_URL ?>/index.php?url=dashboard" class="btn-outline-mc">
                     Ir al Dashboard →
@@ -311,19 +418,115 @@ $notaDisplay  = str_replace('.', ',', $notaStr);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function imprimirCertificado() {
-            window.print();
+        function descargarPDF() {
+            const nombre   = <?= json_encode($nombreUsuario) ?>;
+            const curso    = <?= json_encode($tituloCurso) ?>;
+            const nota     = <?= json_encode($notaCertDisplay) ?>;
+            const fecha    = <?= json_encode($fechaEmision) ?>;
+            const codigo   = <?= json_encode($codigoCert) ?>;
+
+            const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Certificado MatrixCoders</title>
+<style>
+@page { size: A4 landscape; margin: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 297mm;
+  height: 210mm;
+  background: #fff;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+body { padding: 10mm; display: flex; }
+.cert {
+  flex: 1;
+  border: 2.5px solid #d4af37;
+  border-radius: 5px;
+  position: relative;
+  padding: 10mm 20mm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+}
+.cc { position: absolute; width: 55px; height: 55px; border: 1.5px solid #d4af37; opacity: .3; }
+.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+.cert-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.logo { font-family: Arial, sans-serif; font-size: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 5px; color: #6B8F71; margin-bottom: 6px; }
+.rule { border: none; border-top: 1px solid #d4af37; width: 200px; margin: 8px 0; }
+.pre { font-family: Arial, sans-serif; font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 2.5px; margin: 11px 0 4px; }
+.se-certifica { font-family: Arial, sans-serif; font-size: 15px; color: #6b7280; margin: 6px 0 3px; }
+.nombre { font-size: 54px; font-weight: 700; color: #1B2336; margin: 6px 0; line-height: 1.15; }
+.desc { font-family: Arial, sans-serif; font-size: 15px; color: #6b7280; margin: 10px 0 3px; }
+.curso { font-size: 22px; font-weight: 700; color: #0f172a; margin: 3px 0 12px; }
+.nota-pill { display: inline-block; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 20px; padding: 5px 26px; font-family: Arial, sans-serif; font-size: 15px; font-weight: 700; color: #166534; }
+.footer { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; flex-shrink: 0; }
+.firma { text-align: center; }
+.firma-line { border-top: 1px solid #1B2336; width: 130px; margin: 0 auto 4px; }
+.firma p { font-family: Arial, sans-serif; font-size: 11px; color: #6b7280; margin: 0; }
+.centro { text-align: center; }
+.star { font-size: 28px; color: #d4af37; line-height: 1; }
+.centro p { font-family: Arial, sans-serif; font-size: 11px; color: #6b7280; margin-top: 3px; }
+.codigo { text-align: center; }
+.codigo p { font-family: Arial, sans-serif; font-size: 10px; color: #6b7280; letter-spacing: .5px; }
+.codigo .code { font-size: 12px; font-weight: 700; color: #1B2336; letter-spacing: 2px; font-family: 'Courier New', monospace; }
+</style>
+</head>
+<body>
+<div class="cert">
+  <div class="cc tl"></div><div class="cc tr"></div>
+  <div class="cc bl"></div><div class="cc br"></div>
+
+  <div class="cert-body">
+    <p class="logo">MatrixCoders</p>
+    <hr class="rule">
+    <p class="pre">Certificado de finalización</p>
+    <p class="se-certifica">Se certifica que</p>
+    <p class="nombre">${nombre}</p>
+    <p class="desc">ha completado satisfactoriamente el curso</p>
+    <p class="curso">${curso}</p>
+    <span class="nota-pill">Calificación: ${nota}&thinsp;/&thinsp;10</span>
+    <hr class="rule" style="margin-top:10px;">
+  </div>
+
+  <div class="footer">
+    <div class="firma">
+      <div class="firma-line"></div>
+      <p>Dirección académica</p>
+      <p>MatrixCoders</p>
+    </div>
+    <div class="centro">
+      <div class="star">★</div>
+      <p>${fecha}</p>
+    </div>
+    <div class="codigo">
+      <p>Código de verificación</p>
+      <p class="code">${codigo}</p>
+    </div>
+  </div>
+</div>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});<\/script>
+</body>
+</html>`;
+
+            const win = window.open('', '_blank', 'width=960,height=680');
+            if (!win) { alert('Permite las ventanas emergentes para descargar el certificado.'); return; }
+            win.document.write(html);
+            win.document.close();
         }
     </script>
-    <style>
-        @media print {
-            header, footer, .res-card, .cert-actions, .cert-section > h3 { display: none !important; }
-            body { background: #fff !important; }
-            .res-wrap { padding: 0 !important; max-width: 100% !important; }
-            .cert-print-wrap, #certArea, .certificado { display: block !important; }
-            .certificado { border: 2px solid #d4af37 !important; }
-        }
-    </style>
 </body>
 
 </html>

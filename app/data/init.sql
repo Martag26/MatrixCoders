@@ -79,7 +79,9 @@ CREATE TABLE IF NOT EXISTS curso (
     nivel          TEXT    DEFAULT NULL,
     categoria      TEXT    DEFAULT NULL,
     duracion_min   INTEGER DEFAULT NULL,
-    estudiantes    INTEGER DEFAULT NULL
+    estudiantes    INTEGER DEFAULT NULL,
+    instructor_id  INTEGER DEFAULT NULL,
+    activo         INTEGER NOT NULL DEFAULT 1
 );
 
 -- -----------------------------------------------------------------------------
@@ -217,7 +219,7 @@ CREATE TABLE IF NOT EXISTS pago (
 
 INSERT INTO usuario (id, nombre, email, contraseña, creado_en, rol) VALUES
 (16, 'marta_admin',    'marta_admin@g.educaand.es',    '$2y$10$dJWtStpQeNL03tkMv5vFyuWlfLhdW2XBcqdPHkkaCIxQBUdVEaa16', '2026-02-24 08:00:50', 'ADMINISTRADOR'),
-(17, 'isidoro_editor', 'isidoro_editor@g.educaand.es', '$2y$10$dJWtStpQeNL03tkMv5vFyuWlfLhdW2XBcqdPHkkaCIxQBUdVEaa16', '2026-02-24 08:00:50', 'EDITOR'),
+(17, 'isidoro_editor', 'isidoro_editor@g.educaand.es', '$2y$10$dJWtStpQeNL03tkMv5vFyuWlfLhdW2XBcqdPHkkaCIxQBUdVEaa16', '2026-02-24 08:00:50', 'MODERADOR'),
 (18, 'usuario',        'usuario@usuario.es',            '$2y$10$6kT86LNkfuL/QmCAUtoh5.nKYdQU9XgjtHR24OAZfD9WhEeBuacIa', '2026-02-24 08:00:50', 'USUARIO'),
 (19, 'usuario2',       'usuario2@usuario2.es',          '$2y$10$LgSFVonOoulaVNRKHR.37OlYyeyEzdrkl2BIjqi05JlkBYak4YqKu', '2026-02-24 08:11:30', 'USUARIO'),
 (20, 'usuario3',       'usuario3@usuario3.es',          '$2y$10$Qc6p1h1Dz2vo4aHURADw2uKGnDR1TP8PfHSqix22UcwAtSNAzeB1.', '2026-02-24 08:11:30', 'USUARIO'),

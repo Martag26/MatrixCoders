@@ -1,14 +1,20 @@
 <?php /* Módulo de Cursos */
-$cursosStats = $cursosStats ?? ['total'=>0,'activos'=>0,'inactivos'=>0,'gratis'=>0,'total_matriculas'=>0];
-$perPage     = $perPage ?? 12;
-$estado      = $estado ?? '';
-$sort        = $sort ?? 'reciente';
+$cursosStats   = $cursosStats ?? ['total'=>0,'activos'=>0,'inactivos'=>0,'gratis'=>0,'total_matriculas'=>0,'alumnos_total'=>0,'pendientes_revision'=>0,'media_nota'=>0];
+$perPage       = $perPage ?? 12;
+$estado        = $estado ?? '';
+$sort          = $sort ?? 'reciente';
+$soloInstructor = ($esInstructor ?? false) && !($esAdmin ?? false);
 ?>
 
 <div class="crm-page-header">
   <div>
-    <h1>Gestión de Cursos</h1>
-    <p>Administra el catálogo, activa/desactiva y asigna instructores. Total: <strong><?= number_format($totalRows) ?></strong></p>
+    <?php if ($soloInstructor): ?>
+      <h1>Mis Cursos</h1>
+      <p>Gestiona el contenido de tus cursos. Total: <strong><?= number_format($totalRows) ?></strong></p>
+    <?php else: ?>
+      <h1>Gestión de Cursos</h1>
+      <p>Administra el catálogo, activa/desactiva y asigna instructores. Total: <strong><?= number_format($totalRows) ?></strong></p>
+    <?php endif; ?>
   </div>
   <div class="crm-page-actions" style="gap:6px">
     <!-- View toggle -->
@@ -28,17 +34,27 @@ $sort        = $sort ?? 'reciente';
 </div>
 
 <!-- Stats strip -->
-<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px">
-  <?php
+<?php if ($soloInstructor):
+  $cCols = 4;
+  $cStrips = [
+    ['label'=>'Mis cursos',             'value'=>(int)($cursosStats['total'] ?? 0),                'color'=>'var(--crm-primary)', 'icon'=>'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
+    ['label'=>'Alumnos matriculados',   'value'=>(int)($cursosStats['alumnos_total'] ?? 0),        'color'=>'var(--crm-info)',    'icon'=>'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8z'],
+    ['label'=>'Entregas por revisar',   'value'=>(int)($cursosStats['pendientes_revision'] ?? 0),  'color'=>'var(--crm-warning)', 'icon'=>'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+    ['label'=>'Media de notas',         'value'=>round((float)($cursosStats['media_nota'] ?? 0),1),'color'=>'var(--crm-success)', 'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
+  ];
+else:
+  $cCols = 5;
   $avgAlumnos = $cursosStats['total'] > 0 ? round($cursosStats['total_matriculas'] / $cursosStats['total'], 1) : 0;
   $cStrips = [
-    ['label'=>'Total cursos',      'value'=>$cursosStats['total'],           'color'=>'var(--crm-primary)', 'icon'=>'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
-    ['label'=>'Activos',           'value'=>$cursosStats['activos'],         'color'=>'var(--crm-success)', 'icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-    ['label'=>'Inactivos',         'value'=>$cursosStats['inactivos'],       'color'=>'var(--crm-danger)',  'icon'=>'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'],
-    ['label'=>'Gratuitos',         'value'=>$cursosStats['gratis'],          'color'=>'var(--crm-info)',    'icon'=>'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z'],
-    ['label'=>'Media alumnos/curso','value'=>$avgAlumnos,                    'color'=>'var(--crm-warning)', 'icon'=>'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8z'],
+    ['label'=>'Total cursos',       'value'=>$cursosStats['total'],     'color'=>'var(--crm-primary)', 'icon'=>'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
+    ['label'=>'Activos',            'value'=>$cursosStats['activos'],   'color'=>'var(--crm-success)', 'icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+    ['label'=>'Inactivos',          'value'=>$cursosStats['inactivos'], 'color'=>'var(--crm-danger)',  'icon'=>'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'],
+    ['label'=>'Gratuitos',          'value'=>$cursosStats['gratis'],    'color'=>'var(--crm-info)',    'icon'=>'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z'],
+    ['label'=>'Media alumnos/curso','value'=>$avgAlumnos,               'color'=>'var(--crm-warning)', 'icon'=>'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8z'],
   ];
-  foreach ($cStrips as $s): ?>
+endif; ?>
+<div style="display:grid;grid-template-columns:repeat(<?= $cCols ?>,1fr);gap:10px;margin-bottom:20px">
+  <?php foreach ($cStrips as $s): ?>
   <div class="crm-card" style="padding:14px 16px;display:flex;align-items:center;gap:12px">
     <div style="width:34px;height:34px;border-radius:9px;background:<?= $s['color'] ?>18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
       <svg width="16" height="16" fill="none" stroke="<?= $s['color'] ?>" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="<?= $s['icon'] ?>"/></svg>
@@ -76,19 +92,23 @@ $sort        = $sort ?? 'reciente';
       <?php endforeach; ?>
     </select>
     <?php endif; ?>
+    <?php if (!$soloInstructor): ?>
     <select name="estado" class="crm-filter-select" onchange="this.form.submit()" title="Filtrar por estado">
       <option value="" <?= $estado===''?'selected':'' ?>>Todos los estados</option>
       <option value="activo" <?= $estado==='activo'?'selected':'' ?>>Solo activos</option>
       <option value="inactivo" <?= $estado==='inactivo'?'selected':'' ?>>Solo inactivos</option>
     </select>
+    <?php endif; ?>
     <select name="sort" class="crm-filter-select" onchange="this.form.submit()" title="Ordenar por">
-      <option value="reciente"    <?= $sort==='reciente'   ?'selected':'' ?>>Más recientes</option>
-      <option value="antiguo"     <?= $sort==='antiguo'    ?'selected':'' ?>>Más antiguos</option>
-      <option value="nombre_az"   <?= $sort==='nombre_az'  ?'selected':'' ?>>Nombre A → Z</option>
-      <option value="nombre_za"   <?= $sort==='nombre_za'  ?'selected':'' ?>>Nombre Z → A</option>
-      <option value="alumnos"     <?= $sort==='alumnos'    ?'selected':'' ?>>Más alumnos</option>
+      <option value="reciente"  <?= $sort==='reciente' ?'selected':'' ?>>Más recientes</option>
+      <option value="antiguo"   <?= $sort==='antiguo'  ?'selected':'' ?>>Más antiguos</option>
+      <option value="nombre_az" <?= $sort==='nombre_az'?'selected':'' ?>>Nombre A → Z</option>
+      <option value="nombre_za" <?= $sort==='nombre_za'?'selected':'' ?>>Nombre Z → A</option>
+      <option value="alumnos"   <?= $sort==='alumnos'  ?'selected':'' ?>>Más alumnos</option>
+      <?php if (!$soloInstructor): ?>
       <option value="precio_asc"  <?= $sort==='precio_asc' ?'selected':'' ?>>Precio menor</option>
       <option value="precio_desc" <?= $sort==='precio_desc'?'selected':'' ?>>Precio mayor</option>
+      <?php endif; ?>
     </select>
     <select name="per" class="crm-filter-select" onchange="this.form.submit()" title="Cursos por página">
       <?php foreach ([10,15,20,25,30] as $n): ?>
@@ -144,13 +164,15 @@ $sort        = $sort ?? 'reciente';
         <?php endif; ?>
       </div>
 
-      <!-- Toggle -->
+      <!-- Toggle (admin/moderador only) -->
+      <?php if (!$soloInstructor): ?>
       <div class="crm-course-toggle">
         <label class="crm-toggle-switch" title="<?= $activo?'Desactivar':'Activar' ?> curso">
           <input type="checkbox" <?= $activo?'checked':'' ?> onchange="toggleCurso(<?= $c['id'] ?>, this)">
           <span class="crm-toggle-slider"></span>
         </label>
       </div>
+      <?php endif; ?>
     </div>
 
     <div class="crm-course-body">
@@ -165,7 +187,8 @@ $sort        = $sort ?? 'reciente';
       <h3 class="crm-course-title"><?= htmlspecialchars($c['titulo']) ?></h3>
 
       <!-- Enrollment bar -->
-      <?php $maxAlumnos = max(1, $cursosStats['total_matriculas'] / max(1,$cursosStats['total'])*3);
+      <?php $totalMatriculas = $cursosStats['total_matriculas'] ?? $cursosStats['alumnos_total'] ?? 0;
+            $maxAlumnos = max(1, $totalMatriculas / max(1,$cursosStats['total'])*3);
             $barPct = min(100, round(($c['alumnos']/max(1,$maxAlumnos))*100)); ?>
       <div style="margin:8px 0">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--crm-muted);margin-bottom:3px">
@@ -179,6 +202,7 @@ $sort        = $sort ?? 'reciente';
         </div>
       </div>
 
+      <?php if (!$soloInstructor): ?>
       <div class="crm-course-price">
         <?php if ($descuento > 0): ?>
           <span class="original"><?= number_format($c['precio'],2) ?>€</span>
@@ -189,16 +213,24 @@ $sort        = $sort ?? 'reciente';
               : '<span style="color:var(--crm-success);font-weight:700">Gratis</span>' ?>
         <?php endif; ?>
       </div>
+      <?php endif; ?>
     </div>
 
     <div class="crm-course-actions">
       <a href="<?= $crmBase ?>editor&id=<?= $c['id'] ?>" class="crm-btn crm-btn-secondary crm-btn-sm" style="flex:1;justify-content:center">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        Editar
+        <?php if ($soloInstructor): ?>
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+          Entrar
+        <?php else: ?>
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          Editar
+        <?php endif; ?>
       </a>
+      <?php if (!$soloInstructor): ?>
       <button class="crm-btn-icon" title="Asignar instructor" onclick='openModalInstructor(<?= $c['id'] ?>, <?= (int)($c['instructor_id']??0) ?>)'>
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
       </button>
+      <?php endif; ?>
       <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $c['id'] ?>" target="_blank" class="crm-btn-icon" title="Ver en sitio">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
       </a>
@@ -215,10 +247,10 @@ $sort        = $sort ?? 'reciente';
         <th style="width:40px">#</th>
         <th>Curso</th>
         <th>Categoría / Nivel</th>
-        <th>Instructor</th>
+        <?php if (!$soloInstructor): ?><th>Instructor</th><?php endif; ?>
         <th style="text-align:center">Alumnos</th>
-        <th style="text-align:center">Precio</th>
-        <th style="text-align:center">Estado</th>
+        <?php if (!$soloInstructor): ?><th style="text-align:center">Precio</th><?php endif; ?>
+        <?php if (!$soloInstructor): ?><th style="text-align:center">Estado</th><?php endif; ?>
         <th style="text-align:right">Acciones</th>
       </tr>
     </thead>
@@ -254,10 +286,13 @@ $sort        = $sort ?? 'reciente';
             <?php endif; ?>
           </div>
         </td>
+        <?php if (!$soloInstructor): ?>
         <td style="font-size:12.5px;color:var(--crm-muted)"><?= htmlspecialchars($c['instructor_nombre'] ?? '—') ?></td>
+        <?php endif; ?>
         <td style="text-align:center">
           <span style="font-weight:700;font-size:14px"><?= $c['alumnos'] ?? 0 ?></span>
         </td>
+        <?php if (!$soloInstructor): ?>
         <td style="text-align:center">
           <?php if ($descuento > 0): ?>
             <span style="text-decoration:line-through;color:var(--crm-muted);font-size:11px"><?= number_format($c['precio'],2) ?>€</span><br>
@@ -274,14 +309,21 @@ $sort        = $sort ?? 'reciente';
             <span class="crm-toggle-slider"></span>
           </label>
         </td>
+        <?php endif; ?>
         <td style="text-align:right">
           <div style="display:flex;gap:5px;justify-content:flex-end">
-            <a href="<?= $crmBase ?>editor&id=<?= $c['id'] ?>" class="crm-btn-icon" title="Editar">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            <a href="<?= $crmBase ?>editor&id=<?= $c['id'] ?>" class="crm-btn-icon" title="<?= $soloInstructor ? 'Entrar' : 'Editar' ?>">
+              <?php if ($soloInstructor): ?>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+              <?php else: ?>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              <?php endif; ?>
             </a>
+            <?php if (!$soloInstructor): ?>
             <button class="crm-btn-icon" title="Instructor" onclick='openModalInstructor(<?= $c['id'] ?>, <?= (int)($c['instructor_id']??0) ?>)'>
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             </button>
+            <?php endif; ?>
             <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $c['id'] ?>" target="_blank" class="crm-btn-icon" title="Ver">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </a>

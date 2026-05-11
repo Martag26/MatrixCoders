@@ -1,5 +1,4 @@
 <?php
-// Variables passed from ExamenPracticoController via require — add defaults for IDE analysis
 $tareas             = $tareas             ?? [];
 $entregasExistentes = $entregasExistentes ?? [];
 $totalEntregadas    = $totalEntregadas    ?? 0;
@@ -8,6 +7,10 @@ $cursoId            = $cursoId            ?? 0;
 $usuarioId          = $usuarioId          ?? 0;
 $examenPractico     = $examenPractico     ?? null;
 $plazoSuperado      = $plazoSuperado      ?? false;
+$db                 = $db                 ?? null;
+$unidades           = $unidades           ?? [];
+$leccionesVistasPrac= $leccionesVistasPrac?? [];
+$primeraLeccionId   = $primeraLeccionId   ?? 0;
 
 $tituloCurso  = htmlspecialchars($curso['titulo']  ?? 'Curso');
 $tituloPrac   = htmlspecialchars($examenPractico['titulo'] ?? 'Examen Práctico');
@@ -25,25 +28,39 @@ $tiposIcono   = ['texto'=>'✏️','codigo'=>'💻','diseno'=>'🎨','proyecto'=
 <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
 <style>
-:root{--mc-green:#6B8F71;--mc-green-d:#4a6b50;--mc-dark:#1B2336;--mc-navy:#0f172a;--mc-border:#e5e7eb;--mc-soft:#f8fafc;--mc-muted:#6b7280;}
+:root{--mc-green:#6B8F71;--mc-green-d:#4a6b50;--mc-dark:#1B2336;--mc-navy:#0f172a;--mc-border:#e5e7eb;--mc-soft:#f8fafc;--mc-muted:#6b7280;--mc-text:#374151;}
 *,*::before,*::after{box-sizing:border-box;}
 body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);margin:0;}
-.prac-wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px;}
+
+/* ── LAYOUT ── */
+.prac-wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;max-width:1280px;margin:0 auto;background:#fff;align-items:start;}
+@media(max-width:900px){.prac-wrap{grid-template-columns:1fr;}.temario-sidebar{display:none;}}
+.prac-main{padding:28px 28px 60px;}
+
+/* ── HERO ── */
 .prac-hero{background:linear-gradient(135deg,#1e3a5f 0%,#0f172a 100%);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:28px;}
 .prac-hero .badge-tipo{display:inline-block;background:rgba(37,99,235,.3);color:#93c5fd;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 10px;border-radius:20px;margin-bottom:10px;}
 .prac-hero h1{font-size:1.35rem;font-weight:800;margin:0 0 8px;}
 .prac-hero p{font-size:.88rem;color:#94a3b8;margin:0;line-height:1.6;}
 .prac-meta{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;}
 .prac-meta span{font-size:.8rem;color:#cbd5e1;}
-.progress-sticky{position:sticky;top:66px;z-index:10;background:#fff;border-bottom:1px solid var(--mc-border);padding:8px 20px;display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--mc-muted);}
-.progress-bar-wrap{flex:1;height:5px;background:var(--mc-border);border-radius:99px;overflow:hidden;}
-.progress-bar-fill{height:100%;background:#2563eb;border-radius:99px;transition:width .3s;}
+
+/* ── CARDS ── */
 .tarea-card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:24px;margin-bottom:20px;position:relative;transition:box-shadow .2s;}
 .tarea-card.entregada{border-left:4px solid var(--mc-green);}
 .tarea-card.pendiente{border-left:4px solid #e5e7eb;}
 .tarea-num{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#2563eb;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
 .tarea-titulo{font-size:1rem;font-weight:700;color:var(--mc-dark);margin-bottom:10px;}
-.tarea-enunciado{font-size:.9rem;color:#4b5563;line-height:1.7;margin-bottom:14px;padding:10px 14px;background:#f8fafc;border-radius:8px;border-left:3px solid #2563eb;}
+
+/* ── ENUNCIADO PLEGABLE ── */
+.enunciado-wrap{margin-bottom:14px;}
+.enunciado-preview{font-size:.9rem;color:#4b5563;line-height:1.7;padding:10px 14px;background:#f8fafc;border-radius:8px;border-left:3px solid #2563eb;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.enunciado-full{font-size:.9rem;color:#4b5563;line-height:1.7;padding:10px 14px;background:#f8fafc;border-radius:8px;border-left:3px solid #2563eb;display:none;white-space:pre-wrap;}
+.enunciado-wrap.expandido .enunciado-preview{display:none;}
+.enunciado-wrap.expandido .enunciado-full{display:block;}
+.btn-mostrar-mas{font-size:.8rem;color:#2563eb;font-weight:700;background:none;border:none;cursor:pointer;padding:4px 0 0;font-family:'Saira',sans-serif;}
+.btn-mostrar-mas:hover{text-decoration:underline;}
+
 .tarea-criterios{font-size:.82rem;color:var(--mc-muted);background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;margin-bottom:14px;}
 .entrega-form textarea{width:100%;min-height:140px;border:1.5px solid var(--mc-border);border-radius:10px;padding:.85rem;font-family:'Saira',sans-serif;font-size:.9rem;resize:vertical;color:var(--mc-dark);line-height:1.6;transition:border-color .15s;}
 .entrega-form textarea:focus{outline:none;border-color:#2563eb;}
@@ -63,6 +80,31 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
 .completed-banner p{font-size:.9rem;opacity:.85;margin:0 0 16px;}
 .btn-back{display:inline-flex;align-items:center;gap:.5rem;background:#fff;color:var(--mc-dark);border:1.5px solid var(--mc-border);border-radius:10px;padding:.55rem 1.1rem;font-size:.88rem;font-weight:700;text-decoration:none;font-family:'Saira',sans-serif;transition:all .15s;}
 .btn-back:hover{border-color:var(--mc-green);color:var(--mc-green);}
+
+/* ── SIDEBAR ── */
+.temario-sidebar{background:var(--mc-soft);border-left:1px solid var(--mc-border);overflow-y:auto;overflow-x:hidden;min-width:0;position:sticky;top:66px;height:calc(100vh - 66px);}
+.temario-head{padding:.9rem 1.1rem;background:var(--mc-navy);color:#fff;font-weight:700;font-size:.85rem;position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;}
+.temario-head small{color:#94a3b8;font-weight:400;font-size:.75rem;}
+.volver-curso{display:flex;align-items:center;gap:.4rem;padding:.65rem 1rem;font-size:.8rem;font-weight:700;color:var(--mc-muted);text-decoration:none;border-bottom:1px solid var(--mc-border);transition:background .15s;}
+.volver-curso:hover{background:#e2e8f0;color:var(--mc-dark);}
+.t-unidad-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;font-size:.75rem;font-weight:700;color:var(--mc-muted);text-transform:uppercase;letter-spacing:.5px;background:#eef2f7;border:none;border-top:1px solid var(--mc-border);cursor:pointer;text-align:left;transition:background .15s;font-family:'Saira',sans-serif;}
+.t-unidad-btn:hover{background:#e2e8f0;}
+.u-meta{display:inline-flex;align-items:center;gap:.45rem;}
+.u-progress{display:inline-flex;align-items:center;justify-content:center;min-width:38px;padding:2px 7px;border-radius:999px;background:rgba(107,143,113,.12);color:var(--mc-green-d);font-size:.68rem;font-weight:700;}
+.u-chevron{font-size:.7rem;transition:transform .2s;flex-shrink:0;}
+.t-unidad-btn.collapsed .u-chevron{transform:rotate(-90deg);}
+.t-lecciones-list{overflow:hidden;transition:max-height .25s ease;}
+.t-lecciones-list.cerrado{max-height:0!important;}
+.t-leccion-row{display:flex;align-items:center;border-top:1px solid var(--mc-border);}
+.t-leccion{display:flex;align-items:flex-start;gap:.55rem;padding:.6rem 1rem .6rem 1rem;text-decoration:none;color:var(--mc-text);font-size:.83rem;transition:background .15s;flex:1;min-width:0;}
+.t-leccion:hover{background:#e4ebe5;color:var(--mc-dark);}
+.t-leccion.vista{color:#94a3b8;}
+.t-leccion span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sb-exam-section{border-top:1px solid var(--mc-border);padding:.85rem 1.1rem;background:var(--mc-soft);}
+.sb-exam-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mc-muted);margin-bottom:.6rem;}
+.sb-exam-link{display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:9px;text-decoration:none;font-size:.83rem;font-weight:600;margin-bottom:.4rem;}
+
+/* ── TOAST ── */
 .mc-toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
 .mc-toast{background:#1e293b;color:#fff;border-radius:10px;padding:12px 18px;font-size:.88rem;font-weight:600;font-family:'Saira',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:340px;}
 .mc-toast.show{opacity:1;transform:translateY(0);}
@@ -73,18 +115,12 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
 <?php require __DIR__ . '/../layout/header.php'; ?>
 <div class="mc-toast-wrap" id="mcToastWrap"></div>
 
-<!-- Sticky progress -->
-<div class="progress-sticky">
-  <span id="progressLabel"><?= $totalEntregadas ?> / <?= $nTareas ?> entregadas</span>
-  <div class="progress-bar-wrap">
-    <div class="progress-bar-fill" id="progressFill" style="width:<?= $nTareas > 0 ? round(($totalEntregadas/$nTareas)*100) : 0 ?>%"></div>
-  </div>
-</div>
-
 <div class="prac-wrap">
 
+  <!-- ── COLUMNA PRINCIPAL ── -->
+  <div class="prac-main">
+
   <?php
-  // Check review and certificate status
   $todasRevisadas = false;
   $aprobadoPrac   = false;
   $mediaNotas     = null;
@@ -104,6 +140,9 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
           } catch (Exception $e) {}
       }
   }
+  $volverUrl = $primeraLeccionId
+      ? BASE_URL . '/index.php?url=leccion&id=' . $primeraLeccionId
+      : BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId;
   ?>
 
   <?php if ($todasRevisadas && $aprobadoPrac && $certificadoPrac): ?>
@@ -112,25 +151,36 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
     <h2>¡Examen práctico superado!</h2>
     <p>Nota media: <strong><?= number_format($mediaNotas, 1) ?>/10</strong>. ¡Enhorabuena! Tu certificado está listo.</p>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">
-      <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>" class="btn-back" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">
-        Ver certificado →
-      </a>
-      <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" class="btn-back">← Volver al curso</a>
+      <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>" class="btn-back" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">Ver certificado →</a>
+      <a href="<?= $volverUrl ?>" class="btn-back">← Volver al curso</a>
     </div>
   </div>
-  <?php elseif ($todasRevisadas && !$aprobadoPrac): ?>
+  <?php elseif ($todasRevisadas && !$aprobadoPrac):
+    $planActualPrac   = $_SESSION['usuario_plan'] ?? 'gratuito';
+    $esPlanIndivPrac  = !in_array($planActualPrac, ['estudiantes', 'empresas']);
+    $esCursoPagoPrac  = (float)($curso['precio'] ?? 0) > 0;
+  ?>
   <div class="completed-banner" style="background:linear-gradient(135deg,#7f1d1d,#991b1b)">
     <div style="font-size:2.5rem;margin-bottom:10px">📋</div>
-    <h2>Examen práctico revisado</h2>
-    <p>Nota media: <strong><?= $mediaNotas !== null ? number_format($mediaNotas, 1) : '—' ?>/10</strong>. No has superado la nota mínima. Revisa el feedback de cada tarea.</p>
-    <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" class="btn-back">← Volver al curso</a>
+    <h2>Examen práctico no superado</h2>
+    <p>Nota media: <strong><?= $mediaNotas !== null ? number_format($mediaNotas, 1) : '—' ?>/10</strong>. No has alcanzado la nota mínima.</p>
+    <?php if ($esPlanIndivPrac && $esCursoPagoPrac): ?>
+      <p style="margin-top:10px;font-size:.88rem;opacity:.95">Lo sentimos. Para poder obtener el certificado deberás <strong>volver a adquirir el curso</strong>.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+        <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" style="display:inline-flex;align-items:center;gap:6px;background:#fff;color:#991b1b;border-radius:8px;padding:9px 18px;font-size:.85rem;font-weight:700;text-decoration:none">
+          🛒 Volver a adquirir el curso
+        </a>
+      </div>
+    <?php else: ?>
+      <p style="margin-top:10px;font-size:.88rem;opacity:.95">Contacta con un administrador si deseas recuperar el acceso.</p>
+    <?php endif; ?>
   </div>
   <?php elseif ($todasEntregadas): ?>
   <div class="completed-banner">
     <div style="font-size:2.5rem;margin-bottom:10px">🎉</div>
     <h2>¡Examen práctico entregado!</h2>
     <p>Has enviado todas las tareas. El equipo docente las revisará y recibirás una notificación con tu calificación.</p>
-    <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" class="btn-back">← Volver al curso</a>
+    <a href="<?= $volverUrl ?>" class="btn-back">← Volver al curso</a>
   </div>
   <?php endif; ?>
 
@@ -153,6 +203,8 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
   <?php foreach ($tareas as $idx => $tarea):
     $entrega = $entregasExistentes[$tarea['id']] ?? null;
     $icono   = $tiposIcono[$tarea['tipo']] ?? '📝';
+    $enunciado = $tarea['enunciado'] ?? '';
+    $enunciadoLargo = mb_strlen($enunciado) > 200;
   ?>
   <div class="tarea-card <?= $entrega ? 'entregada' : 'pendiente' ?>" id="tarea-<?= $tarea['id'] ?>">
     <div class="tarea-num">
@@ -163,8 +215,14 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
 
     <div class="tarea-titulo"><?= htmlspecialchars($tarea['titulo']) ?></div>
 
-    <?php if (!empty($tarea['enunciado'])): ?>
-    <div class="tarea-enunciado"><?= nl2br(htmlspecialchars($tarea['enunciado'])) ?></div>
+    <?php if ($enunciado): ?>
+    <div class="enunciado-wrap<?= $enunciadoLargo ? '' : ' expandido' ?>" id="enunciado-wrap-<?= $tarea['id'] ?>">
+      <div class="enunciado-preview"><?= nl2br(htmlspecialchars($enunciado)) ?></div>
+      <div class="enunciado-full"><?= nl2br(htmlspecialchars($enunciado)) ?></div>
+      <?php if ($enunciadoLargo): ?>
+      <button class="btn-mostrar-mas" onclick="toggleEnunciado(<?= $tarea['id'] ?>)" id="btn-enunciado-<?= $tarea['id'] ?>">Mostrar más ▾</button>
+      <?php endif; ?>
+    </div>
     <?php endif; ?>
 
     <?php if (!empty($tarea['criterios'])): ?>
@@ -174,10 +232,7 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
     <?php endif; ?>
 
     <?php if ($entrega): ?>
-      <!-- Already submitted -->
-      <div class="entregada-badge">
-        ✓ Entregada el <?= date('d/m/Y H:i', strtotime($entrega['entregado_en'])) ?>
-      </div>
+      <div class="entregada-badge">✓ Entregada el <?= date('d/m/Y H:i', strtotime($entrega['entregado_en'])) ?></div>
       <?php if (!empty($entrega['respuesta_texto'])): ?>
         <div class="entregada-resp"><?= htmlspecialchars($entrega['respuesta_texto']) ?></div>
       <?php endif; ?>
@@ -193,53 +248,107 @@ body{font-family:'Saira',sans-serif;background:#f6f6f6;color:var(--mc-dark);marg
       <?php else: ?>
         <div style="font-size:.8rem;color:var(--mc-muted);margin-top:8px">⏳ Pendiente de revisión</div>
       <?php endif; ?>
-
-      <!-- Allow re-submission if not yet reviewed -->
       <?php if (!$entrega['revisado']): ?>
       <details style="margin-top:12px">
         <summary style="font-size:.82rem;color:#2563eb;cursor:pointer;font-weight:600">Modificar entrega</summary>
-        <div style="margin-top:10px"><?php include __DIR__ . '/partials/_entrega_form.php'; // reuse below ?></div>
+        <div style="margin-top:10px">
+          <div class="entrega-form" id="form-mod-<?= $tarea['id'] ?>">
+            <label style="display:block;font-size:.85rem;font-weight:700;margin-bottom:6px">Tu respuesta</label>
+            <textarea id="txt-<?= $tarea['id'] ?>" placeholder="Escribe tu solución…"><?= htmlspecialchars($entrega['respuesta_texto'] ?? '') ?></textarea>
+            <div class="file-drop" id="drop-<?= $tarea['id'] ?>" ondragover="this.classList.add('drag-over');event.preventDefault()" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,<?= $tarea['id'] ?>)">
+              <input type="file" id="file-<?= $tarea['id'] ?>" accept=".pdf,.doc,.docx,.zip,.rar,.txt,.png,.jpg,.jpeg,.mp4,.py,.js,.html,.css,.php" onchange="showFile(this,<?= $tarea['id'] ?>)">
+              <p>Arrastra un archivo o <strong style="color:#2563eb">haz clic</strong> para adjuntar</p>
+            </div>
+            <button class="btn-entregar" onclick="entregar(<?= $tarea['id'] ?>)" id="btn-<?= $tarea['id'] ?>">Actualizar entrega →</button>
+          </div>
+        </div>
       </details>
       <?php endif; ?>
-
     <?php else: ?>
-      <!-- Submission form -->
       <div class="entrega-form" id="form-<?= $tarea['id'] ?>">
         <label style="display:block;font-size:.85rem;font-weight:700;margin-bottom:6px;color:var(--mc-dark)">Tu respuesta *</label>
         <textarea id="txt-<?= $tarea['id'] ?>" placeholder="Escribe aquí tu solución, razonamiento o descripción del trabajo realizado…"></textarea>
-
-        <div class="file-drop" id="drop-<?= $tarea['id'] ?>"
-             ondragover="this.classList.add('drag-over');event.preventDefault()"
-             ondragleave="this.classList.remove('drag-over')"
-             ondrop="handleDrop(event,<?= $tarea['id'] ?>)">
-          <input type="file" id="file-<?= $tarea['id'] ?>"
-                 accept=".pdf,.doc,.docx,.zip,.rar,.txt,.png,.jpg,.jpeg,.mp4,.py,.js,.html,.css,.php"
-                 onchange="showFile(this,<?= $tarea['id'] ?>)">
+        <div class="file-drop" id="drop-<?= $tarea['id'] ?>" ondragover="this.classList.add('drag-over');event.preventDefault()" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,<?= $tarea['id'] ?>)">
+          <input type="file" id="file-<?= $tarea['id'] ?>" accept=".pdf,.doc,.docx,.zip,.rar,.txt,.png,.jpg,.jpeg,.mp4,.py,.js,.html,.css,.php" onchange="showFile(this,<?= $tarea['id'] ?>)">
           <svg width="22" height="22" fill="none" stroke="#2563eb" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 6px"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
           <p>Arrastra un archivo o <strong style="color:#2563eb">haz clic</strong> para adjuntar</p>
           <p style="font-size:.75rem;margin-top:2px">PDF, DOC, ZIP, imágenes, código… Máx. 50 MB</p>
           <p id="fname-<?= $tarea['id'] ?>" class="file-selected" style="display:none"></p>
         </div>
-
-        <button class="btn-entregar" onclick="entregar(<?= $tarea['id'] ?>)" id="btn-<?= $tarea['id'] ?>">
-          Enviar tarea <?= $idx+1 ?> →
-        </button>
+        <button class="btn-entregar" onclick="entregar(<?= $tarea['id'] ?>)" id="btn-<?= $tarea['id'] ?>">Enviar tarea <?= $idx+1 ?> →</button>
       </div>
     <?php endif; ?>
   </div>
   <?php endforeach; ?>
 
-  <a href="<?= BASE_URL ?>/index.php?url=detallecurso&id=<?= $cursoId ?>" class="btn-back">← Volver al curso</a>
+  </div><!-- /prac-main -->
 
-</div>
+  <!-- ── SIDEBAR ── -->
+  <aside class="temario-sidebar">
+    <div class="temario-head">
+      <span>Contenido del curso</span>
+      <small><?php
+        $totalLecSb = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $unidades));
+        echo $totalLecSb . ' lección' . ($totalLecSb !== 1 ? 'es' : '');
+      ?></small>
+    </div>
+
+    <?php
+    $volverLecUrl = $primeraLeccionId
+        ? BASE_URL . '/index.php?url=leccion&id=' . $primeraLeccionId
+        : BASE_URL . '/index.php?url=detallecurso&id=' . $cursoId;
+    ?>
+    <a href="<?= $volverLecUrl ?>" class="volver-curso">← Volver al curso</a>
+
+    <?php foreach ($unidades as $uIdx => $u):
+      $lecsUnidad   = $u['lecciones'] ?? [];
+      $vistasUnidad = count(array_filter($lecsUnidad, fn($l) => isset($leccionesVistasPrac[$l['id']])));
+      $totalLecsUnit= count($lecsUnidad);
+      $unidadId     = 'sb-unidad-' . $uIdx;
+    ?>
+      <button class="t-unidad-btn" data-target="<?= $unidadId ?>" aria-expanded="true">
+        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= htmlspecialchars($u['titulo'] ?? 'Unidad') ?></span>
+        <span class="u-meta">
+          <span class="u-progress"><?= $vistasUnidad ?>/<?= $totalLecsUnit ?></span>
+          <span class="u-chevron">▼</span>
+        </span>
+      </button>
+      <div class="t-lecciones-list" id="<?= $unidadId ?>">
+        <?php foreach ($lecsUnidad as $lec):
+          $esVista = isset($leccionesVistasPrac[$lec['id']]);
+        ?>
+        <div class="t-leccion-row">
+          <a href="<?= BASE_URL ?>/index.php?url=leccion&id=<?= $lec['id'] ?>"
+             class="t-leccion <?= $esVista ? 'vista' : '' ?>">
+            <span><?= htmlspecialchars($lec['titulo'] ?? 'Lección') ?></span>
+          </a>
+        </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endforeach; ?>
+
+    <!-- Examen práctico (actual) -->
+    <div class="sb-exam-section">
+      <div class="sb-exam-label">Evaluación final</div>
+      <a href="<?= BASE_URL ?>/index.php?url=examen-practico&curso=<?= $cursoId ?>"
+         class="sb-exam-link"
+         style="background:#eff6ff;color:#1e40af;border:1.5px solid #bfdbfe;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        Examen práctico
+        <span style="margin-left:auto;font-size:.7rem;background:#dbeafe;color:#1e40af;border-radius:99px;padding:1px 7px"><?= $totalEntregadas ?>/<?= $nTareas ?></span>
+      </a>
+    </div>
+  </aside>
+
+</div><!-- /prac-wrap -->
 
 <?php require __DIR__ . '/../layout/footer.php'; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const BASE_URL  = '<?= BASE_URL ?>';
-const CURSO_ID  = <?= $cursoId ?>;
-let entregadas  = <?= $totalEntregadas ?>;
-const total     = <?= $nTareas ?>;
+const BASE_URL = '<?= BASE_URL ?>';
+const CURSO_ID = <?= $cursoId ?>;
+let entregadas = <?= $totalEntregadas ?>;
+const total    = <?= $nTareas ?>;
 
 function mcToast(msg, type = 'default', duration = 3500) {
     const wrap  = document.getElementById('mcToastWrap');
@@ -251,86 +360,125 @@ function mcToast(msg, type = 'default', duration = 3500) {
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 250); }, duration);
 }
 
-function updateProgress(n) {
-  entregadas = n;
-  document.getElementById('progressLabel').textContent = n + ' / ' + total + ' entregadas';
-  document.getElementById('progressFill').style.width  = Math.round((n / total) * 100) + '%';
+function toggleEnunciado(tareaId) {
+    const wrap = document.getElementById('enunciado-wrap-' + tareaId);
+    const btn  = document.getElementById('btn-enunciado-' + tareaId);
+    const expandido = wrap.classList.toggle('expandido');
+    btn.textContent = expandido ? 'Mostrar menos ▴' : 'Mostrar más ▾';
 }
 
 function showFile(input, tareaId) {
-  const fname = document.getElementById('fname-' + tareaId);
-  if (input.files[0]) {
-    fname.textContent = '📎 ' + input.files[0].name;
-    fname.style.display = 'block';
-  } else {
-    fname.style.display = 'none';
-  }
+    const fname = document.getElementById('fname-' + tareaId);
+    if (fname && input.files[0]) {
+        fname.textContent = '📎 ' + input.files[0].name;
+        fname.style.display = 'block';
+    }
 }
 
 function handleDrop(e, tareaId) {
-  e.preventDefault();
-  document.getElementById('drop-' + tareaId).classList.remove('drag-over');
-  const f = e.dataTransfer.files[0];
-  if (!f) return;
-  const input = document.getElementById('file-' + tareaId);
-  const dt = new DataTransfer();
-  dt.items.add(f);
-  input.files = dt.files;
-  showFile(input, tareaId);
+    e.preventDefault();
+    document.getElementById('drop-' + tareaId).classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (!f) return;
+    const input = document.getElementById('file-' + tareaId);
+    const dt = new DataTransfer();
+    dt.items.add(f);
+    input.files = dt.files;
+    showFile(input, tareaId);
 }
 
 async function entregar(tareaId) {
-  const btn     = document.getElementById('btn-' + tareaId);
-  const txt     = document.getElementById('txt-' + tareaId)?.value || '';
-  const fileInp = document.getElementById('file-' + tareaId);
-  const file    = fileInp?.files[0];
+    const btn     = document.getElementById('btn-' + tareaId);
+    const txt     = document.getElementById('txt-' + tareaId)?.value || '';
+    const fileInp = document.getElementById('file-' + tareaId);
+    const file    = fileInp?.files[0];
 
-  if (!txt.trim() && !file) {
-    mcToast('Debes escribir una respuesta o adjuntar un archivo antes de enviar.', 'info');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Enviando…';
-
-  const fd = new FormData();
-  fd.append('tarea_id', tareaId);
-  fd.append('respuesta_texto', txt);
-  if (file) fd.append('archivo', file);
-
-  try {
-    const res = await fetch(`${BASE_URL}/index.php?url=examen-practico&curso=${CURSO_ID}`, { method: 'POST', body: fd }).then(r => r.json());
-
-    if (res.ok) {
-      mcToast('Tarea enviada correctamente', 'success');
-      const card = document.getElementById('tarea-' + tareaId);
-      card.classList.replace('pendiente', 'entregada');
-      card.querySelector('.entrega-form').innerHTML = `
-        <div class="entregada-badge">✓ Entregada · En espera de revisión</div>
-        ${txt ? `<div class="entregada-resp">${txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
-        <div style="font-size:.8rem;color:var(--mc-muted);margin-top:8px">⏳ Pendiente de revisión</div>`;
-      updateProgress(res.entregadas);
-      if (res.completado) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        document.querySelector('.prac-hero').insertAdjacentHTML('beforebegin', `
-          <div class="completed-banner">
-            <div style="font-size:2.5rem;margin-bottom:10px">🎉</div>
-            <h2>¡Examen práctico entregado!</h2>
-            <p>Has enviado todas las tareas. El equipo docente las revisará y recibirás tu calificación próximamente.</p>
-            <a href="${BASE_URL}/index.php?url=detallecurso&id=${CURSO_ID}" class="btn-back">← Volver al curso</a>
-          </div>`);
-      }
-    } else {
-      mcToast(res.error || 'Error al enviar. Inténtalo de nuevo.', 'error');
-      btn.disabled = false;
-      btn.textContent = 'Enviar tarea →';
+    if (!txt.trim() && !file) {
+        mcToast('Debes escribir una respuesta o adjuntar un archivo antes de enviar.', 'info');
+        return;
     }
-  } catch (err) {
-    mcToast('Error de conexión. Comprueba tu red e inténtalo de nuevo.', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Enviar tarea →';
-  }
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+
+    const fd = new FormData();
+    fd.append('tarea_id', tareaId);
+    fd.append('respuesta_texto', txt);
+    if (file) fd.append('archivo', file);
+
+    try {
+        const res = await fetch(`${BASE_URL}/index.php?url=examen-practico&curso=${CURSO_ID}`, { method: 'POST', body: fd }).then(r => r.json());
+
+        if (res.ok) {
+            mcToast('Tarea enviada correctamente', 'success');
+            const card = document.getElementById('tarea-' + tareaId);
+            card.classList.replace('pendiente', 'entregada');
+            const formEl = card.querySelector('.entrega-form');
+            if (formEl) formEl.innerHTML = `
+                <div class="entregada-badge">✓ Entregada · En espera de revisión</div>
+                ${txt ? `<div class="entregada-resp">${txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
+                <div style="font-size:.8rem;color:var(--mc-muted);margin-top:8px">⏳ Pendiente de revisión</div>`;
+            entregadas = res.entregadas;
+            // update sidebar counter
+            const sbCounter = document.querySelector('.sb-exam-link span');
+            if (sbCounter) sbCounter.textContent = entregadas + '/' + total;
+            if (res.completado) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.querySelector('.prac-hero').insertAdjacentHTML('beforebegin', `
+                    <div class="completed-banner">
+                        <div style="font-size:2.5rem;margin-bottom:10px">🎉</div>
+                        <h2>¡Examen práctico entregado!</h2>
+                        <p>Has enviado todas las tareas. El equipo docente las revisará y recibirás tu calificación próximamente.</p>
+                        <a href="${BASE_URL}/index.php?url=leccion&id=<?= $primeraLeccionId ?: $cursoId ?>" class="btn-back">← Volver al curso</a>
+                    </div>`);
+            }
+        } else {
+            mcToast(res.error || 'Error al enviar. Inténtalo de nuevo.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Enviar tarea →';
+        }
+    } catch (err) {
+        mcToast('Error de conexión. Comprueba tu red e inténtalo de nuevo.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Enviar tarea →';
+    }
 }
+
+/* ── Acordeón del sidebar con localStorage ── */
+const SB_KEY = 'prac-sidebar-' + CURSO_ID;
+function sbSaveState() {
+    const state = {};
+    document.querySelectorAll('.t-unidad-btn').forEach(btn => {
+        state[btn.dataset.target] = !btn.classList.contains('collapsed');
+    });
+    localStorage.setItem(SB_KEY, JSON.stringify(state));
+}
+function sbLoadState() {
+    try { return JSON.parse(localStorage.getItem(SB_KEY)) || {}; } catch(e) { return {}; }
+}
+const sbState = sbLoadState();
+document.querySelectorAll('.t-unidad-btn').forEach(btn => {
+    const targetId = btn.dataset.target;
+    const lista    = document.getElementById(targetId);
+    if (!lista) return;
+    const savedOpen = sbState[targetId];
+    const isOpen    = savedOpen === undefined ? true : savedOpen;
+    if (!isOpen) {
+        btn.classList.add('collapsed');
+        btn.setAttribute('aria-expanded', 'false');
+        lista.classList.add('cerrado');
+        lista.style.maxHeight = '0';
+    } else {
+        lista.style.maxHeight = lista.scrollHeight + 'px';
+    }
+    btn.addEventListener('click', () => {
+        const collapsed = btn.classList.toggle('collapsed');
+        btn.setAttribute('aria-expanded', !collapsed);
+        lista.style.maxHeight = collapsed ? '0' : lista.scrollHeight + 'px';
+        lista.classList.toggle('cerrado', collapsed);
+        sbSaveState();
+    });
+});
 </script>
 </body>
 </html>

@@ -665,61 +665,77 @@ $ytId = ytId($videoUrl);
         }
 
         .t-leccion.activa {
-            background: #d4e6d6;
             color: var(--mc-green-d);
             font-weight: 700;
-            border-left: 3px solid var(--mc-green);
-            padding-left: calc(1.3rem - 3px);
         }
 
-        /* Checkbox del sidebar */
-        .tl-check {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-            border: 2px solid var(--mc-border);
-            background: #fff;
-            flex-shrink: 0;
-            margin-top: 2px;
+
+        /* ── FILA LECCIÓN CON CHECKBOX ── */
+        .t-leccion-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            transition: background .15s, border-color .15s;
+            border-top: 1px solid var(--mc-border);
         }
 
-        /* Lección activa */
-        .t-leccion.activa .tl-check {
-            background: var(--mc-green);
-            border-color: var(--mc-green);
-            color: #fff;
+        .lec-check {
+            width: 14px;
+            height: 14px;
+            margin: 0 0 0 .85rem;
+            flex-shrink: 0;
+            cursor: pointer;
+            accent-color: var(--mc-green);
         }
 
-        /* Lección ya vista (pero no activa) */
-        .t-leccion.vista .tl-check {
-            background: #d1fae5;
-            border-color: #6ee7b7;
-            color: var(--mc-green-d);
+        .t-leccion-row .t-leccion {
+            border-top: none;
+            flex: 1;
+            min-width: 0;
+            padding-left: .45rem;
         }
 
-        .t-leccion.vista>span {
-            opacity: .82;
+        /* Checkbox de unidad (marcar todas) */
+        .u-check-all {
+            width: 13px;
+            height: 13px;
+            cursor: pointer;
+            accent-color: var(--mc-green);
+            flex-shrink: 0;
         }
 
+        /* Lección vista */
         .t-leccion.vista {
             color: var(--mc-text);
+            opacity: .9;
         }
 
         .t-leccion.activa>span {
             opacity: 1;
         }
 
-        .t-leccion span:last-child {
+        .t-leccion span {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             line-height: 1.35;
+        }
+
+        /* Icono tarea en sidebar */
+        .tl-te-icon {
+            font-size: .9rem;
+            margin: 0 0 0 .85rem;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        /* Fila de tarea evaluable: borde ámbar por defecto, verde si entregada */
+        .t-tarea-row { border-left: 3px solid #f59e0b; }
+        .t-tarea-row.t-tarea-entregada { border-left: 3px solid var(--mc-green); }
+
+        /* La fila activa (lección o tarea) sobreescribe el borde con verde */
+        .t-leccion-row:has(.t-leccion.activa) {
+            background: #d4e6d6;
+            border-left: 3px solid var(--mc-green) !important;
         }
 
         /* Volver al curso */
@@ -826,11 +842,6 @@ $ytId = ytId($videoUrl);
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-apuntes">
-                            Apuntes
-                        </button>
-                    </li>
-                    <li class="nav-item">
                         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-recursos">
                             Recursos
                             <?php
@@ -855,8 +866,7 @@ $ytId = ytId($videoUrl);
                             : 'En esta lección aprenderás los conceptos fundamentales de este tema. Sigue el vídeo y toma notas de los puntos más importantes para consolidar tu aprendizaje.' ?>
                     </p>
                     <p class="info-texto" style="margin-top:.85rem;">
-                        Recuerda que puedes pausar el vídeo en cualquier momento, tomar apuntes en la pestaña correspondiente
-                        y retomar la lección cuando quieras. Tu progreso se registra al finalizar el vídeo.
+                        Recuerda que puedes pausar el vídeo en cualquier momento y retomar la lección cuando quieras. Tu progreso se registra al finalizar el vídeo.
                     </p>
 
                     <div class="info-meta">
@@ -872,25 +882,9 @@ $ytId = ytId($videoUrl);
                     <?php if ($ytId): ?>
                     <div id="video-progress-bar" style="margin-top:1.2rem;padding:.75rem 1rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:9px;display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:#166534;">
                         <span id="vp-icon">⏳</span>
-                        <span id="vp-msg">Mira el vídeo hasta el final para marcar la lección como completada.</span>
-                        <button id="btn-marcar-manual" onclick="marcarVistaManual()" style="margin-left:auto;padding:.3rem .8rem;border:1px solid #86efac;border-radius:6px;background:#fff;color:#166534;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Saira',sans-serif;">Marcar manualmente</button>
+                        <span id="vp-msg">Mira el vídeo hasta el final para marcar la lección como completada. También puedes marcarla desde la casilla del panel derecho.</span>
                     </div>
                     <?php endif; ?>
-                </div>
-
-                <!-- APUNTES PERSONALES -->
-                <div class="tab-pane fade" id="tab-apuntes">
-                    <div class="notas-header">
-                        <h6>Mis apuntes</h6>
-                    </div>
-                    <textarea id="notas-personales" class="notas-area" placeholder="Escribe tus apuntes aquí…"><?= htmlspecialchars($nota ?? '') ?></textarea>
-                    <div class="notas-footer">
-                        <button class="btn-guardar" onclick="guardarNotaPersonal()">Guardar</button>
-                        <span id="notas-saved-msg" class="notas-saved">✓ Guardado</span>
-                    </div>
-                    <div class="notas-hint">
-                        💡 Tus apuntes se guardan por lección y puedes volver a consultarlos cuando quieras.
-                    </div>
                 </div>
 
                 <!-- RECURSOS — solo documentos del CRM -->
@@ -1004,7 +998,9 @@ $ytId = ytId($videoUrl);
                 <small>
                     <?php
                     $totalLec = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $unidades));
-                    echo $totalLec . ' lecciones';
+                    $totalTE  = array_sum(array_map(fn($u) => count($u['tareas_entregables'] ?? []), $unidades));
+                    echo $totalLec . ' lección' . ($totalLec !== 1 ? 'es' : '');
+                    if ($totalTE > 0) echo ' · ' . $totalTE . ' tarea' . ($totalTE !== 1 ? 's' : '');
                     ?>
                 </small>
             </div>
@@ -1014,43 +1010,65 @@ $ytId = ytId($videoUrl);
             </a>
 
             <?php foreach ($unidades as $uIdx => $u):
-                /* La unidad que contiene la lección activa empieza abierta; el resto, cerradas */
-                $tieneActiva = false;
+                $tieneActiva  = false;
                 $vistasUnidad = 0;
-                foreach (($u['lecciones'] ?? []) as $lec) {
-                    if (isset($leccionesVistas[$lec['id']])) {
-                        $vistasUnidad++;
-                    }
-                    if ($lec['id'] == $leccion['id']) {
-                        $tieneActiva = true;
-                    }
+                $lecsUnidad   = $u['lecciones'] ?? [];
+                foreach ($lecsUnidad as $lec) {
+                    if (isset($leccionesVistas[$lec['id']])) $vistasUnidad++;
+                    if ($lec['id'] == $leccion['id'])        $tieneActiva = true;
                 }
-                $unidadId = 'unidad-' . $uIdx;
-                $totalUnidad = count($u['lecciones'] ?? []);
+                $unidadId      = 'unidad-' . $uIdx;
+                $totalLecsUnit = count($lecsUnidad);
+                $todasVistas   = $totalLecsUnit > 0 && $vistasUnidad >= $totalLecsUnit;
             ?>
-                <!-- Cabecera colapsable -->
+                <!-- Cabecera colapsable con checkbox "marcar todas" -->
                 <button
                     class="t-unidad-btn <?= $tieneActiva ? '' : 'collapsed' ?>"
                     data-target="<?= $unidadId ?>"
                     aria-expanded="<?= $tieneActiva ? 'true' : 'false' ?>">
-                    <span><?= htmlspecialchars($u['titulo'] ?? 'Unidad') ?></span>
+                    <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= htmlspecialchars($u['titulo'] ?? 'Unidad') ?></span>
                     <span class="u-meta">
-                        <span class="u-progress"><?= $vistasUnidad ?>/<?= $totalUnidad ?></span>
+                        <input type="checkbox" class="u-check-all"
+                               title="Marcar todas las lecciones de esta unidad"
+                               data-unidad="<?= (int)$u['id'] ?>"
+                               data-lista="<?= $unidadId ?>"
+                               <?= $todasVistas ? 'checked' : '' ?>
+                               onclick="event.stopPropagation()"
+                               onchange="toggleUnidadAll(this)">
+                        <span class="u-progress" id="prog-<?= $unidadId ?>"><?= $vistasUnidad ?>/<?= $totalLecsUnit ?></span>
                         <span class="u-chevron">▼</span>
                     </span>
                 </button>
 
-                <!-- Lista de lecciones -->
+                <!-- Lista de lecciones y tareas entregables -->
                 <div class="t-lecciones-list <?= $tieneActiva ? '' : 'cerrado' ?>" id="<?= $unidadId ?>">
-                    <?php foreach (($u['lecciones'] ?? []) as $lec):
+                    <?php foreach ($lecsUnidad as $lec):
                         $esActiva = $lec['id'] == $leccion['id'];
-                        $esVista = isset($leccionesVistas[$lec['id']]);
+                        $esVista  = isset($leccionesVistas[$lec['id']]);
                     ?>
+                    <div class="t-leccion-row">
+                        <input type="checkbox" class="lec-check"
+                               id="lc-<?= $lec['id'] ?>"
+                               <?= $esVista ? 'checked' : '' ?>
+                               onchange="toggleLeccion(this, <?= (int)$lec['id'] ?>)"
+                               onclick="event.stopPropagation()"
+                               title="Marcar como vista">
                         <a href="<?= BASE_URL ?>/index.php?url=leccion&id=<?= $lec['id'] ?>"
-                            class="t-leccion <?= $esActiva ? 'activa' : '' ?> <?= $esVista ? 'vista' : '' ?>">
-                            <div class="tl-check"><?= ($esActiva || $esVista) ? '✓' : '' ?></div>
+                           class="t-leccion <?= $esActiva ? 'activa' : '' ?> <?= $esVista ? 'vista' : '' ?>">
                             <span><?= htmlspecialchars($lec['titulo'] ?? 'Lección') ?></span>
                         </a>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php foreach (($u['tareas_entregables'] ?? []) as $te):
+                        $teEntregada = isset($tareasEntregablesEntregadas[$te['id']]);
+                    ?>
+                    <div class="t-leccion-row t-tarea-row <?= $teEntregada ? 't-tarea-entregada' : '' ?>">
+                        <div class="tl-te-icon"><?= $teEntregada ? '✅' : '📝' ?></div>
+                        <a href="<?= BASE_URL ?>/index.php?url=tarea-entregable&id=<?= $te['id'] ?>"
+                           class="t-leccion <?= $teEntregada ? 'vista' : '' ?>">
+                            <span><?= htmlspecialchars($te['titulo'] ?? 'Tarea') ?></span>
+                        </a>
+                    </div>
                     <?php endforeach; ?>
                 </div>
 
@@ -1066,6 +1084,10 @@ $ytId = ytId($videoUrl);
                 $testHecho    = $resultadoExamenTest !== null;
                 ?>
 
+                <?php
+                $intentosUsadosSb    = (int)(($resultadoExamenTest ?? [])['intentos'] ?? 0);
+                $intentosRestSb      = max(0, 2 - $intentosUsadosSb);
+                ?>
                 <a href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>"
                    style="display:flex;align-items:center;gap:.6rem;padding:.55rem .75rem;border-radius:9px;text-decoration:none;font-size:.83rem;font-weight:600;margin-bottom:.4rem;
                           background:<?= $testAprobado ? '#f0fdf4' : ($testHecho ? '#fff7ed' : '#fff') ?>;
@@ -1076,7 +1098,9 @@ $ytId = ytId($videoUrl);
                     <?php if ($testAprobado): ?>
                         <span style="margin-left:auto;font-size:.7rem;background:#dcfce7;color:#166534;border-radius:99px;padding:1px 7px"><?= number_format((float)$resultadoExamenTest['nota'],1) ?>/10</span>
                     <?php elseif ($testHecho): ?>
-                        <span style="margin-left:auto;font-size:.7rem;background:#fef3c7;color:#92400e;border-radius:99px;padding:1px 7px">Repetir</span>
+                        <span style="margin-left:auto;font-size:.7rem;background:#fef3c7;color:#92400e;border-radius:99px;padding:1px 7px">Repetir · <?= $intentosRestSb ?> intento<?= $intentosRestSb !== 1 ? 's' : '' ?></span>
+                    <?php else: ?>
+                        <span style="margin-left:auto;font-size:.7rem;background:#f1f5f9;color:#475569;border-radius:99px;padding:1px 7px">2 intentos</span>
                     <?php endif; ?>
                 </a>
 
@@ -1180,25 +1204,59 @@ $ytId = ytId($videoUrl);
             }
         }
 
-        /* ── Guardar apuntes personales ── */
-        let saveTimer;
-        const notasArea = document.getElementById('notas-personales');
-        if (notasArea) {
-            notasArea.addEventListener('input', () => {
-                clearTimeout(saveTimer);
-                saveTimer = setTimeout(() => guardarNotaPersonal(true), 30000);
-            });
-        }
-        async function guardarNotaPersonal(silencioso = false) {
-            const ta = document.getElementById('notas-personales');
-            if (!ta) return;
+        /* ── Marcar/desmarcar lección individual ── */
+        async function toggleLeccion(checkbox, leccionId) {
+            const marcado = checkbox.checked;
             const fd = new FormData();
-            fd.append('nota', ta.value);
-            await fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, { method: 'POST', body: fd });
-            if (!silencioso) {
-                const msg = document.getElementById('notas-saved-msg');
-                if (msg) { msg.style.display = 'inline'; setTimeout(() => msg.style.display = 'none', 2000); }
+            fd.append('accion', marcado ? 'marcar_vista' : 'desmarcar_vista');
+            fd.append('leccion_id', leccionId);
+            try {
+                await fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, { method: 'POST', body: fd });
+                const link = checkbox.nextElementSibling;
+                if (link) { marcado ? link.classList.add('vista') : link.classList.remove('vista'); }
+                actualizarProgresoUnidad(checkbox);
+            } catch(e) {
+                checkbox.checked = !marcado;
             }
+        }
+
+        /* ── Marcar/desmarcar todas las lecciones de una unidad ── */
+        async function toggleUnidadAll(checkbox) {
+            const unidadId = checkbox.dataset.unidad;
+            const listaId  = checkbox.dataset.lista;
+            const marcado  = checkbox.checked;
+            const fd = new FormData();
+            fd.append('accion', marcado ? 'marcar_unidad' : 'desmarcar_unidad');
+            fd.append('unidad_id', unidadId);
+            try {
+                await fetch(BASE_URL + '/index.php?url=leccion&id=' + LECCION_ID, { method: 'POST', body: fd });
+                const lista = document.getElementById(listaId);
+                if (!lista) return;
+                lista.querySelectorAll('.lec-check').forEach(cb => {
+                    cb.checked = marcado;
+                    const link = cb.nextElementSibling;
+                    if (link) { marcado ? link.classList.add('vista') : link.classList.remove('vista'); }
+                });
+                const prog = document.getElementById('prog-' + listaId);
+                if (prog) {
+                    const total = lista.querySelectorAll('.lec-check').length;
+                    prog.textContent = (marcado ? total : 0) + '/' + total;
+                }
+            } catch(e) {
+                checkbox.checked = !marcado;
+            }
+        }
+
+        /* ── Actualizar contador de progreso de la unidad ── */
+        function actualizarProgresoUnidad(anyCheckbox) {
+            const lista = anyCheckbox.closest('.t-lecciones-list');
+            if (!lista) return;
+            const todas  = lista.querySelectorAll('.lec-check');
+            const vistas = [...todas].filter(c => c.checked).length;
+            const prog = document.getElementById('prog-' + lista.id);
+            if (prog) prog.textContent = vistas + '/' + todas.length;
+            const uCheck = document.querySelector(`[data-lista="${lista.id}"] .u-check-all`);
+            if (uCheck) uCheck.checked = vistas === todas.length && todas.length > 0;
         }
 
         /* ── YouTube IFrame API: marcar vista al terminar el vídeo ── */
@@ -1213,20 +1271,20 @@ $ytId = ytId($videoUrl);
             })
             .then(r => r.json())
             .then(() => {
-                const bar = document.getElementById('video-progress-bar');
+                const bar  = document.getElementById('video-progress-bar');
                 const icon = document.getElementById('vp-icon');
-                const msg = document.getElementById('vp-msg');
-                const btn = document.getElementById('btn-marcar-manual');
-                if (bar) { bar.style.background = '#dcfce7'; bar.style.borderColor = '#86efac'; }
+                const msg  = document.getElementById('vp-msg');
+                if (bar)  { bar.style.background = '#dcfce7'; bar.style.borderColor = '#86efac'; }
                 if (icon) icon.textContent = '✅';
-                if (msg) msg.textContent = '¡Lección completada! El progreso se ha registrado.';
-                if (btn) btn.style.display = 'none';
-                document.querySelectorAll('.t-leccion.activa .tl-check').forEach(el => {
-                    el.textContent = '✓';
-                });
+                if (msg)  msg.textContent = '¡Lección completada! Puedes marcarla/desmarcarla desde el panel derecho.';
+                // Sincronizar checkbox de la lección activa
+                const activaRow = document.querySelector('.t-leccion.activa')?.closest('.t-leccion-row');
+                if (activaRow) {
+                    const cb = activaRow.querySelector('.lec-check');
+                    if (cb) { cb.checked = true; actualizarProgresoUnidad(cb); }
+                }
             });
         }
-        function marcarVistaManual() { marcarVista(); }
 
         <?php if ($ytId): ?>
         var ytPlayer;

@@ -63,7 +63,7 @@ class CarritoController
         }
 
         if (!empty($_SESSION['usuario_id'])) {
-            $s = $db->prepare("SELECT 1 FROM matricula WHERE usuario_id=? AND curso_id=?");
+            $s = $db->prepare("SELECT 1 FROM matricula WHERE usuario_id=? AND curso_id=? AND estado IN ('activa','completado')");
             $s->execute([$_SESSION['usuario_id'], $curso_id]);
             if ($s->fetchColumn()) {
                 echo json_encode([
@@ -434,7 +434,7 @@ class CarritoController
         $params = array_merge([$usuarioId], $cursoIds);
         $stmt   = $db->prepare("
             SELECT curso_id FROM matricula
-            WHERE usuario_id = ? AND curso_id IN ($ph) AND estado = 'activa'
+            WHERE usuario_id = ? AND curso_id IN ($ph) AND estado IN ('activa','completado')
         ");
         $stmt->execute($params);
         return array_fill_keys(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)), true);
@@ -444,12 +444,29 @@ class CarritoController
     {
         $cursoIds = array_values(array_filter(array_map('intval', $cursoIds), fn($id) => $id > 0));
         if ($usuarioId <= 0 || empty($cursoIds)) return;
+
+        // Verificar que el usuario existe
+        $stmtU = $db->prepare("SELECT COUNT(*) FROM usuario WHERE id = ?");
+        $stmtU->execute([$usuarioId]);
+        if (!(int)$stmtU->fetchColumn()) return;
+
         $stmt = $db->prepare("
-            INSERT OR IGNORE INTO matricula (usuario_id, curso_id, fecha, estado)
+            INSERT INTO matricula (usuario_id, curso_id, fecha, estado)
             VALUES (?, ?, datetime('now'), 'activa')
+            ON CONFLICT(usuario_id, curso_id) DO UPDATE
+                SET estado = 'activa', fecha = datetime('now')
+                WHERE matricula.estado = 'revocada'
         ");
         foreach ($cursoIds as $id) {
-            $stmt->execute([$usuarioId, $id]);
+            // Verificar que el curso existe antes de insertar
+            try {
+                $stmtC = $db->prepare("SELECT COUNT(*) FROM curso WHERE id = ?");
+                $stmtC->execute([$id]);
+                if (!(int)$stmtC->fetchColumn()) continue;
+                $stmt->execute([$usuarioId, $id]);
+            } catch (\Exception $e) {
+                // FK violation u otro error: continuar con el siguiente curso
+            }
         }
     }
 

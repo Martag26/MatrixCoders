@@ -993,7 +993,12 @@ function buildUrl(array $overrides = []): string
                                                 <span class="course-price"><?= number_format($precio, 2) ?>€</span>
                                             <?php endif; ?>
                                         </div>
-                                        <?php if (in_array($curso['id'], $matriculasUsuario)): ?>
+                                        <?php if (($matriculasUsuario[$curso['id']] ?? '') === 'completado'): ?>
+                                            <button class="btn-course-enrolled" onclick="event.stopPropagation();" style="background:#d1fae5;border-color:#6ee7b7;color:#065f46;">
+                                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                                Completado
+                                            </button>
+                                        <?php elseif (isset($matriculasUsuario[$curso['id']])): ?>
                                             <button class="btn-course-enrolled" onclick="event.stopPropagation();">
                                                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
                                                 Matriculado

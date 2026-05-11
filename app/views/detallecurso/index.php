@@ -713,6 +713,34 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                 </div>
             <?php endif; ?>
 
+            <?php if (!empty($matriculaRevocada)):
+                $planDetalle   = $_SESSION['usuario_plan'] ?? 'gratuito';
+                $esIndivDetalle = !in_array($planDetalle, ['estudiantes', 'empresas']);
+                $esPagoDetalle  = (float)($curso['precio'] ?? 0) > 0;
+            ?>
+            <div style="margin-bottom:1.2rem;padding:16px 20px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;display:flex;align-items:flex-start;gap:14px">
+                <span style="font-size:1.6rem;flex-shrink:0">🚫</span>
+                <div style="flex:1">
+                    <div style="font-weight:800;font-size:.95rem;color:#7f1d1d;margin-bottom:4px">Has perdido el acceso a este curso</div>
+                    <?php if ($esIndivDetalle && $esPagoDetalle): ?>
+                        <div style="font-size:.85rem;color:#991b1b;line-height:1.6">
+                            Lo sentimos, agotaste los intentos disponibles sin superar el examen. Para volver a acceder y optar al certificado deberás <strong>adquirir el curso de nuevo</strong>.
+                        </div>
+                        <div style="margin-top:12px">
+                            <button class="btn-mc" style="background:#ef4444;width:auto;padding:.55rem 1.3rem;font-size:.87rem"
+                                onclick="abrirModal(<?= $curso['id'] ?>, '<?= htmlspecialchars(addslashes($titulo)) ?>', <?= $precioFinal ?? $precio ?>, <?= $precio ?>, <?= $descuentoActivo ?? 0 ?>, '<?= htmlspecialchars(addslashes($imagen ?? '')) ?>')">
+                                🛒 Volver a adquirir el curso
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div style="font-size:.85rem;color:#991b1b;line-height:1.6">
+                            Agotaste los intentos disponibles sin superar el examen. Contacta con un administrador para recuperar el acceso.
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- TABS -->
             <div class="tabs-header-row">
                 <ul class="nav curso-tabs border-bottom mb-1" style="flex:1;border-bottom:none!important;margin-bottom:0!important">
@@ -786,8 +814,11 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                 <!-- ── TEMARIO ── -->
                 <?php if (!empty($unidades)): ?>
                     <div class="tab-pane fade" id="tab-temario">
+                        <?php
+                        $totalTareasEnt = array_sum(array_map(fn($u) => count($u['tareas_entregables'] ?? []), $unidades));
+                        ?>
                         <p style="font-size:.85rem;color:var(--mc-muted);margin-bottom:1rem;">
-                            <?= count($unidades) ?> unidad<?= count($unidades) !== 1 ? 'es' : '' ?> · <?= $totalLecciones ?> lección<?= $totalLecciones !== 1 ? 'es' : '' ?>
+                            <?= count($unidades) ?> unidad<?= count($unidades) !== 1 ? 'es' : '' ?> · <?= $totalLecciones ?> lección<?= $totalLecciones !== 1 ? 'es' : '' ?><?= $totalTareasEnt > 0 ? ' · ' . $totalTareasEnt . ' tarea' . ($totalTareasEnt !== 1 ? 's' : '') : '' ?>
                         </p>
                         <?php foreach ($unidades as $i => $u): ?>
                             <div class="unidad-bloque">
@@ -811,6 +842,22 @@ $totalLecciones = array_sum(array_map(fn($u) => count($u['lecciones'] ?? []), $u
                                             <?php else: ?>
                                                 <span class="licon-lock">🔒</span>
                                                 <span style="color:#9ca3af;"><?= htmlspecialchars($lec['titulo'] ?? 'Lección') ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                    <?php foreach (($u['tareas_entregables'] ?? []) as $te):
+                                        $teEntregada = isset($tareasEntregablesEntregadas[$te['id']]);
+                                    ?>
+                                        <div class="leccion-row" style="border-left:3px solid <?= $teEntregada ? '#6B8F71' : '#f59e0b' ?>;margin-left:2px;">
+                                            <?php if ($estaMatriculado): ?>
+                                                <a href="<?= BASE_URL ?>/index.php?url=tarea-entregable&id=<?= $te['id'] ?>" style="display:flex;align-items:center;gap:6px;width:100%">
+                                                    <span style="font-size:.8rem"><?= $teEntregada ? '✅' : '📝' ?></span>
+                                                    <?= htmlspecialchars($te['titulo'] ?? 'Tarea') ?>
+                                                    <span style="margin-left:auto;font-size:.65rem;font-weight:700;color:<?= $teEntregada ? '#166534' : '#92400e' ?>;background:<?= $teEntregada ? '#dcfce7' : '#fef3c7' ?>;padding:1px 7px;border-radius:99px;white-space:nowrap"><?= $teEntregada ? 'Entregada' : 'Tarea evaluable' ?></span>
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="licon-lock">🔒</span>
+                                                <span style="color:#9ca3af;"><?= htmlspecialchars($te['titulo'] ?? 'Tarea') ?></span>
                                             <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>

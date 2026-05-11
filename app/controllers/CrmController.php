@@ -107,6 +107,8 @@ class CrmController
             'ALTER TABLE examen        ADD COLUMN modo_entrega  TEXT    NOT NULL DEFAULT "cualquiera"',
             'ALTER TABLE notificacion  ADD COLUMN url_accion    TEXT    DEFAULT NULL',
             'ALTER TABLE resultado_examen ADD COLUMN intentos   INTEGER NOT NULL DEFAULT 0',
+            "ALTER TABLE entrega_practica ADD COLUMN creado_en TEXT DEFAULT (datetime('now'))",
+            "ALTER TABLE matricula ADD COLUMN creado_en TEXT DEFAULT (datetime('now'))",
         ] as $sql) {
             try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
         }
@@ -542,15 +544,39 @@ class CrmController
         $niveles    = $this->db->query("SELECT DISTINCT nivel FROM curso WHERE nivel IS NOT NULL ORDER BY nivel")->fetchAll(PDO::FETCH_COLUMN);
         $instructores = $this->db->query("SELECT id, nombre FROM usuario WHERE rol='INSTRUCTOR' ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
-        $cursosStats = $this->db->query("
-            SELECT
-              COUNT(*) AS total,
-              SUM(CASE WHEN activo=1 THEN 1 ELSE 0 END) AS activos,
-              SUM(CASE WHEN activo=0 THEN 1 ELSE 0 END) AS inactivos,
-              SUM(CASE WHEN precio=0 OR precio IS NULL THEN 1 ELSE 0 END) AS gratis,
-              (SELECT COUNT(*) FROM matricula) AS total_matriculas
-            FROM curso
-        ")->fetch(PDO::FETCH_ASSOC);
+        if ($this->esInstructor && !$this->esAdmin) {
+            $iuid = (int)$this->usuario['id'];
+            $cursosStats = ['total'=>0,'alumnos_total'=>0,'pendientes_revision'=>0,'media_nota'=>0.0];
+            try {
+                $s = $this->db->prepare("
+                    SELECT
+                      COUNT(DISTINCT c.id) AS total,
+                      (SELECT COUNT(*) FROM matricula m
+                         JOIN curso_instructor ci2 ON ci2.curso_id=m.curso_id
+                         WHERE ci2.usuario_id=?) AS alumnos_total,
+                      (SELECT COUNT(*) FROM entrega_practica ep
+                         JOIN curso_instructor ci3 ON ci3.curso_id=ep.curso_id
+                         WHERE ci3.usuario_id=? AND ep.revisado=0) AS pendientes_revision,
+                      (SELECT COALESCE(AVG(ep2.nota),0) FROM entrega_practica ep2
+                         JOIN curso_instructor ci4 ON ci4.curso_id=ep2.curso_id
+                         WHERE ci4.usuario_id=? AND ep2.nota IS NOT NULL) AS media_nota
+                    FROM curso c
+                    JOIN curso_instructor ci ON ci.curso_id=c.id AND ci.usuario_id=?
+                ");
+                $s->execute([$iuid, $iuid, $iuid, $iuid]);
+                $cursosStats = $s->fetch(PDO::FETCH_ASSOC) ?: $cursosStats;
+            } catch (Exception $e) {}
+        } else {
+            $cursosStats = $this->db->query("
+                SELECT
+                  COUNT(*) AS total,
+                  SUM(CASE WHEN activo=1 THEN 1 ELSE 0 END) AS activos,
+                  SUM(CASE WHEN activo=0 THEN 1 ELSE 0 END) AS inactivos,
+                  SUM(CASE WHEN precio=0 OR precio IS NULL THEN 1 ELSE 0 END) AS gratis,
+                  (SELECT COUNT(*) FROM matricula) AS total_matriculas
+                FROM curso
+            ")->fetch(PDO::FETCH_ASSOC);
+        }
 
         return compact('cursos','totalRows','totalPags','page','perPage','q','cat','nivel','estado','sort','categorias','niveles','instructores','cursosStats');
     }
@@ -1239,13 +1265,58 @@ class CrmController
         $cursoId = (int)($_GET['curso_id'] ?? 0);
         if (!$cursoId) return ['ok' => false, 'error' => 'ID de curso inválido'];
 
-        // Enrolled students
-        $stmt = $this->db->prepare("
-            SELECT u.id, u.nombre, u.email, m.creado_en AS matriculado_en
-            FROM matricula m JOIN usuario u ON u.id=m.usuario_id
-            WHERE m.curso_id=? ORDER BY u.nombre ASC
-        ");
-        $stmt->execute([$cursoId]);
+        $page   = max(1, (int)($_GET['page'] ?? 1));
+        $per    = in_array((int)($_GET['per'] ?? 10), [5,10,15,20,25,50]) ? (int)($_GET['per'] ?? 10) : 10;
+        $q      = trim($_GET['q'] ?? '');
+        $filtro = $_GET['filtro'] ?? 'todos'; // todos | test_aprobado | test_pendiente | prac_pendiente | certificado
+
+        // Build WHERE
+        $where  = 'WHERE m.curso_id=?';
+        $params = [$cursoId];
+
+        if ($q) {
+            $where   .= ' AND (u.nombre LIKE ? OR u.email LIKE ?)';
+            $params[] = "%$q%"; $params[] = "%$q%";
+        }
+
+        $testSubBase = "EXISTS (SELECT 1 FROM resultado_examen re JOIN examen e ON e.id=re.examen_id WHERE re.usuario_id=u.id AND e.curso_id=? AND (e.tipo='test' OR e.tipo IS NULL OR e.tipo='')";
+        switch ($filtro) {
+            case 'test_aprobado':
+                $where .= " AND {$testSubBase} AND re.aprobado=1)"; $params[] = $cursoId; break;
+            case 'test_pendiente':
+                $where .= " AND NOT {$testSubBase})"; $params[] = $cursoId; break;
+            case 'prac_pendiente':
+                $where .= " AND EXISTS (SELECT 1 FROM entrega_practica ep WHERE ep.alumno_id=u.id AND ep.curso_id=? AND ep.revisado=0)";
+                $params[] = $cursoId; break;
+            case 'certificado':
+                $where .= " AND {$testSubBase} AND re.aprobado=1)"; $params[] = $cursoId; break;
+        }
+
+        // Count
+        $cntParams = $params;
+        $cntStmt   = $this->db->prepare("SELECT COUNT(*) FROM matricula m JOIN usuario u ON u.id=m.usuario_id $where");
+        $cntStmt->execute($cntParams);
+        $totalRows = (int)$cntStmt->fetchColumn();
+        $totalPags = max(1, (int)ceil($totalRows / $per));
+        $offset    = ($page - 1) * $per;
+
+        // Fetch page
+        $pageParams = array_merge($params, [$per, $offset]);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT u.id, u.nombre, u.email, m.creado_en AS matriculado_en
+                FROM matricula m JOIN usuario u ON u.id=m.usuario_id
+                $where ORDER BY u.nombre ASC LIMIT ? OFFSET ?
+            ");
+            $stmt->execute($pageParams);
+        } catch (Exception $e) {
+            $stmt = $this->db->prepare("
+                SELECT u.id, u.nombre, u.email, NULL AS matriculado_en
+                FROM matricula m JOIN usuario u ON u.id=m.usuario_id
+                $where ORDER BY u.nombre ASC LIMIT ? OFFSET ?
+            ");
+            $stmt->execute($pageParams);
+        }
         $alumnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Test exam result for each
@@ -1269,19 +1340,49 @@ class CrmController
         // Total practical tasks
         $stmtTareas = $this->db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
         $stmtTareas->execute([$cursoId]);
-        $totalTareas = (int)$stmtTareas->fetchColumn();
+        $totalTareasCfg = (int)$stmtTareas->fetchColumn();
+        $stmtMaxEntregas = $this->db->prepare("SELECT COUNT(DISTINCT tarea_id) FROM entrega_practica WHERE curso_id=?");
+        $stmtMaxEntregas->execute([$cursoId]);
+        $maxEntregadas = (int)$stmtMaxEntregas->fetchColumn();
+        $totalTareas = max($totalTareasCfg, $maxEntregadas);
+
+        // Global stats (always from full course, not just page)
+        $statsStmt = $this->db->prepare("
+            SELECT
+              COUNT(*) AS total_matriculados,
+              SUM(CASE WHEN EXISTS (
+                SELECT 1 FROM resultado_examen re2 JOIN examen e2 ON e2.id=re2.examen_id
+                WHERE re2.usuario_id=m.usuario_id AND e2.curso_id=m.curso_id AND re2.aprobado=1
+                  AND (e2.tipo='test' OR e2.tipo IS NULL OR e2.tipo='')
+              ) THEN 1 ELSE 0 END) AS aprobados_test,
+              SUM(CASE WHEN EXISTS (
+                SELECT 1 FROM entrega_practica ep2
+                WHERE ep2.alumno_id=m.usuario_id AND ep2.curso_id=m.curso_id AND ep2.revisado=0
+              ) THEN 1 ELSE 0 END) AS prac_pendientes
+            FROM matricula m WHERE m.curso_id=?
+        ");
+        $statsStmt->execute([$cursoId]);
+        $globalStats = $statsStmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
         foreach ($alumnos as &$al) {
             $stmtTest->execute([$al['id'], $cursoId]);
             $al['test'] = $stmtTest->fetch(PDO::FETCH_ASSOC) ?: null;
-
             $stmtPrac->execute([$al['id'], $cursoId]);
             $al['practico'] = $stmtPrac->fetch(PDO::FETCH_ASSOC) ?: ['total'=>0,'revisadas'=>0,'nota_media'=>null];
             $al['practico']['total_tareas'] = $totalTareas;
         }
         unset($al);
 
-        return ['ok' => true, 'alumnos' => $alumnos, 'total_tareas' => $totalTareas];
+        return [
+            'ok'           => true,
+            'alumnos'      => $alumnos,
+            'total_tareas' => $totalTareas,
+            'total_rows'   => $totalRows,
+            'total_pags'   => $totalPags,
+            'page'         => $page,
+            'per'          => $per,
+            'global_stats' => $globalStats,
+        ];
     }
 
     private function apiGetEntregasAlumno(): array
@@ -1292,11 +1393,11 @@ class CrmController
         if (!$alumnoId || !$cursoId) return ['ok' => false, 'error' => 'Parámetros inválidos'];
         try {
             $stmt = $this->db->prepare("
-                SELECT ep.*, tp.titulo AS tarea_titulo
+                SELECT ep.*, COALESCE(tp.titulo, 'Tarea #' || ep.tarea_id) AS tarea_titulo
                 FROM entrega_practica ep
-                JOIN tarea_practica tp ON tp.id=ep.tarea_id
+                LEFT JOIN tarea_practica tp ON tp.id=ep.tarea_id
                 WHERE ep.alumno_id=? AND ep.curso_id=?
-                ORDER BY tp.orden, ep.id
+                ORDER BY COALESCE(tp.orden, 0), ep.id
             ");
             $stmt->execute([$alumnoId, $cursoId]);
             return ['ok' => true, 'entregas' => $stmt->fetchAll(PDO::FETCH_ASSOC)];
@@ -1330,6 +1431,7 @@ class CrmController
         $cursoId     = (int)$entrega['curso_id'];
         $tituloCurso = $entrega['curso_titulo'];
         $urlPrac     = BASE_URL . '/index.php?url=examen-practico&curso=' . $cursoId;
+        $urlComplet  = BASE_URL . '/index.php?url=curso-completado&curso=' . $cursoId;
 
         // Check if ALL tasks for this student/course are now reviewed
         $stmtTotal = $this->db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
@@ -1359,16 +1461,40 @@ class CrmController
                     $this->db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
                              ->execute([$alumnoId, $cursoId, $codigo]);
                 } catch (Exception $e) {}
-                $notifTitulo = '🎓 ¡Examen práctico aprobado!';
-                $notifCuerpo = "Tu examen práctico de \"$tituloCurso\" ha sido calificado. Nota media: " . number_format($mediaNotas, 1) . "/10. ¡Ya puedes descargar tu certificado!";
+                try {
+                    $this->db->prepare("UPDATE matricula SET estado='completado' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
+                             ->execute([$alumnoId, $cursoId]);
+                } catch (Exception $e) {}
+                try {
+                    $chkC = $this->db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_completado' AND ref_id=?");
+                    $chkC->execute([$alumnoId, $cursoId]);
+                    if (!(int)$chkC->fetchColumn()) {
+                        $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                                 ->execute([$alumnoId, 'curso_completado',
+                                     '🎓 ¡Has completado el curso!',
+                                     "¡Enhorabuena! Has superado el examen práctico de \"$tituloCurso\" con un " . number_format($mediaNotas, 1) . "/10. Tu certificado ya está disponible.",
+                                     $urlComplet, $cursoId,
+                                 ]);
+                    }
+                } catch (Exception $e) {}
             } else {
-                $notifTitulo = '📋 Examen práctico calificado';
-                $notifCuerpo = "Tu examen práctico de \"$tituloCurso\" ha sido calificado. Nota media: " . number_format($mediaNotas, 1) . "/10. Consulta el feedback de cada tarea.";
+                try {
+                    $this->db->prepare("UPDATE matricula SET estado='revocada' WHERE usuario_id=? AND curso_id=? AND estado='activa'")
+                             ->execute([$alumnoId, $cursoId]);
+                } catch (Exception $e) {}
+                try {
+                    $chkF = $this->db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_fallido' AND ref_id=?");
+                    $chkF->execute([$alumnoId, $cursoId]);
+                    if (!(int)$chkF->fetchColumn()) {
+                        $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion, ref_id) VALUES (?,?,?,?,?,?)")
+                                 ->execute([$alumnoId, 'curso_fallido',
+                                     '❌ Has perdido el acceso al curso',
+                                     "No has superado el examen práctico de \"$tituloCurso\" (nota media: " . number_format($mediaNotas, 1) . "/10). Deberás volver a matricularte para intentarlo de nuevo.",
+                                     $urlPrac, $cursoId,
+                                 ]);
+                    }
+                } catch (Exception $e) {}
             }
-            try {
-                $this->db->prepare("INSERT INTO notificacion (usuario_id, tipo, titulo, cuerpo, url_accion) VALUES (?,?,?,?,?)")
-                         ->execute([$alumnoId, 'crm', $notifTitulo, $notifCuerpo, $urlPrac]);
-            } catch (Exception $e) {}
         } else {
             // Individual task notification
             $notifCuerpo = $nota !== null
@@ -1750,6 +1876,57 @@ class CrmController
                         'creado_en' => date('Y-m-d H:i:s'),
                         'url_accion'=> '?url=crm&sec=comunicacion',
                         'badge'     => 'info',
+                    ];
+                }
+            } catch (Exception $e) {}
+        }
+
+        // 3. For instructors: pending reviews + new uploads
+        if ($this->esInstructor) {
+            $iuid = (int)$this->usuario['id'];
+            try {
+                $s = $this->db->prepare("
+                    SELECT COUNT(*) FROM entrega_practica ep
+                    JOIN curso_instructor ci ON ci.curso_id=ep.curso_id AND ci.usuario_id=?
+                    WHERE ep.revisado=0
+                ");
+                $s->execute([$iuid]);
+                $pendientes = (int)$s->fetchColumn();
+                if ($pendientes > 0) {
+                    $adminAlerts[] = [
+                        'id'         => 'instr_prac_review',
+                        'tipo'       => 'tarea',
+                        'titulo'     => "$pendientes entrega(s) pendiente(s) de revisión",
+                        'cuerpo'     => 'Alumnos esperan tu feedback',
+                        'leido'      => 0,
+                        'creado_en'  => date('Y-m-d H:i:s'),
+                        'url_accion' => '?url=crm&sec=cursos',
+                        'badge'      => 'warning',
+                    ];
+                }
+            } catch (Exception $e) {}
+
+            // New uploads in last 24h (per course) — use entregado_en as fallback for old rows
+            try {
+                $s = $this->db->prepare("
+                    SELECT ep.curso_id, c.titulo AS curso_titulo, COUNT(*) AS nuevas
+                    FROM entrega_practica ep
+                    JOIN curso_instructor ci ON ci.curso_id=ep.curso_id AND ci.usuario_id=?
+                    JOIN curso c ON c.id=ep.curso_id
+                    WHERE COALESCE(ep.creado_en, ep.entregado_en) >= datetime('now','-24 hours') AND ep.revisado=0
+                    GROUP BY ep.curso_id
+                ");
+                $s->execute([$iuid]);
+                foreach ($s->fetchAll(PDO::FETCH_ASSOC) as $up) {
+                    $adminAlerts[] = [
+                        'id'         => 'upload_' . $up['curso_id'],
+                        'tipo'       => 'tarea',
+                        'titulo'     => $up['nuevas'] . ' entrega(s) nueva(s) en "' . mb_strimwidth($up['curso_titulo'], 0, 40, '…') . '"',
+                        'cuerpo'     => 'Contenido subido en las últimas 24h',
+                        'leido'      => 0,
+                        'creado_en'  => date('Y-m-d H:i:s'),
+                        'url_accion' => '?url=crm&sec=editor&id=' . $up['curso_id'],
+                        'badge'      => 'info',
                     ];
                 }
             } catch (Exception $e) {}

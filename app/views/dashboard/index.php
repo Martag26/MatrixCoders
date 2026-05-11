@@ -264,10 +264,13 @@ $proximasTareas = array_slice($proximasTareas, 0, 5);
                             <div class="sv-track-wrap">
                                 <div class="sv-track" id="svTrack">
                                     <?php foreach ($cursosEnProgreso as $sc):
-                                        $progreso   = $sc['progreso'];
-                                        $leccionUrl = $sc['ultima_leccion_id']
-                                            ? BASE_URL . '/index.php?url=leccion&id=' . $sc['ultima_leccion_id']
-                                            : BASE_URL . '/index.php?url=detallecurso&id=' . $sc['id'];
+                                        $progreso      = $sc['progreso'];
+                                        $esCompletado  = !empty($sc['completado']);
+                                        $leccionUrl    = $esCompletado
+                                            ? BASE_URL . '/index.php?url=curso-completado&curso=' . $sc['id']
+                                            : ($sc['ultima_leccion_id']
+                                                ? BASE_URL . '/index.php?url=leccion&id=' . $sc['ultima_leccion_id']
+                                                : BASE_URL . '/index.php?url=detallecurso&id=' . $sc['id']);
                                         $imgSrc = matrixcoders_curso_image($sc['imagen'] ?? '', $sc['titulo'] ?? '');
                                     ?>
                                         <a class="sv-card" href="<?= $leccionUrl ?>">
@@ -275,19 +278,24 @@ $proximasTareas = array_slice($proximasTareas, 0, 5);
                                                 <img src="<?= htmlspecialchars($imgSrc) ?>"
                                                     alt="<?= htmlspecialchars($sc['titulo']) ?>"
                                                     onerror="this.src='<?= BASE_URL ?>/img/aprendiendo.png'">
+                                                <?php if ($esCompletado): ?>
+                                                <span class="sv-badge" style="background:#22c55e">🏆 Completado</span>
+                                                <?php else: ?>
                                                 <span class="sv-badge"><?= $progreso ?>%</span>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="sv-body">
                                                 <p class="sv-titulo"><?= htmlspecialchars($sc['titulo']) ?></p>
                                                 <div class="sv-progress-wrap">
                                                     <div class="sv-progress-bar">
-                                                        <div class="sv-progress-fill" style="width:<?= $progreso ?>%"></div>
+                                                        <div class="sv-progress-fill" style="width:<?= $esCompletado ? 100 : $progreso ?>%;<?= $esCompletado ? 'background:#22c55e' : '' ?>"></div>
                                                     </div>
                                                     <span class="sv-progress-label">
-                                                        <?= $sc['lecciones_vistas'] ?>/<?= $sc['total_lecciones'] ?> lecciones
+                                                        <?php if ($esCompletado): ?>¡Curso completado!
+                                                        <?php else: ?><?= $sc['lecciones_vistas'] ?>/<?= $sc['total_lecciones'] ?> lecciones<?php endif; ?>
                                                     </span>
                                                 </div>
-                                                <span class="sv-continuar">Continuar →</span>
+                                                <span class="sv-continuar"><?= $esCompletado ? 'Ver certificado →' : 'Continuar →' ?></span>
                                             </div>
                                         </a>
                                     <?php endforeach; ?>

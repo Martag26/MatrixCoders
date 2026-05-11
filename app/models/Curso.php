@@ -129,7 +129,7 @@ class Curso
         $stmt->execute([$cursoId]);
         $unidades = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Lecciones de cada unidad
+        // Lecciones y tareas entregables de cada unidad
         foreach ($unidades as &$u) {
             $stmt2 = $this->db->prepare("
                 SELECT * FROM leccion
@@ -138,6 +138,18 @@ class Curso
             ");
             $stmt2->execute([$u['id']]);
             $u['lecciones'] = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+            try {
+                $stmt3 = $this->db->prepare("
+                    SELECT * FROM tarea_entregable
+                    WHERE unidad_id = ?
+                    ORDER BY id ASC
+                ");
+                $stmt3->execute([$u['id']]);
+                $u['tareas_entregables'] = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                $u['tareas_entregables'] = [];
+            }
         }
 
         return $unidades;
@@ -170,7 +182,7 @@ class Curso
     {
         $stmt = $this->db->prepare("
         SELECT COUNT(*) FROM matricula
-        WHERE usuario_id = ? AND curso_id = ? AND estado = 'activa'
+        WHERE usuario_id = ? AND curso_id = ? AND estado IN ('activa', 'completado')
     ");
         $stmt->execute([$usuarioId, $cursoId]);
         return (int)$stmt->fetchColumn() > 0;
@@ -186,9 +198,12 @@ class Curso
             return false;
         }
         $stmt = $this->db->prepare("
-        INSERT INTO matricula (usuario_id, curso_id, fecha, estado)
-        VALUES (?, ?, datetime('now'), 'activa')
-    ");
+            INSERT INTO matricula (usuario_id, curso_id, fecha, estado)
+            VALUES (?, ?, datetime('now'), 'activa')
+            ON CONFLICT(usuario_id, curso_id) DO UPDATE
+                SET estado = 'activa', fecha = datetime('now')
+                WHERE matricula.estado = 'revocada'
+        ");
         return $stmt->execute([$usuarioId, $cursoId]);
     }
 
