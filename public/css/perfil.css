@@ -463,6 +463,167 @@
     flex-shrink: 0;
 }
 
+/* ── Zona de peligro ───────────────────────────────────────────────────────── */
+.ajustes-danger-card {
+    border-color: #fecaca !important;
+    background: #fff9f9 !important;
+}
+
+.ajustes-danger-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ajustes-danger-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #991b1b;
+    margin: 0;
+}
+
+.ajustes-danger-desc {
+    font-size: .87rem;
+    color: #6b7280;
+    margin: 0 0 18px;
+    line-height: 1.6;
+}
+
+.ajustes-danger-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1.5px solid #fca5a5;
+    color: #dc2626;
+    font-size: .85rem;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+.ajustes-danger-btn:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+}
+
+/* ── Modal ─────────────────────────────────────────────────────────────────── */
+.ajustes-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.ajustes-modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+}
+
+.ajustes-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.ajustes-modal-header h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.ajustes-modal-cancel {
+    flex: 1;
+    padding: 10px;
+    border: 1.5px solid var(--mc-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--mc-dark);
+    font-size: .88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .15s;
+}
+
+.ajustes-modal-cancel:hover { border-color: #9ca3af; }
+
+.ajustes-modal-confirm {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #dc2626;
+    color: #fff;
+    font-size: .88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.ajustes-modal-confirm:hover { background: #b91c1c; }
+
+/* ── Layout de formulario 2 y 3 columnas ──────────────────────────────────── */
+.perfil-form-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+.perfil-form-3col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+.perfil-form-2col .perfil-form-group,
+.perfil-form-3col .perfil-form-group {
+    margin-bottom: 0;
+}
+
+/* Separador de sección académica */
+.perfil-academic-sep {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0;
+    color: var(--mc-muted);
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+}
+
+.perfil-academic-sep::before,
+.perfil-academic-sep::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--mc-border);
+}
+
+/* Formulario sin max-width cuando está dentro de tarjeta de perfil */
+.perfil-card form:not(.perfil-form) {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .perfil-avatar-section {
@@ -485,5 +646,10 @@
 
     .perfil-form {
         max-width: 100%;
+    }
+
+    .perfil-form-2col,
+    .perfil-form-3col {
+        grid-template-columns: 1fr;
     }
 }

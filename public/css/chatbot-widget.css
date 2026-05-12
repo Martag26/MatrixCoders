@@ -1,0 +1,293 @@
+/* ═══════════════════════════════════════════════════════════
+   chatbot-widget.css — Floating Oráculo widget
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Botón flotante ─────────────────────────────────────────── */
+#cbFloatBtn {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 8000;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #6B8F71;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 24px rgba(107, 143, 113, .45);
+    transition: transform .2s, box-shadow .2s, background .15s;
+}
+
+#cbFloatBtn:hover {
+    background: #4a6b50;
+    transform: scale(1.08);
+    box-shadow: 0 8px 28px rgba(107, 143, 113, .55);
+}
+
+#cbFloatBtn.active {
+    background: #4a6b50;
+}
+
+/* Badge de notificación */
+#cbFloatBtn .cb-float-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 2px solid #fff;
+    display: none;
+}
+
+/* ── Panel flotante ─────────────────────────────────────────── */
+#cbFloatPanel {
+    position: fixed;
+    bottom: 96px;
+    right: 28px;
+    z-index: 8000;
+    width: 370px;
+    max-height: 540px;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, .18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(.9) translateY(16px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .22s ease, opacity .22s ease;
+    transform-origin: bottom right;
+}
+
+#cbFloatPanel.open {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Header del panel */
+.cbw-header {
+    background: #6B8F71;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.cbw-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cbw-avatar-header {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.cbw-title {
+    font-size: .95rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.cbw-subtitle {
+    font-size: .72rem;
+    color: rgba(255, 255, 255, .8);
+    margin: 0;
+}
+
+.cbw-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cbw-header-btn {
+    background: rgba(255, 255, 255, .15);
+    border: none;
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+}
+
+.cbw-header-btn:hover {
+    background: rgba(255, 255, 255, .28);
+}
+
+/* Mensajes */
+.cbw-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+    min-height: 200px;
+}
+
+.cbw-messages::-webkit-scrollbar { width: 3px; }
+.cbw-messages::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 99px; }
+
+.cbw-msg {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-start;
+}
+
+.cbw-msg.user {
+    flex-direction: row-reverse;
+}
+
+.cbw-av {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.cbw-av.bot { background: #f0fdf4; color: #4a6b50; border: 1px solid #bbf7d0; }
+.cbw-av.user { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+.cbw-bubble {
+    max-width: 85%;
+    padding: .55rem .8rem;
+    border-radius: 10px;
+    font-size: .83rem;
+    line-height: 1.55;
+}
+
+.cbw-bubble.bot {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: #1B2336;
+    border-radius: 2px 10px 10px 10px;
+}
+
+.cbw-bubble.user {
+    background: #6B8F71;
+    color: #fff;
+    border-radius: 10px 2px 10px 10px;
+}
+
+.cbw-bubble p { margin: 0 0 .3rem; }
+.cbw-bubble p:last-child { margin: 0; }
+.cbw-bubble ul, .cbw-bubble ol { margin: .3rem 0; padding-left: 1.2rem; }
+.cbw-bubble strong { font-weight: 700; }
+
+.cbw-thinking {
+    color: #9ca3af;
+    font-style: italic;
+    font-size: .78rem;
+}
+
+.cbw-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .68rem;
+    color: #9ca3af;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.cbw-divider::before, .cbw-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+/* Input */
+.cbw-input-area {
+    border-top: 1px solid #e5e7eb;
+    padding: .65rem .85rem;
+    display: flex;
+    gap: .5rem;
+    background: #fafafa;
+    flex-shrink: 0;
+}
+
+.cbw-input {
+    flex: 1;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    padding: .45rem .75rem;
+    font-size: .83rem;
+    color: #1B2336;
+    resize: none;
+    outline: none;
+    transition: border-color .15s;
+    min-height: 36px;
+    max-height: 90px;
+    overflow-y: auto;
+    background: #fff;
+}
+
+.cbw-input:focus { border-color: #6B8F71; }
+
+.cbw-send {
+    background: #6B8F71;
+    border: none;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background .15s;
+    align-self: flex-end;
+}
+
+.cbw-send:hover { background: #4a6b50; }
+.cbw-send:disabled { opacity: .4; cursor: default; }
+
+/* Responsive */
+@media (max-width: 480px) {
+    #cbFloatPanel {
+        width: calc(100vw - 24px);
+        right: 12px;
+        bottom: 86px;
+    }
+    #cbFloatBtn {
+        right: 16px;
+        bottom: 20px;
+        width: 50px;
+        height: 50px;
+    }
+}

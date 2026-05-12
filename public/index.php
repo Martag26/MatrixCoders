@@ -42,10 +42,6 @@ switch ($url) {
         $controller->index();
         break;
 
-    case 'repositorio':
-        require_once "../app/controllers/RepositorioController.php";
-        break;
-
     case 'chatbot':
         require_once "../app/controllers/ChatbotController.php";
         break;
@@ -120,6 +116,18 @@ switch ($url) {
         require_once "../app/controllers/SuscripcionController.php";
         $controller = new SuscripcionController();
         $controller->contratar();
+        break;
+
+    case 'pagarSuscripcion':
+        require_once "../app/controllers/SuscripcionController.php";
+        $controller = new SuscripcionController();
+        $controller->iniciarPago();
+        break;
+
+    case 'suscripcion-ok':
+        require_once "../app/controllers/SuscripcionController.php";
+        $controller = new SuscripcionController();
+        $controller->pagoOk();
         break;
 
     case 'buscar':
@@ -269,6 +277,20 @@ switch ($url) {
         require_once "../app/controllers/AjustesController.php";
         $controller = new AjustesController();
         $controller->cambiarContrasena();
+        break;
+
+    case 'eliminarCuenta':
+        require_once "../app/controllers/AjustesController.php";
+        $controller = new AjustesController();
+        $controller->eliminarCuenta();
+        break;
+
+    case 'upgrade':
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['usuario_id'])) { header('Location: ' . BASE_URL . '/index.php?url=login'); exit; }
+        $pageTitle = 'Mejora tu plan';
+        require_once "../app/config.php";
+        require "../app/views/upgrade/index.php";
         break;
 
     // ── CRM panel (admins + moderators) ───────────────────────────────

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/dashboard.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/sidebar.css">
     <link rel="stylesheet" href="<?= BASE_URL ?>/css/perfil.css">
 </head>
 
@@ -20,13 +21,10 @@
         <div class="mc-container">
             <div class="contenedor-dashboard contenedor-dashboard-content">
 
-                <!-- ── SIDEBAR ── -->
                 <?php require __DIR__ . '/../layout/sidebar.php'; ?>
 
-                <!-- ── CONTENIDO PRINCIPAL ── -->
                 <section class="contenido-dashboard">
 
-                    <!-- Flash message -->
                     <?php if (!empty($flash['message'])): ?>
                         <div class="dashboard-flash dashboard-flash-<?= htmlspecialchars($flash['type']) ?>">
                             <?= htmlspecialchars($flash['message']) ?>
@@ -38,16 +36,59 @@
                         <p class="perfil-subtitulo">Personaliza tu experiencia en MatrixCoders</p>
                     </div>
 
-                    <!-- ── Tarjeta: Preferencias ── -->
+                    <!-- ── TARJETA 1: Información de cuenta ── -->
                     <div class="perfil-card">
+                        <h3 class="perfil-section-title" style="border-top:none;padding-top:0;margin-bottom:16px;">Información de cuenta</h3>
 
-                        <!-- Resumen actual -->
                         <div class="perfil-datos">
                             <div class="perfil-campo">
-                                <span class="perfil-campo-label">Idioma</span>
+                                <span class="perfil-campo-label">Correo electrónico</span>
+                                <span class="perfil-campo-valor"><?= htmlspecialchars($usuario['email']) ?></span>
+                            </div>
+                            <div class="perfil-campo">
+                                <span class="perfil-campo-label">Rol</span>
+                                <span class="perfil-campo-valor" style="text-transform:capitalize;"><?= htmlspecialchars($usuario['rol']) ?></span>
+                            </div>
+                            <div class="perfil-campo">
+                                <span class="perfil-campo-label">Miembro desde</span>
+                                <span class="perfil-campo-valor"><?= htmlspecialchars(date('d/m/Y', strtotime($usuario['creado_en']))) ?></span>
+                            </div>
+                            <div class="perfil-campo">
+                                <span class="perfil-campo-label">Plan activo</span>
                                 <span class="perfil-campo-valor">
-                                    <?= $usuario['idioma'] === 'en' ? 'English' : 'Español' ?>
+                                    <?php
+                                    $nombresPlan = [
+                                        'curso_individual' => 'Curso Individual',
+                                        'plan_estudiantes' => 'Plan Estudiantes',
+                                        'plan_empresas'    => 'Plan Empresas',
+                                    ];
+                                    $planActivo = $_SESSION['usuario_plan'] ?? null;
+                                    if ($planActivo && isset($nombresPlan[$planActivo])):
+                                    ?>
+                                        <span class="perfil-plan perfil-plan-activo"><?= htmlspecialchars($nombresPlan[$planActivo]) ?></span>
+                                    <?php else: ?>
+                                        <a href="<?= BASE_URL ?>/index.php?url=suscripciones" class="perfil-plan perfil-plan-libre">Plan gratuito · Ver planes</a>
+                                    <?php endif; ?>
                                 </span>
+                            </div>
+                        </div>
+
+                        <div class="perfil-editar-section">
+                            <p style="font-size:.85rem;color:var(--mc-muted);margin:0;">
+                                ¿Quieres cambiar tu correo electrónico? Contacta con
+                                <a href="<?= BASE_URL ?>/index.php?url=chatbot" style="color:var(--mc-green);">soporte a través del Oráculo</a>.
+                            </p>
+                        </div>
+                    </div><!-- /.perfil-card cuenta -->
+
+                    <!-- ── TARJETA 2: Preferencias ── -->
+                    <div class="perfil-card" style="margin-top:16px;">
+                        <h3 class="perfil-section-title" style="border-top:none;padding-top:0;margin-bottom:16px;">Preferencias</h3>
+
+                        <div class="perfil-datos" style="margin-bottom:4px;">
+                            <div class="perfil-campo">
+                                <span class="perfil-campo-label">Idioma</span>
+                                <span class="perfil-campo-valor"><?= $usuario['idioma'] === 'en' ? 'English' : 'Español' ?></span>
                             </div>
                             <div class="perfil-campo">
                                 <span class="perfil-campo-label">Notificaciones</span>
@@ -61,42 +102,28 @@
                             </div>
                             <div class="perfil-campo">
                                 <span class="perfil-campo-label">Privacidad del perfil</span>
-                                <span class="perfil-campo-valor">
-                                    <?= $usuario['privacidad'] === 'privado' ? 'Privado' : 'Público' ?>
-                                </span>
+                                <span class="perfil-campo-valor"><?= $usuario['privacidad'] === 'privado' ? 'Privado' : 'Público' ?></span>
                             </div>
                         </div>
 
-                        <!-- Formulario de preferencias -->
                         <div class="perfil-editar-section">
                             <h3 class="perfil-section-title">Editar preferencias</h3>
 
-                            <form method="post"
-                                  action="<?= BASE_URL ?>/index.php?url=guardarAjustes"
-                                  class="perfil-form"
-                                  novalidate>
+                            <form method="post" action="<?= BASE_URL ?>/index.php?url=guardarAjustes" class="perfil-form" novalidate>
 
-                                <!-- Idioma -->
                                 <div class="perfil-form-group">
                                     <label for="idioma">Idioma de la plataforma</label>
                                     <select id="idioma" name="idioma">
-                                        <option value="es" <?= $usuario['idioma'] === 'es' ? 'selected' : '' ?>>
-                                            Español
-                                        </option>
-                                        <option value="en" <?= $usuario['idioma'] === 'en' ? 'selected' : '' ?>>
-                                            English
-                                        </option>
+                                        <option value="es" <?= $usuario['idioma'] === 'es' ? 'selected' : '' ?>>Español</option>
+                                        <option value="en" <?= $usuario['idioma'] === 'en' ? 'selected' : '' ?>>English</option>
                                     </select>
                                 </div>
 
-                                <!-- Notificaciones -->
                                 <div class="perfil-form-group">
                                     <label class="ajustes-toggle-label">
                                         <span>Recibir notificaciones</span>
                                         <div class="ajustes-toggle-wrap">
-                                            <input type="checkbox"
-                                                   id="notificaciones"
-                                                   name="notificaciones"
+                                            <input type="checkbox" id="notificaciones" name="notificaciones"
                                                    class="ajustes-toggle-input"
                                                    <?= $usuario['notificaciones'] ? 'checked' : '' ?>>
                                             <label for="notificaciones" class="ajustes-toggle-track">
@@ -109,14 +136,11 @@
                                     </p>
                                 </div>
 
-                                <!-- Privacidad -->
                                 <div class="perfil-form-group">
                                     <label>Privacidad del perfil</label>
                                     <div class="ajustes-radio-group">
                                         <label class="ajustes-radio-item">
-                                            <input type="radio"
-                                                   name="privacidad"
-                                                   value="publico"
+                                            <input type="radio" name="privacidad" value="publico"
                                                    <?= $usuario['privacidad'] === 'publico' ? 'checked' : '' ?>>
                                             <span>
                                                 <strong>Público</strong>
@@ -124,9 +148,7 @@
                                             </span>
                                         </label>
                                         <label class="ajustes-radio-item">
-                                            <input type="radio"
-                                                   name="privacidad"
-                                                   value="privado"
+                                            <input type="radio" name="privacidad" value="privado"
                                                    <?= $usuario['privacidad'] === 'privado' ? 'checked' : '' ?>>
                                             <span>
                                                 <strong>Privado</strong>
@@ -141,12 +163,11 @@
                                 </div>
                             </form>
                         </div>
+                    </div><!-- /.perfil-card preferencias -->
 
-                    </div><!-- /.perfil-card -->
-
-                    <!-- ── Tarjeta: Cambiar contraseña ── -->
-                    <div class="perfil-card" style="margin-top: 20px;">
-                        <div class="perfil-editar-section" style="border-top: none; padding-top: 0;">
+                    <!-- ── TARJETA 3: Cambiar contraseña ── -->
+                    <div class="perfil-card" style="margin-top:16px;">
+                        <div class="perfil-editar-section" style="border-top:none;padding-top:0;">
                             <h3 class="perfil-section-title">Cambiar contraseña</h3>
 
                             <form method="post"
@@ -157,33 +178,22 @@
 
                                 <div class="perfil-form-group">
                                     <label for="contrasena_actual">Contraseña actual <span class="req">*</span></label>
-                                    <input type="password"
-                                           id="contrasena_actual"
-                                           name="contrasena_actual"
-                                           placeholder="Tu contraseña actual"
-                                           autocomplete="current-password">
+                                    <input type="password" id="contrasena_actual" name="contrasena_actual"
+                                           placeholder="Tu contraseña actual" autocomplete="current-password">
                                     <span class="perfil-field-error" id="errActual"></span>
                                 </div>
 
                                 <div class="perfil-form-group">
                                     <label for="contrasena_nueva">Nueva contraseña <span class="req">*</span></label>
-                                    <input type="password"
-                                           id="contrasena_nueva"
-                                           name="contrasena_nueva"
-                                           placeholder="Mínimo 6 caracteres"
-                                           autocomplete="new-password">
+                                    <input type="password" id="contrasena_nueva" name="contrasena_nueva"
+                                           placeholder="Mínimo 6 caracteres" autocomplete="new-password">
                                     <span class="perfil-field-error" id="errNueva"></span>
                                 </div>
 
                                 <div class="perfil-form-group">
-                                    <label for="contrasena_confirmar">
-                                        Confirmar nueva contraseña <span class="req">*</span>
-                                    </label>
-                                    <input type="password"
-                                           id="contrasena_confirmar"
-                                           name="contrasena_confirmar"
-                                           placeholder="Repite la nueva contraseña"
-                                           autocomplete="new-password">
+                                    <label for="contrasena_confirmar">Confirmar nueva contraseña <span class="req">*</span></label>
+                                    <input type="password" id="contrasena_confirmar" name="contrasena_confirmar"
+                                           placeholder="Repite la nueva contraseña" autocomplete="new-password">
                                     <span class="perfil-field-error" id="errConfirmar"></span>
                                 </div>
 
@@ -193,6 +203,62 @@
                             </form>
                         </div>
                     </div><!-- /.perfil-card contraseña -->
+
+                    <!-- ── TARJETA 4: Zona de peligro ── -->
+                    <div class="perfil-card ajustes-danger-card" style="margin-top:16px;">
+                        <div style="border-top:none;padding-top:0;">
+                            <div class="ajustes-danger-header">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <h3 class="ajustes-danger-title">Zona de peligro</h3>
+                            </div>
+                            <p class="ajustes-danger-desc">
+                                Eliminar tu cuenta es una acción irreversible. Se borrarán tus matrículas, documentos,
+                                notificaciones y todos tus datos. Tus certificados emitidos no se recuperarán.
+                            </p>
+
+                            <button type="button" class="ajustes-danger-btn" id="btnAbrirEliminar">
+                                Eliminar mi cuenta permanentemente
+                            </button>
+                        </div>
+                    </div><!-- /.danger-card -->
+
+                    <!-- ── MODAL: Confirmar eliminación ── -->
+                    <div class="ajustes-modal-overlay" id="modalEliminar" style="display:none;">
+                        <div class="ajustes-modal">
+                            <div class="ajustes-modal-header">
+                                <svg width="20" height="20" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                </svg>
+                                <h4>¿Seguro que quieres eliminar tu cuenta?</h4>
+                            </div>
+                            <p style="font-size:.88rem;color:#374151;margin:0 0 20px;">
+                                Esta acción <strong>no se puede deshacer</strong>. Para confirmar escribe
+                                <strong>eliminar</strong> abajo e introduce tu contraseña.
+                            </p>
+
+                            <form method="post" action="<?= BASE_URL ?>/index.php?url=eliminarCuenta" id="formEliminar" novalidate>
+                                <div class="perfil-form-group" style="margin-bottom:12px;">
+                                    <label style="font-size:.85rem;font-weight:600;">Escribe <em>eliminar</em> para confirmar</label>
+                                    <input type="text" name="confirmar_texto" id="confirmarTexto"
+                                           placeholder="eliminar" autocomplete="off">
+                                    <span class="perfil-field-error" id="errEliminarTexto"></span>
+                                </div>
+                                <div class="perfil-form-group" style="margin-bottom:20px;">
+                                    <label style="font-size:.85rem;font-weight:600;">Tu contraseña</label>
+                                    <input type="password" name="confirmar_password" id="confirmarPassword"
+                                           placeholder="Introduce tu contraseña" autocomplete="current-password">
+                                    <span class="perfil-field-error" id="errEliminarPass"></span>
+                                </div>
+
+                                <div style="display:flex;gap:10px;">
+                                    <button type="button" class="ajustes-modal-cancel" id="btnCancelarEliminar">Cancelar</button>
+                                    <button type="submit" class="ajustes-modal-confirm" id="btnConfirmarEliminar">Eliminar cuenta</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
                 </section>
             </div>
@@ -204,65 +270,53 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     (function () {
-        // ── Validación del formulario de contraseña ──────────────────────────
-        const formContrasena  = document.getElementById('formContrasena');
-        const inputActual     = document.getElementById('contrasena_actual');
-        const inputNueva      = document.getElementById('contrasena_nueva');
-        const inputConfirmar  = document.getElementById('contrasena_confirmar');
-        const errActual       = document.getElementById('errActual');
-        const errNueva        = document.getElementById('errNueva');
-        const errConfirmar    = document.getElementById('errConfirmar');
+        // Validación contraseña
+        const formContrasena = document.getElementById('formContrasena');
+        const inActual  = document.getElementById('contrasena_actual');
+        const inNueva   = document.getElementById('contrasena_nueva');
+        const inConf    = document.getElementById('contrasena_confirmar');
+        const errActual = document.getElementById('errActual');
+        const errNueva  = document.getElementById('errNueva');
+        const errConf   = document.getElementById('errConfirmar');
 
-        function setError(input, errEl, msg) {
-            errEl.textContent = msg;
-            input.classList.toggle('campo-invalido', msg !== '');
-        }
+        function setErr(inp, el, msg) { if (el) el.textContent = msg; if (inp) inp.classList.toggle('campo-invalido', !!msg); }
 
         if (formContrasena) {
             formContrasena.addEventListener('submit', function (e) {
-                let valido = true;
-
-                if (!inputActual.value.trim()) {
-                    setError(inputActual, errActual, 'Introduce tu contraseña actual.');
-                    valido = false;
-                } else {
-                    setError(inputActual, errActual, '');
-                }
-
-                if (inputNueva.value.length < 6) {
-                    setError(inputNueva, errNueva, 'La contraseña debe tener al menos 6 caracteres.');
-                    valido = false;
-                } else {
-                    setError(inputNueva, errNueva, '');
-                }
-
-                if (inputConfirmar.value !== inputNueva.value) {
-                    setError(inputConfirmar, errConfirmar, 'Las contraseñas no coinciden.');
-                    valido = false;
-                } else {
-                    setError(inputConfirmar, errConfirmar, '');
-                }
-
-                if (!valido) e.preventDefault();
+                let ok = true;
+                if (!inActual.value.trim()) { setErr(inActual, errActual, 'Introduce tu contraseña actual.'); ok = false; } else { setErr(inActual, errActual, ''); }
+                if (inNueva.value.length < 6) { setErr(inNueva, errNueva, 'Mínimo 6 caracteres.'); ok = false; } else { setErr(inNueva, errNueva, ''); }
+                if (inConf.value !== inNueva.value) { setErr(inConf, errConf, 'Las contraseñas no coinciden.'); ok = false; } else { setErr(inConf, errConf, ''); }
+                if (!ok) e.preventDefault();
             });
-
-            // Feedback en tiempo real en confirmación
-            inputConfirmar.addEventListener('input', function () {
-                if (this.value === inputNueva.value) {
-                    setError(this, errConfirmar, '');
-                }
+            inConf.addEventListener('input', () => { if (inConf.value === inNueva.value) setErr(inConf, errConf, ''); });
+            inNueva.addEventListener('input', () => {
+                if (inNueva.value.length >= 6) setErr(inNueva, errNueva, '');
+                if (inConf.value && inConf.value !== inNueva.value) setErr(inConf, errConf, 'Las contraseñas no coinciden.');
+                else if (inConf.value === inNueva.value) setErr(inConf, errConf, '');
             });
+        }
 
-            inputNueva.addEventListener('input', function () {
-                if (this.value.length >= 6) {
-                    setError(this, errNueva, '');
-                }
-                // Re-validar confirmación si ya tiene algo escrito
-                if (inputConfirmar.value && inputConfirmar.value !== this.value) {
-                    setError(inputConfirmar, errConfirmar, 'Las contraseñas no coinciden.');
-                } else if (inputConfirmar.value === this.value) {
-                    setError(inputConfirmar, errConfirmar, '');
-                }
+        // Modal eliminar cuenta
+        const modal         = document.getElementById('modalEliminar');
+        const btnAbrir      = document.getElementById('btnAbrirEliminar');
+        const btnCancelar   = document.getElementById('btnCancelarEliminar');
+        const formEliminar  = document.getElementById('formEliminar');
+        const inTexto       = document.getElementById('confirmarTexto');
+        const inPass        = document.getElementById('confirmarPassword');
+        const errTexto      = document.getElementById('errEliminarTexto');
+        const errPass       = document.getElementById('errEliminarPass');
+
+        if (btnAbrir) btnAbrir.addEventListener('click', () => { modal.style.display = 'flex'; inTexto.focus(); });
+        if (btnCancelar) btnCancelar.addEventListener('click', () => { modal.style.display = 'none'; inTexto.value = ''; inPass.value = ''; setErr(inTexto, errTexto, ''); setErr(inPass, errPass, ''); });
+        modal.addEventListener('click', e => { if (e.target === modal) { modal.style.display = 'none'; } });
+
+        if (formEliminar) {
+            formEliminar.addEventListener('submit', function (e) {
+                let ok = true;
+                if (inTexto.value.trim().toLowerCase() !== 'eliminar') { setErr(inTexto, errTexto, 'Escribe exactamente "eliminar".'); ok = false; } else { setErr(inTexto, errTexto, ''); }
+                if (!inPass.value.trim()) { setErr(inPass, errPass, 'Introduce tu contraseña.'); ok = false; } else { setErr(inPass, errPass, ''); }
+                if (!ok) e.preventDefault();
             });
         }
     })();

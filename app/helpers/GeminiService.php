@@ -106,6 +106,79 @@ class GeminiService
         return ['ok' => true, 'respuesta' => trim($texto)];
     }
 
+    /**
+     * Envía una pregunta al chatbot con historial de conversación.
+     *
+     * @param string $pregunta     Pregunta actual del usuario
+     * @param string $systemPrompt Instrucciones del sistema (rol del bot)
+     * @param array  $historial    Array de ['role'=>'user'|'model', 'text'=>'...']
+     */
+    public function chatbotConHistorial(string $pregunta, string $systemPrompt, array $historial = []): array
+    {
+        if (!$this->apiKey) {
+            return ['ok' => false, 'error' => 'API key de Gemini no configurada'];
+        }
+
+        $contents = [];
+
+        // Primer turno: instrucciones del sistema como primer mensaje de usuario
+        $contents[] = [
+            'role'  => 'user',
+            'parts' => [['text' => $systemPrompt]],
+        ];
+        $contents[] = [
+            'role'  => 'model',
+            'parts' => [['text' => 'Entendido. Estoy listo para ayudarte.']],
+        ];
+
+        // Historial previo
+        foreach ($historial as $turno) {
+            $contents[] = [
+                'role'  => $turno['role'],
+                'parts' => [['text' => $turno['text']]],
+            ];
+        }
+
+        // Pregunta actual
+        $contents[] = [
+            'role'  => 'user',
+            'parts' => [['text' => $pregunta]],
+        ];
+
+        $body = json_encode([
+            'contents'         => $contents,
+            'generationConfig' => ['temperature' => 0.5, 'maxOutputTokens' => 1024],
+        ]);
+
+        $url = $this->endpoint . '?key=' . urlencode($this->apiKey);
+        $ctx = stream_context_create([
+            'http' => [
+                'method'        => 'POST',
+                'header'        => "Content-Type: application/json\r\nAccept: application/json\r\n",
+                'content'       => $body,
+                'timeout'       => 60,
+                'ignore_errors' => true,
+            ],
+        ]);
+
+        $response = @file_get_contents($url, false, $ctx);
+        if ($response === false) {
+            return ['ok' => false, 'error' => 'No se pudo conectar con Gemini'];
+        }
+
+        $data = json_decode($response, true);
+        if (isset($data['error'])) {
+            return ['ok' => false, 'error' => $data['error']['message'] ?? 'Error de la API'];
+        }
+
+        $texto = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        if (!$texto) {
+            return ['ok' => false, 'error' => 'La IA no generó respuesta'];
+        }
+
+        return ['ok' => true, 'respuesta' => trim($texto)];
+    }
+
     private function buildPrompt(string $titulo): string
     {
         return "Eres un asistente educativo experto. Analiza el contenido de este vídeo educativo titulado \"{$titulo}\" y genera apuntes estructurados, completos y útiles en español para estudiantes universitarios.

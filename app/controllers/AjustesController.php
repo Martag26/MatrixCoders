@@ -179,6 +179,52 @@ class AjustesController
         exit;
     }
 
+    /**
+     * Elimina la cuenta del usuario autenticado tras verificar su contraseña.
+     */
+    public function eliminarCuenta(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ' . BASE_URL . '/index.php?url=ajustes');
+            exit;
+        }
+
+        if (empty($_SESSION['usuario_id'])) {
+            header('Location: ' . BASE_URL . '/index.php?url=login');
+            exit;
+        }
+
+        $id        = (int)$_SESSION['usuario_id'];
+        $password  = $_POST['confirmar_password'] ?? '';
+        $confirmar = $_POST['confirmar_texto']    ?? '';
+
+        if (strtolower(trim($confirmar)) !== 'eliminar') {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Escribe "eliminar" para confirmar.'];
+            header('Location: ' . BASE_URL . '/index.php?url=ajustes');
+            exit;
+        }
+
+        $usuario = $this->obtenerUsuario($id);
+        if (!$usuario || !password_verify($password, $usuario['contraseña'])) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Contraseña incorrecta.'];
+            header('Location: ' . BASE_URL . '/index.php?url=ajustes');
+            exit;
+        }
+
+        // Borrar datos relacionados y la cuenta
+        $tablas = ['matricula', 'suscripcion', 'documento', 'notificacion', 'evento_usuario'];
+        foreach ($tablas as $tabla) {
+            try {
+                $this->db->prepare("DELETE FROM $tabla WHERE usuario_id = ?")->execute([$id]);
+            } catch (PDOException) {}
+        }
+        $this->db->prepare("DELETE FROM usuario WHERE id = ?")->execute([$id]);
+
+        session_destroy();
+        header('Location: ' . BASE_URL . '/index.php?url=login&eliminada=1');
+        exit;
+    }
+
     // ── Helpers privados ──────────────────────────────────────────────────────
 
     private function obtenerUsuario(int $id): array|false

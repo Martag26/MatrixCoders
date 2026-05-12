@@ -64,6 +64,15 @@ class Database
             "ALTER TABLE incidencia       ADD COLUMN cuerpo       TEXT    DEFAULT NULL",
             "ALTER TABLE incidencia       ADD COLUMN cerrado_en   TEXT    DEFAULT NULL",
             "ALTER TABLE incidencia       ADD COLUMN actualizado_en TEXT  DEFAULT (datetime('now'))",
+            "ALTER TABLE usuario          ADD COLUMN tipo_persona         TEXT DEFAULT 'natural'",
+            "ALTER TABLE usuario          ADD COLUMN areas_interes        TEXT DEFAULT NULL",
+            "ALTER TABLE usuario          ADD COLUMN tecnologias          TEXT DEFAULT NULL",
+            "ALTER TABLE usuario          ADD COLUMN github               TEXT DEFAULT NULL",
+            "ALTER TABLE usuario          ADD COLUMN objetivo             TEXT DEFAULT NULL",
+            "ALTER TABLE usuario          ADD COLUMN nivel_experiencia    TEXT DEFAULT NULL",
+            "ALTER TABLE usuario          ADD COLUMN frecuencia_estudio   TEXT DEFAULT NULL",
+            "ALTER TABLE usuario          ADD COLUMN ultimo_estudio       TEXT DEFAULT NULL",
+            "ALTER TABLE usuario          ADD COLUMN tipo_curso_preferido TEXT DEFAULT NULL",
         ] as $sql) {
             try { $conexion->exec($sql); } catch (\Exception $e) {}
         }

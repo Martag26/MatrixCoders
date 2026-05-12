@@ -107,22 +107,9 @@ $tipoBorders= ['pdf'=>'#fecaca','doc'=>'#bfdbfe','zip'=>'#fde68a','link'=>'#bbf7
                     foreach ($tipos as $k => $label):
                         $clsActiva = ($filtroTipo === $k) ? ('active' . ($k === 'actividad' ? ' active-actividad' : '')) : '';
                     ?>
-                    <a href="<?= BASE_URL ?>/index.php?url=repositorio&tipo=<?= $k ?><?= $filtroCurso ? '&curso='.$filtroCurso : '' ?>"
+                    <a href="<?= BASE_URL ?>/index.php?url=repositorio&tipo=<?= $k ?>"
                        class="repo-filter-btn <?= $clsActiva ?>"><?= $label ?></a>
                     <?php endforeach; ?>
-
-                    <?php if (!empty($cursosMatriculados)): ?>
-                    <span style="font-size:.8rem;font-weight:700;color:var(--mc-muted);margin-left:.5rem;white-space:nowrap">Curso:</span>
-                    <select class="repo-filter-select" onchange="location.href=this.value">
-                        <option value="<?= BASE_URL ?>/index.php?url=repositorio&tipo=<?= $filtroTipo ?>">Todos los cursos</option>
-                        <?php foreach ($cursosMatriculados as $c): ?>
-                        <option value="<?= BASE_URL ?>/index.php?url=repositorio&tipo=<?= $filtroTipo ?>&curso=<?= $c['id'] ?>"
-                                <?= $filtroCurso === (int)$c['id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($c['titulo']) ?>
-                        </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php endif; ?>
                 </div>
 
                 <?php if (empty($materiales) && empty($actividades)): ?>

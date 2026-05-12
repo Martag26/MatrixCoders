@@ -206,6 +206,40 @@
     flex-shrink: 0;
 }
 
+/* ── PLAN BADGE ── */
+.sidebar__plan {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    flex-shrink: 0;
+}
+
+.sidebar__plan-badge {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity .15s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar__plan-badge:hover { opacity: .85; }
+
+.sidebar__plan-badge svg { flex-shrink: 0; }
+
+.sidebar.sidebar--collapsed .sidebar__plan-label { display: none; }
+.sidebar.sidebar--collapsed .sidebar__plan-badge { padding: 8px; justify-content: center; }
+
+.plan-badge-free        { background: #f3f4f6; color: #6b7280; }
+.plan-badge-individual  { background: #fef3c7; color: #92400e; }
+.plan-badge-estudiantes { background: #eff6ff; color: #1d4ed8; }
+.plan-badge-empresas    { background: #f0fdf4; color: #166534; }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
     .sidebar { display: none; }

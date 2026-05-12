@@ -1,13 +1,13 @@
 <?php
 // Shared sidebar — incluido en todas las vistas del área privada
 if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '/../../helpers/PlanHelper.php';
 $currentUrl     = $_GET['url'] ?? 'dashboard';
 $isWorkspace   = in_array($currentUrl, ['dashboard'], true);
 $isNube             = in_array($currentUrl, ['nube', 'mis-documentos', 'documento'], true);
 $isCalendario  = in_array($currentUrl, ['calendario'], true);
 $isCuenta    = in_array($currentUrl, ['perfil', 'ajustes'], true);
 $isMisCursos    = in_array($currentUrl, ['mis-cursos'], true);
-$isRepositorio  = in_array($currentUrl, ['repositorio'], true);
 $isChatbot      = in_array($currentUrl, ['chatbot'], true);
 ?>
 <aside class="sidebar" id="mainSidebar">
@@ -74,17 +74,6 @@ $isChatbot      = in_array($currentUrl, ['chatbot'], true);
             </li>
 
             <li>
-                <a href="<?= BASE_URL ?>/index.php?url=repositorio"
-                   class="sidebar__link <?= $isRepositorio ? 'active' : '' ?>"
-                   title="Repositorio de recursos">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                    </svg>
-                    <span class="sidebar__label">Repositorio</span>
-                </a>
-            </li>
-
-            <li>
                 <a href="<?= BASE_URL ?>/index.php?url=chatbot"
                    class="sidebar__link <?= $isChatbot ? 'active' : '' ?>"
                    title="Oráculo — Asistente IA">
@@ -110,6 +99,19 @@ $isChatbot      = in_array($currentUrl, ['chatbot'], true);
 
         </ul>
     </nav>
+
+    <!-- ── Plan badge ── -->
+    <?php $planActivo = PlanHelper::planActivo(); ?>
+    <div class="sidebar__plan">
+        <a href="<?= BASE_URL ?>/index.php?url=suscripciones"
+           class="sidebar__plan-badge <?= PlanHelper::badgeClass($planActivo) ?>"
+           title="Ver planes de suscripción">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span class="sidebar__plan-label"><?= PlanHelper::etiqueta($planActivo) ?></span>
+        </a>
+    </div>
 
 </aside>
 

@@ -143,10 +143,34 @@ class PerfilController
             }
         }
 
+        // Campos académicos (opcionales)
+        $nivelesValidos    = ['principiante', 'intermedio', 'avanzado', ''];
+        $frecuenciasValidas = ['1-2_dias', '3-4_dias', 'diario', ''];
+        $estudiosValidos   = ['ESO', 'Bachillerato', 'FP', 'Universidad', ''];
+        $tiposCursoValidos = ['autodidacta', 'tutor', 'clases_vivo', 'videos', ''];
+
+        $areas_interes        = substr(trim($_POST['areas_interes']        ?? ''), 0, 255) ?: null;
+        $tecnologias          = substr(trim($_POST['tecnologias']          ?? ''), 0, 255) ?: null;
+        $github               = substr(trim($_POST['github']               ?? ''), 0, 255) ?: null;
+        $objetivo             = substr(trim($_POST['objetivo']             ?? ''), 0, 255) ?: null;
+        $nivel_experiencia    = in_array($_POST['nivel_experiencia']    ?? '', $nivelesValidos)    ? ($_POST['nivel_experiencia']    ?: null) : null;
+        $frecuencia_estudio   = in_array($_POST['frecuencia_estudio']   ?? '', $frecuenciasValidas) ? ($_POST['frecuencia_estudio']   ?: null) : null;
+        $ultimo_estudio       = in_array($_POST['ultimo_estudio']       ?? '', $estudiosValidos)    ? ($_POST['ultimo_estudio']       ?: null) : null;
+        $tipo_curso_preferido = in_array($_POST['tipo_curso_preferido'] ?? '', $tiposCursoValidos)  ? ($_POST['tipo_curso_preferido'] ?: null) : null;
+
         $stmt = $this->db->prepare(
-            "UPDATE usuario SET nombre = ?, bio = ?, foto = ? WHERE id = ?"
+            "UPDATE usuario SET nombre = ?, bio = ?, foto = ?,
+             areas_interes = ?, tecnologias = ?, github = ?, objetivo = ?,
+             nivel_experiencia = ?, frecuencia_estudio = ?, ultimo_estudio = ?,
+             tipo_curso_preferido = ?
+             WHERE id = ?"
         );
-        $stmt->execute([$nombre, $bio, $foto, $id]);
+        $stmt->execute([
+            $nombre, $bio, $foto,
+            $areas_interes, $tecnologias, $github, $objetivo,
+            $nivel_experiencia, $frecuencia_estudio, $ultimo_estudio, $tipo_curso_preferido,
+            $id,
+        ]);
 
         // Actualizar nombre en sesión
         $_SESSION['usuario_nombre'] = $nombre;
@@ -174,14 +198,14 @@ class PerfilController
         $passwordConfirmar = $_POST['password_confirmar'] ?? '';
         $usuario           = $this->obtenerUsuario($id);
 
-        if (!$usuario || empty($usuario['password']) || !password_verify($passwordActual, $usuario['password'])) {
+        if (!$usuario || empty($usuario['contraseña']) || !password_verify($passwordActual, $usuario['contraseña'])) {
             $_SESSION['flash'] = ['type' => 'error', 'message' => 'La contraseña actual no es correcta.'];
             header('Location: ' . BASE_URL . '/index.php?url=perfil');
             exit;
         }
 
-        if (mb_strlen($passwordNueva) < 8) {
-            $_SESSION['flash'] = ['type' => 'error', 'message' => 'La nueva contraseña debe tener al menos 8 caracteres.'];
+        if (mb_strlen($passwordNueva) < 6) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'La nueva contraseña debe tener al menos 6 caracteres.'];
             header('Location: ' . BASE_URL . '/index.php?url=perfil');
             exit;
         }
@@ -192,8 +216,8 @@ class PerfilController
             exit;
         }
 
-        $stmt = $this->db->prepare("UPDATE usuario SET password = ? WHERE id = ?");
-        $stmt->execute([password_hash($passwordNueva, PASSWORD_DEFAULT), $id]);
+        $stmt = $this->db->prepare("UPDATE usuario SET contraseña = ? WHERE id = ?");
+        $stmt->execute([password_hash($passwordNueva, PASSWORD_BCRYPT), $id]);
 
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Contraseña actualizada.'];
         header('Location: ' . BASE_URL . '/index.php?url=perfil');

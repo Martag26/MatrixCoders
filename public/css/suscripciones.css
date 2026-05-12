@@ -1,116 +1,291 @@
+/* ═══════════════════════════════════════════════════════════
+   suscripciones.css — Página de planes de MatrixCoders
+   ═══════════════════════════════════════════════════════════ */
+
 :root {
-    --mc-green: #6B8F71;
-    --mc-dark: #1B2336;
-    --mc-soft: #F8F8F8;
+    --mc-green:  #6B8F71;
+    --mc-dark:   #1B2336;
     --mc-border: #e5e7eb;
+    --mc-muted:  #6b7280;
 }
 
+/* ── Página ─────────────────────────────────────────────────── */
 .plans-page {
-    background: #fff;
-    padding: 44px 0 64px;
+    background: #f8fafc;
+    padding: 56px 0 72px;
     min-height: 70vh;
 }
 
 .plans-page .mc-container {
-    max-width: 1500px;
-    /* antes era 1200px como el resto */
+    max-width: 1120px;
     margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ── Hero ───────────────────────────────────────────────────── */
+.plans-hero {
+    text-align: center;
+    margin-bottom: 36px;
+}
+
+.plans-eyebrow {
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    color: var(--mc-green);
+    margin: 0 0 10px;
 }
 
 .plans-title {
-    text-align: center;
-    font-size: 40px;
+    font-size: 2.2rem;
     font-weight: 900;
-    color: #2b2b2b;
-    margin: 0 0 8px;
+    color: var(--mc-dark);
+    margin: 0 0 12px;
+    line-height: 1.2;
 }
 
 .plans-subtitle {
-    text-align: center;
-    color: #6b7280;
-    margin: 0 0 28px;
+    font-size: 1rem;
+    color: var(--mc-muted);
+    margin: 0;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
+/* ── Flash ──────────────────────────────────────────────────── */
+.plans-flash {
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: .9rem;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+.plans-flash-ok {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.plans-flash-info {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+/* ── Grid de planes ─────────────────────────────────────────── */
 .plans-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
     align-items: stretch;
+    margin-bottom: 48px;
 }
 
+/* ── Tarjeta ────────────────────────────────────────────────── */
 .plan-card {
-    border: 1px solid #eef2f7;
-    border-radius: 14px;
     background: #fff;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, .05);
-    overflow: hidden;
+    border: 1.5px solid var(--mc-border);
+    border-radius: 18px;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .05);
+    transition: box-shadow .2s, transform .2s;
+    position: relative;
 }
 
-.plan-head {
-    padding: 18px;
+.plan-card:hover {
+    box-shadow: 0 10px 32px rgba(0, 0, 0, .1);
+    transform: translateY(-2px);
+}
+
+.plan-card.plan-activo {
+    border-color: var(--mc-green);
+    box-shadow: 0 0 0 3px rgba(107, 143, 113, .15), 0 10px 32px rgba(107, 143, 113, .12);
+}
+
+/* Plan destacado (Estudiantes) */
+.plan-card-featured {
+    border-color: var(--mc-green);
+    box-shadow: 0 8px 28px rgba(107, 143, 113, .2);
+}
+
+.plan-featured-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--mc-green);
     color: #fff;
+    font-size: .68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    padding: 3px 10px;
+    border-radius: 99px;
 }
 
-.plan-head.pink {
-    background: #e7a0ab;
+/* ── Cabecera de plan ───────────────────────────────────────── */
+.plan-head {
+    padding: 22px 20px 18px;
 }
 
-.plan-head h3 {
+.plan-head-free        { background: #f9fafb; }
+.plan-head-individual  { background: #fffbeb; }
+.plan-head-estudiantes { background: #f0fdf4; }
+.plan-head-empresas    { background: #f0f9ff; }
+
+.plan-tag {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--mc-muted);
     margin: 0 0 6px;
+}
+
+.plan-name {
+    font-size: 1.1rem;
     font-weight: 900;
-    font-size: 16px;
+    color: var(--mc-dark);
+    margin: 0 0 12px;
 }
 
-.plan-head p {
+.plan-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.plan-price-amount {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--mc-dark);
+    line-height: 1;
+}
+
+.plan-price-period {
+    font-size: .82rem;
+    color: var(--mc-muted);
+    font-weight: 500;
+}
+
+.plan-desc {
+    font-size: .8rem;
+    color: var(--mc-muted);
     margin: 0;
-    font-size: 13px;
-    opacity: .95;
+    line-height: 1.5;
 }
 
+/* ── Lista de características ───────────────────────────────── */
 .plan-list {
     list-style: none;
     margin: 0;
-    padding: 16px 18px 6px;
-    display: grid;
+    padding: 16px 20px 8px;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
-    color: #111827;
-    font-size: 13px;
+    flex: 1;
 }
 
-.plan-list .ok {
-    color: #16a34a;
-    font-weight: 900;
+.plan-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .83rem;
+    line-height: 1.4;
 }
 
-.plan-list .x {
-    color: #ef4444;
-    font-weight: 900;
+.plan-item-ok  { color: var(--mc-dark); }
+.plan-item-no  { color: #9ca3af; }
+
+.pi-icon { flex-shrink: 0; }
+.plan-item-ok .pi-icon  { color: #16a34a; }
+.plan-item-no .pi-icon  { color: #d1d5db; }
+
+/* ── Acción ─────────────────────────────────────────────────── */
+.plan-action {
+    padding: 16px 20px 20px;
 }
 
 .btn-plan {
-    margin: 14px 18px 18px;
-    background: #111827;
-    color: #fff;
-    border-radius: 12px;
-    padding: 10px 12px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: .88rem;
     font-weight: 700;
     text-decoration: none;
-    text-align: center;
+    border: none;
+    cursor: pointer;
+    transition: background .15s, opacity .15s, transform .1s;
 }
 
-.btn-plan:hover {
-    opacity: .9;
+.btn-plan:hover { transform: translateY(-1px); }
+.btn-plan:active { transform: translateY(0); }
+
+.btn-plan-primary {
+    background: var(--mc-dark);
     color: #fff;
 }
+.btn-plan-primary:hover { background: #2d3a52; color: #fff; }
 
-.plan-activo {
-    border: 2px solid var(--mc-green);
+.btn-plan-featured {
+    background: var(--mc-green);
+    color: #fff;
+}
+.btn-plan-featured:hover { background: #4a6b50; color: #fff; }
+
+.btn-plan-outline {
+    background: transparent;
+    color: var(--mc-dark);
+    border: 1.5px solid var(--mc-border);
+}
+.btn-plan-outline:hover { background: #f9fafb; color: var(--mc-dark); }
+
+.btn-plan-current {
+    background: #f3f4f6;
+    color: var(--mc-muted);
+    cursor: default;
+    pointer-events: none;
 }
 
-@media (max-width: 992px) {
-    .plans-grid {
-        grid-template-columns: 1fr;
-    }
+/* ── FAQ ────────────────────────────────────────────────────── */
+.plans-faq {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    border-top: 1px solid var(--mc-border);
+    padding-top: 40px;
+}
+
+.plans-faq-item strong {
+    font-size: .88rem;
+    color: var(--mc-dark);
+    display: block;
+    margin-bottom: 6px;
+}
+
+.plans-faq-item p {
+    font-size: .82rem;
+    color: var(--mc-muted);
+    margin: 0;
+    line-height: 1.55;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+    .plans-grid { grid-template-columns: repeat(2, 1fr); }
+    .plans-faq  { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 700px) {
+    .plans-title { font-size: 1.6rem; }
+    .plans-grid  { grid-template-columns: 1fr; }
+    .plans-faq   { grid-template-columns: 1fr; }
 }
