@@ -109,6 +109,10 @@ class CrmController
             'ALTER TABLE resultado_examen ADD COLUMN intentos   INTEGER NOT NULL DEFAULT 0',
             "ALTER TABLE entrega_practica ADD COLUMN creado_en TEXT DEFAULT (datetime('now'))",
             "ALTER TABLE matricula ADD COLUMN creado_en TEXT DEFAULT (datetime('now'))",
+            'ALTER TABLE mensaje ADD COLUMN reply_to_id INTEGER DEFAULT NULL',
+            'ALTER TABLE mensaje ADD COLUMN hilo_id INTEGER DEFAULT NULL',
+            'ALTER TABLE incidencia ADD COLUMN cerrado_en TEXT DEFAULT NULL',
+            "ALTER TABLE incidencia ADD COLUMN actualizado_en TEXT NOT NULL DEFAULT (datetime('now'))",
         ] as $sql) {
             try { $this->db->exec($sql); } catch (Exception $e) { /* column already exists */ }
         }
@@ -268,6 +272,7 @@ class CrmController
             'get_resultados_curso'      => $this->apiGetResultadosCurso(),
             'get_entregas_alumno'       => $this->apiGetEntregasAlumno(),
             'revisar_practica'          => $this->apiRevisarPractica(),
+            'generar_certificado'       => $this->apiGenerarCertificado(),
             'crear_campana'             => $this->apiCrearCampana(),
             'editar_campana'        => $this->apiEditarCampana(),
             'eliminar_campana'      => $this->apiEliminarCampana(),
@@ -284,6 +289,13 @@ class CrmController
             'marcar_notif_leida'    => $this->apiMarcarNotifLeida(),
             'marcar_todas_leidas'   => $this->apiMarcarTodasLeidas(),
             'check_campana_conflicto' => $this->apiCheckCampanaConflicto(),
+            'mensajes_lista'         => $this->apiMensajesLista(),
+            'mensajes_enviar'        => $this->apiMensajesEnviar(),
+            'mensajes_detalle'       => $this->apiMensajesDetalle(),
+            'mensajes_no_leidos'     => $this->apiMensajesNoLeidos(),
+            'usuarios_destinatarios' => $this->apiUsuariosDestinatarios(),
+            'incidencias_lista'      => $this->apiIncidenciasLista(),
+            'incidencia_detalle'     => $this->apiIncidenciaDetalle(),
             default                 => ['ok' => false, 'error' => 'Acción no reconocida'],
         };
         } catch (Throwable $e) {
@@ -1433,16 +1445,17 @@ class CrmController
         $urlPrac     = BASE_URL . '/index.php?url=examen-practico&curso=' . $cursoId;
         $urlComplet  = BASE_URL . '/index.php?url=curso-completado&curso=' . $cursoId;
 
-        // Check if ALL tasks for this student/course are now reviewed
-        $stmtTotal = $this->db->prepare("SELECT COUNT(*) FROM tarea_practica WHERE curso_id=?");
-        $stmtTotal->execute([$cursoId]);
-        $totalTareas = (int)$stmtTotal->fetchColumn();
+        // Check if ALL submitted tasks for this student are now reviewed
+        $stmtEntregadas = $this->db->prepare("SELECT COUNT(*) FROM entrega_practica WHERE alumno_id=? AND curso_id=?");
+        $stmtEntregadas->execute([$alumnoId, $cursoId]);
+        $totalEntregadas = (int)$stmtEntregadas->fetchColumn();
 
         $stmtRev = $this->db->prepare("SELECT COUNT(*) FROM entrega_practica WHERE alumno_id=? AND curso_id=? AND revisado=1");
         $stmtRev->execute([$alumnoId, $cursoId]);
         $revisadas = (int)$stmtRev->fetchColumn();
 
-        $todasRevisadas = ($totalTareas > 0 && $revisadas >= $totalTareas);
+        // Se completa cuando todas las tareas entregadas están revisadas (no requiere que se entreguen las 3 si el profesor las acepta)
+        $todasRevisadas = ($totalEntregadas > 0 && $revisadas >= $totalEntregadas);
 
         if ($todasRevisadas) {
             // Calculate average grade
@@ -1509,6 +1522,42 @@ class CrmController
 
         $this->logActividad("Práctica revisada (entrega #$entregaId)", 'info');
         return ['ok' => true, 'mensaje' => 'Entrega calificada correctamente', 'todas_revisadas' => $todasRevisadas];
+    }
+
+    private function apiGenerarCertificado(): array
+    {
+        if (!$this->esAdmin && !$this->esSuperAdmin) return ['ok' => false, 'error' => 'Sin permisos'];
+        $d        = $this->input();
+        $alumnoId = (int)($d['alumno_id'] ?? 0);
+        $cursoId  = (int)($d['curso_id']  ?? 0);
+        if (!$alumnoId || !$cursoId) return ['ok' => false, 'error' => 'Datos incompletos'];
+
+        $stmtC = $this->db->prepare("SELECT titulo FROM curso WHERE id=?");
+        $stmtC->execute([$cursoId]);
+        $tituloCurso = $stmtC->fetchColumn() ?: 'el curso';
+
+        $codigo = strtoupper(substr(md5($alumnoId . '-' . $cursoId . '-manual-' . microtime()), 0, 12));
+        $this->db->prepare("INSERT OR IGNORE INTO certificado (usuario_id, curso_id, emitido_en, codigo) VALUES (?,?,datetime('now'),?)")
+                 ->execute([$alumnoId, $cursoId, $codigo]);
+        $this->db->prepare("UPDATE matricula SET estado='completado' WHERE usuario_id=? AND curso_id=?")
+                 ->execute([$alumnoId, $cursoId]);
+
+        try {
+            $chk = $this->db->prepare("SELECT COUNT(*) FROM notificacion WHERE usuario_id=? AND tipo='curso_completado' AND ref_id=?");
+            $chk->execute([$alumnoId, $cursoId]);
+            if (!(int)$chk->fetchColumn()) {
+                $this->db->prepare("INSERT INTO notificacion (usuario_id,tipo,titulo,cuerpo,url_accion,ref_id) VALUES(?,?,?,?,?,?)")
+                         ->execute([$alumnoId, 'curso_completado',
+                             '🎓 ¡Has completado el curso!',
+                             "¡Enhorabuena! Has superado el curso \"$tituloCurso\". Tu certificado ya está disponible.",
+                             BASE_URL . '/index.php?url=curso-completado&curso=' . $cursoId,
+                             $cursoId,
+                         ]);
+            }
+        } catch (\Exception $e) {}
+
+        $this->logActividad("Certificado generado manualmente para alumno #$alumnoId en curso #$cursoId", 'info');
+        return ['ok' => true, 'mensaje' => 'Certificado generado correctamente'];
     }
 
     private function apiCrearCampana(): array
@@ -1653,24 +1702,46 @@ class CrmController
 
     private function apiResponderIncidencia(): array
     {
-        $d    = $this->input();
-        $id   = (int)($d['id'] ?? 0);
-        $msg  = trim($d['mensaje'] ?? '');
-        if (!$id || !$msg) return ['ok' => false, 'error' => 'Datos incompletos'];
-        $this->db->prepare("INSERT INTO incidencia_respuesta (incidencia_id,usuario_id,mensaje) VALUES(?,?,?)")
-                 ->execute([$id,(int)$this->usuario['id'],$msg]);
+        $d            = $this->input();
+        $incidencia_id = (int)($d['incidencia_id'] ?? 0);
+        $msg          = trim($d['mensaje'] ?? '');
+        if (!$incidencia_id || !$msg) return ['ok' => false, 'error' => 'Datos incompletos'];
+        $this->db->prepare("INSERT INTO incidencia_respuesta (incidencia_id,usuario_id,mensaje,creado_en) VALUES(?,?,?,datetime('now'))")
+                 ->execute([$incidencia_id,(int)$this->usuario['id'],$msg]);
         return ['ok' => true, 'mensaje' => 'Respuesta enviada'];
     }
 
     private function apiEstadoIncidencia(): array
     {
         if (!$this->esAdmin && !$this->esModerador) return ['ok' => false, 'error' => 'Sin permisos'];
-        $d      = $this->input();
-        $id     = (int)($d['id'] ?? 0);
-        $estado = $d['estado'] ?? 'abierta';
-        if (!in_array($estado, ['abierta','en_proceso','cerrada'], true)) return ['ok' => false, 'error' => 'Estado inválido'];
-        $this->db->prepare("UPDATE incidencia SET estado=? WHERE id=?")->execute([$estado,$id]);
-        return ['ok' => true, 'mensaje' => "Estado actualizado a '$estado'"];
+        $d         = $this->input();
+        $id        = (int)($d['id'] ?? 0);
+        $estado    = $d['estado'] ?? null;
+        $asignado  = isset($d['asignado_a']) ? (int)$d['asignado_a'] : null;
+        
+        if (!$id) return ['ok' => false, 'error' => 'ID incidencia requerido'];
+        
+        if (!$estado && $asignado === null) return ['ok' => false, 'error' => 'Debe especificar estado o asignado_a'];
+        if ($estado && !in_array($estado, ['abierta','en_proceso','cerrada'], true)) return ['ok' => false, 'error' => 'Estado inválido'];
+        
+        $updates = [];
+        $params  = ['id' => $id];
+        
+        if ($estado) {
+            $updates[] = 'estado=:estado';
+            $params['estado'] = $estado;
+        }
+        
+        if ($asignado !== null) {
+            $updates[] = 'asignado_a=:asignado_a';
+            $params['asignado_a'] = $asignado;
+        }
+        
+        $updates[] = 'actualizado_en=datetime("now")';
+        $sql = "UPDATE incidencia SET " . implode(',', $updates) . " WHERE id=:id";
+        $this->db->prepare($sql)->execute($params);
+        
+        return ['ok' => true, 'mensaje' => 'Incidencia actualizada'];
     }
 
     private function apiActualizarPerfil(): array
@@ -2020,5 +2091,190 @@ class CrmController
             $ins->execute([$uid, 'crm', $titulo, $cuerpo, $urlAccion, $campanaId]);
         }
         return count($usuarios);
+    }
+
+    private function apiMensajesLista(): array
+    {
+        $input = $this->input();
+        $tab = $input['tab'] ?? $_GET['tab'] ?? 'recibidos';
+        $uid = $this->usuario['id'];
+
+        if ($tab === 'recibidos') {
+            $where = 'm.receptor_id = :uid';
+        } elseif ($tab === 'enviados') {
+            $where = 'm.emisor_id = :uid';
+        } else {
+            return ['ok' => false, 'error' => 'Tab inválido'];
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT m.id, m.asunto, SUBSTR(m.cuerpo, 1, 120) AS resumen,
+                   m.leido, m.enviado_en, m.reply_to_id,
+                   m.emisor_id, e.nombre AS nombre_emisor, e.rol AS rol_emisor,
+                   m.receptor_id, r.nombre AS nombre_receptor
+            FROM mensaje m
+            JOIN usuario e ON e.id = m.emisor_id
+            JOIN usuario r ON r.id = m.receptor_id
+            WHERE $where
+            ORDER BY m.enviado_en DESC LIMIT 60
+        ");
+        $stmt->execute(['uid' => $uid]);
+        $mensajes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return ['ok' => true, 'mensajes' => $mensajes];
+    }
+
+    private function apiMensajesEnviar(): array
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') return ['ok' => false, 'error' => 'Método no permitido'];
+        $d = $this->input();
+        $receptor_id = (int)($d['receptor_id'] ?? 0);
+        $asunto = trim($d['asunto'] ?? '');
+        $cuerpo = trim($d['cuerpo'] ?? '');
+        $uid = $this->usuario['id'];
+
+        if (!$receptor_id || !$cuerpo) return ['ok' => false, 'error' => 'Datos inválidos'];
+        if (strlen($asunto) > 150) return ['ok' => false, 'error' => 'Asunto demasiado largo'];
+
+        // Validar receptor existe y no es el mismo
+        $stmt = $this->db->prepare("SELECT id FROM usuario WHERE id = :rid AND id != :uid");
+        $stmt->execute(['rid' => $receptor_id, 'uid' => $uid]);
+        if (!$stmt->fetch()) return ['ok' => false, 'error' => 'Receptor inválido'];
+
+        $stmt = $this->db->prepare("
+            INSERT INTO mensaje (emisor_id, receptor_id, asunto, cuerpo)
+            VALUES (:emisor_id, :receptor_id, :asunto, :cuerpo)
+        ");
+        $stmt->execute([
+            'emisor_id' => $uid,
+            'receptor_id' => $receptor_id,
+            'asunto' => $asunto,
+            'cuerpo' => $cuerpo
+        ]);
+
+        $nuevo_id = $this->db->lastInsertId();
+        return ['ok' => true, 'id' => $nuevo_id];
+    }
+
+    private function apiMensajesDetalle(): array
+    {
+        $input = $this->input();
+        $id = (int)($input['id'] ?? $_GET['id'] ?? 0);
+        $uid = $this->usuario['id'];
+
+        $stmt = $this->db->prepare("
+            SELECT m.*, e.nombre AS nombre_emisor, e.rol AS rol_emisor,
+                   r.nombre AS nombre_receptor
+            FROM mensaje m
+            JOIN usuario e ON e.id = m.emisor_id
+            JOIN usuario r ON r.id = m.receptor_id
+            WHERE m.id = :id
+        ");
+        $stmt->execute(['id' => $id]);
+        $mensaje = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$mensaje || ($mensaje['emisor_id'] != $uid && $mensaje['receptor_id'] != $uid)) {
+            return ['ok' => false, 'error' => 'No autorizado', 'http_code' => 403];
+        }
+
+        if ($mensaje['receptor_id'] == $uid && $mensaje['leido'] == 0) {
+            $stmt = $this->db->prepare("UPDATE mensaje SET leido = 1 WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+        }
+
+        return ['ok' => true, 'mensaje' => $mensaje];
+    }
+
+    private function apiMensajesNoLeidos(): array
+    {
+        $uid = $this->usuario['id'];
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM mensaje WHERE receptor_id = :uid AND leido = 0");
+        $stmt->execute(['uid' => $uid]);
+        $count = $stmt->fetchColumn();
+        return ['ok' => true, 'count' => (int)$count];
+    }
+
+    private function apiUsuariosDestinatarios(): array
+    {
+        $uid = $this->usuario['id'];
+        $stmt = $this->db->prepare("
+            SELECT id, nombre, email, rol FROM usuario
+            WHERE id != :uid ORDER BY nombre
+        ");
+        $stmt->execute(['uid' => $uid]);
+        $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return ['ok' => true, 'usuarios' => $usuarios];
+    }
+
+    private function apiIncidenciasLista(): array
+    {
+        $input = $this->input();
+        $estado    = $input['estado']    ?? $_GET['estado']    ?? 'todas';
+        $prioridad = $input['prioridad'] ?? $_GET['prioridad'] ?? '';
+
+        $where = '';
+        $params = [];
+
+        if ($estado !== 'todas') {
+            $where .= ' AND i.estado = :estado';
+            $params['estado'] = $estado;
+        }
+
+        if ($prioridad !== '') {
+            $where .= ' AND i.prioridad = :prioridad';
+            $params['prioridad'] = $prioridad;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT i.id, i.asunto, i.estado, i.prioridad, i.creado_en,
+                   u.nombre AS nombre_usuario, u.email AS email_usuario,
+                   a.nombre AS nombre_asignado,
+                   (SELECT COUNT(*) FROM incidencia_respuesta r WHERE r.incidencia_id = i.id)
+                     AS num_respuestas
+            FROM incidencia i
+            JOIN usuario u ON u.id = i.usuario_id
+            LEFT JOIN usuario a ON a.id = i.asignado_a
+            WHERE 1=1 $where
+            ORDER BY
+              CASE i.prioridad WHEN 'urgente' THEN 1 WHEN 'alta' THEN 2
+                WHEN 'normal' THEN 3 ELSE 4 END,
+              i.creado_en DESC
+            LIMIT 100
+        ");
+        $stmt->execute($params);
+        $incidencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return ['ok' => true, 'incidencias' => $incidencias];
+    }
+
+    private function apiIncidenciaDetalle(): array
+    {
+        $input = $this->input();
+        $id = (int)($_GET['id'] ?? $input['id'] ?? 0);
+
+        $stmt = $this->db->prepare("
+            SELECT i.*, u.nombre AS nombre_usuario, u.email AS email_usuario,
+                   a.nombre AS nombre_asignado
+            FROM incidencia i
+            JOIN usuario u ON u.id = i.usuario_id
+            LEFT JOIN usuario a ON a.id = i.asignado_a
+            WHERE i.id = :id
+        ");
+        $stmt->execute(['id' => $id]);
+        $inc = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$inc) return ['ok' => false, 'error' => 'Incidencia no encontrada'];
+
+        $stmtResp = $this->db->prepare("
+            SELECT r.id, r.mensaje, r.creado_en, u.nombre AS nombre_autor, u.rol AS rol_autor
+            FROM incidencia_respuesta r
+            JOIN usuario u ON u.id = r.usuario_id
+            WHERE r.incidencia_id = :id
+            ORDER BY r.creado_en ASC
+        ");
+        $stmtResp->execute(['id' => $id]);
+        $resps = $stmtResp->fetchAll(PDO::FETCH_ASSOC);
+
+        return ['ok' => true, 'incidencia' => $inc, 'respuestas' => $resps];
     }
 }

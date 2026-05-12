@@ -1,303 +1,910 @@
-<?php /* Módulo de Comunicación — mensajes de curso + incidencias */ ?>
+<?php
 
-<div class="crm-page-header">
-  <div>
+/**
+ * Página de Gestión de Incidencias — CRM
+ * 
+ * Interfaz moderna para visualizar, filtrar y responder incidencias de soporte.
+ */
+
+?>
+
+<style>
+  .inc-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .inc-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .inc-header-title h1 {
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  .inc-badge-count {
+    background: #fca5a5;
+    color: #7f1d1d;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .inc-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .inc-filter-btn {
+    padding: 8px 16px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all .15s;
+    color: #6b7280;
+  }
+
+  .inc-filter-btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+  }
+
+  .inc-filter-btn:hover {
+    border-color: #d1d5db;
+  }
+
+  .inc-filter-btn.active:hover {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, .3);
+  }
+
+  .inc-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 16px;
+  }
+
+  @media (max-width: 1024px) {
+    .inc-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .inc-lista-panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .inc-lista-header {
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 700;
+    font-size: 14px;
+    color: #1f2937;
+  }
+
+  .inc-lista-items {
+    display: flex;
+    flex-direction: column;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .inc-lista-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  .inc-lista-item:hover {
+    background: #f9fafb;
+  }
+
+  .inc-lista-item.selected {
+    background: #eff6ff;
+    border-left: 3px solid #3b82f6;
+    padding-left: 13px;
+  }
+
+  .inc-item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+
+  .inc-item-chips {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .inc-chip {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+
+  .inc-chip.urgente { background: #fee2e2; color: #7f1d1d; }
+  .inc-chip.alta { background: #fed7aa; color: #92400e; }
+  .inc-chip.normal { background: #dbeafe; color: #0c4a6e; }
+  .inc-chip.baja { background: #e5e7eb; color: #374151; }
+
+  .inc-chip.abierta { background: #dcfce7; color: #166534; }
+  .inc-chip.en_proceso { background: #fef3c7; color: #92400e; }
+  .inc-chip.cerrada { background: #f3f4f6; color: #6b7280; }
+
+  .inc-item-asunto {
+    font-weight: 600;
+    font-size: 13px;
+    color: #1f2937;
+    margin-bottom: 2px;
+  }
+
+  .inc-item-user {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+
+  .inc-item-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  .inc-detalle-panel {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0;
+    display: none;
+  }
+
+  .inc-detalle-panel.active {
+    display: block;
+  }
+
+  .inc-detalle-header {
+    padding: 18px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .inc-detalle-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1f2937;
+    margin: 0 0 12px;
+  }
+
+  .inc-detalle-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .inc-meta-item {
+    background: #f9fafb;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .inc-meta-label {
+    color: #6b7280;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+
+  .inc-meta-value {
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  .inc-actions {
+    padding: 14px 18px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 8px;
+  }
+
+  .inc-detalle-content {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 18px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .inc-respuesta {
+    margin-bottom: 14px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .inc-respuesta-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .inc-respuesta-body {
+    flex: 1;
+  }
+
+  .inc-respuesta-header {
+    font-weight: 700;
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .inc-respuesta-role {
+    font-size: 10px;
+    background: #f0fdf4;
+    color: #166534;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 4px;
+    font-weight: 700;
+  }
+
+  .inc-respuesta-meta {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-bottom: 6px;
+  }
+
+  .inc-respuesta-text {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #f9fafb;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .inc-responder-form {
+    padding: 18px;
+    background: #f9fafb;
+  }
+
+  .inc-responder-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .inc-responder-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 10px;
+    color: #1f2937;
+  }
+
+  .inc-responder-textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, .1);
+  }
+
+  .inc-responder-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .inc-empty {
+    padding: 60px 30px;
+    text-align: center;
+    color: #9ca3af;
+  }
+
+  .inc-empty svg {
+    width: 48px;
+    height: 48px;
+    opacity: .5;
+    margin-bottom: 12px;
+  }
+
+  .inc-empty h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  .inc-empty p {
+    font-size: 13px;
+    margin: 4px 0 0;
+  }
+</style>
+
+<!-- Cabecera + tabs globales -->
+<div class="inc-page-header">
+  <div class="inc-header-title">
     <h1>Comunicación</h1>
-    <p>Gestiona mensajes entre alumnos e instructores, e incidencias de soporte.</p>
+    <span class="inc-badge-count" id="inc-badge-count" style="display:none">
+      <span id="inc-badge-num">0</span> abiertas
+    </span>
   </div>
-  <div class="crm-page-actions">
-    <button class="crm-btn crm-btn-primary" onclick="openModal('modalIncidencia')">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
-      Nueva incidencia
+</div>
+
+<div style="display:flex;gap:4px;background:#f1f5f9;border-radius:12px;padding:4px;margin-bottom:20px;max-width:360px">
+  <button id="ctab-btn-inc" onclick="comTab('incidencias')"
+    style="flex:1;padding:8px 14px;border:none;border-radius:9px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;background:#fff;color:#1B2336;box-shadow:0 1px 5px rgba(0,0,0,.1)">
+    Incidencias
+  </button>
+  <button id="ctab-btn-msg" onclick="comTab('mensajes')"
+    style="flex:1;padding:8px 14px;border:none;border-radius:9px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;background:transparent;color:#6b7280">
+    Mensajes
+  </button>
+</div>
+
+<!-- ══════════ TAB INCIDENCIAS ══════════ -->
+<div id="ctab-incidencias">
+
+<!-- Toolbar de filtros -->
+<div class="inc-toolbar">
+  <button class="inc-filter-btn active" onclick="incCambiarEstado('todas')">Todas</button>
+  <button class="inc-filter-btn" onclick="incCambiarEstado('abierta')">Abiertas</button>
+  <button class="inc-filter-btn" onclick="incCambiarEstado('en_proceso')">En proceso</button>
+  <button class="inc-filter-btn" onclick="incCambiarEstado('cerrada')">Cerradas</button>
+  
+  <div style="width: 1px; height: 20px; background: #e5e7eb; margin: 0 6px"></div>
+  
+  <select id="inc-prioridad-select" class="crm-filter-select" style="padding: 8px 12px; font-size: 13px" onchange="incCambiarPrioridad(this.value)">
+    <option value="">Todas las prioridades</option>
+    <option value="baja">Baja</option>
+    <option value="normal">Normal</option>
+    <option value="alta">Alta</option>
+    <option value="urgente">Urgente</option>
+  </select>
+</div>
+
+<!-- Layout: Lista + Detalle -->
+<div class="inc-layout">
+  
+  <!-- LISTA (izquierda) -->
+  <div class="inc-lista-panel">
+    <div class="inc-lista-header">Incidencias</div>
+    <div class="inc-lista-items" id="inc-lista">
+      <div class="inc-empty">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <p>Cargando incidencias…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETALLE (derecha) -->
+  <div class="inc-detalle-panel" id="inc-detalle">
+    
+    <!-- Header -->
+    <div class="inc-detalle-header">
+      <p class="inc-detalle-title" id="inc-det-asunto">—</p>
+      <div class="inc-detalle-meta">
+        <div class="inc-meta-item">
+          <div class="inc-meta-label">Estado</div>
+          <div class="inc-meta-value" id="inc-det-estado">—</div>
+        </div>
+        <div class="inc-meta-item">
+          <div class="inc-meta-label">Prioridad</div>
+          <div class="inc-meta-value" id="inc-det-prioridad">—</div>
+        </div>
+        <div class="inc-meta-item">
+          <div class="inc-meta-label">Usuario</div>
+          <div class="inc-meta-value" id="inc-det-usuario">—</div>
+        </div>
+        <div class="inc-meta-item">
+          <div class="inc-meta-label">Asignado a</div>
+          <div class="inc-meta-value" id="inc-det-asignado">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="inc-actions">
+      <button class="crm-btn crm-btn-secondary crm-btn-sm" onclick="incAsignarme()" id="inc-btn-asignarme">
+        Asignarme
+      </button>
+      <select id="inc-estado-select" class="crm-filter-select" style="padding: 6px 10px; font-size: 12px" onchange="incCambiarEstadoDetalle(this.value)">
+        <option value="">Cambiar estado…</option>
+        <option value="abierta">Abierta</option>
+        <option value="en_proceso">En proceso</option>
+        <option value="cerrada">Cerrada</option>
+      </select>
+    </div>
+
+    <!-- Respuestas -->
+    <div class="inc-detalle-content" id="inc-det-respuestas">
+      <p style="color: #9ca3af; text-align: center; padding: 20px 0">Cargando respuestas…</p>
+    </div>
+
+    <!-- Formulario responder -->
+    <div class="inc-responder-form">
+      <label class="inc-responder-label">Añade una respuesta</label>
+      <textarea class="inc-responder-textarea" id="inc-respuesta-text" placeholder="Escribe tu respuesta…"></textarea>
+      <div class="inc-responder-buttons">
+        <button class="crm-btn crm-btn-primary crm-btn-sm" onclick="incResponder()">Enviar respuesta</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+</div><!-- /ctab-incidencias -->
+
+<!-- ══════════ TAB MENSAJES ══════════ -->
+<div id="ctab-mensajes" style="display:none">
+
+  <!-- Compose area (se rellena dinámicamente) -->
+  <div id="msg-compose-panel"></div>
+
+  <!-- Subtabs + botón nuevo -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;gap:0;border-bottom:2px solid #e5e7eb">
+      <button id="msg-stab-recibidos" onclick="msgCargarLista('recibidos')"
+        style="background:none;border:none;padding:8px 18px;font-family:inherit;font-size:.86rem;font-weight:800;color:#1B2336;cursor:pointer;border-bottom:2px solid #3b82f6;margin-bottom:-2px">
+        Recibidos
+      </button>
+      <button id="msg-stab-enviados" onclick="msgCargarLista('enviados')"
+        style="background:none;border:none;padding:8px 18px;font-family:inherit;font-size:.86rem;font-weight:600;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px">
+        Enviados
+      </button>
+    </div>
+    <button onclick="msgMostrarCompose()"
+      style="display:inline-flex;align-items:center;gap:6px;font-size:.84rem;font-weight:700;background:#1B2336;color:#fff;border:none;border-radius:10px;padding:9px 18px;cursor:pointer;font-family:inherit">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo mensaje
     </button>
   </div>
-</div>
 
-<!-- Tabs -->
-<div class="crm-tabs">
-  <button class="crm-tab <?= $tab==='mensajes'?'active':'' ?>" onclick="cambiarTab('mensajes')">
-    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-    Mensajes de curso
-    <?php if (count($cursosConMensajes)): ?>
-      <span class="crm-tab-count"><?= count($cursosConMensajes) ?></span>
-    <?php endif; ?>
-  </button>
-  <button class="crm-tab <?= $tab==='incidencias'?'active':'' ?>" onclick="cambiarTab('incidencias')">
-    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-    Incidencias
-    <?php
-      $abiertas = array_filter($incidencias, fn($i) => $i['estado'] !== 'cerrada');
-      if (count($abiertas)):
-    ?>
-      <span class="crm-tab-count"><?= count($abiertas) ?></span>
-    <?php endif; ?>
-  </button>
-</div>
-
-<!-- Tab: Mensajes de curso -->
-<div class="crm-tab-panel <?= $tab==='mensajes'?'active':'' ?>" id="panelMensajes">
-  <div class="crm-comm-layout">
-
-    <!-- Sidebar: course list -->
-    <div class="crm-comm-sidebar">
-      <div class="crm-comm-sidebar-header">
-        <h3>Conversaciones por curso</h3>
-        <div class="crm-search-wrap" style="max-width:100%">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" placeholder="Filtrar curso…" class="crm-search-input" id="searchCursoMsg" style="font-size:12.5px">
-        </div>
-      </div>
-      <div class="crm-comm-list" id="cursosCommList">
-        <?php if (empty($cursosConMensajes)): ?>
-          <div style="padding:30px 16px;text-align:center;color:var(--crm-muted);font-size:13px">
-            Sin mensajes de curso aún.
-          </div>
-        <?php else: ?>
-          <?php foreach ($cursosConMensajes as $cm): ?>
-          <div class="crm-comm-item <?= $cursoFiltro==$cm['id']?'active':'' ?>"
-               onclick="seleccionarCurso(<?= $cm['id'] ?>)"
-               data-nombre="<?= htmlspecialchars(strtolower($cm['titulo'])) ?>">
-            <div class="crm-user-row-avatar" style="width:36px;height:36px;font-size:13px;flex-shrink:0">
-              <?= mb_strtoupper(mb_substr($cm['titulo'],0,1,'UTF-8'), 'UTF-8') ?>
-            </div>
-            <div class="crm-comm-item-info">
-              <div class="crm-comm-item-name"><?= htmlspecialchars(mb_strimwidth($cm['titulo'],0,30,'…')) ?></div>
-              <div class="crm-comm-item-preview"><?= $cm['total'] ?> mensaje(s)</div>
-            </div>
-            <div class="crm-comm-item-meta">
-              <?php if ($cm['no_leidos'] > 0): ?>
-                <div class="crm-unread-dot" title="<?= $cm['no_leidos'] ?> sin leer"></div>
-              <?php endif; ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-        <?php endif; ?>
+  <!-- Lista + Detalle -->
+  <div style="display:grid;grid-template-columns:1fr 420px;gap:14px">
+    <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden;max-height:580px;overflow-y:auto">
+      <div id="msg-lista">
+        <div style="padding:40px;text-align:center;color:#9ca3af;font-size:.84rem">Cargando…</div>
       </div>
     </div>
-
-    <!-- Chat area -->
-    <div class="crm-chat-area">
-      <?php if (!$cursoFiltro): ?>
-        <div class="crm-chat-empty">
-          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-          <h3 style="font-size:15px">Selecciona un curso</h3>
-          <p style="font-size:13px">Elige un curso de la lista para ver sus mensajes.</p>
-        </div>
-      <?php else: ?>
-        <div class="crm-chat-header">
-          <div class="crm-user-row-avatar" style="width:36px;height:36px">
-            <?= mb_strtoupper(mb_substr($cursoSeleccionado['titulo']??'C',0,1,'UTF-8'), 'UTF-8') ?>
-          </div>
-          <div class="crm-chat-header-info">
-            <div class="crm-chat-header-name"><?= htmlspecialchars($cursoSeleccionado['titulo'] ?? '') ?></div>
-            <div class="crm-chat-header-sub">Conversación del curso · <?= count($mensajes) ?> mensajes</div>
-          </div>
-          <div style="margin-left:auto">
-            <span class="crm-badge activo">Activo</span>
-          </div>
-        </div>
-
-        <div class="crm-chat-messages" id="chatMessages">
-          <?php if (empty($mensajes)): ?>
-            <div class="crm-chat-empty">
-              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-              <p>Sin mensajes en este curso todavía.</p>
-            </div>
-          <?php else: ?>
-            <?php foreach ($mensajes as $m):
-              $esMio = $m['remitente_id'] == $usuario['id'];
-            ?>
-            <div class="crm-msg <?= $esMio?'mine':'theirs' ?>">
-              <div class="crm-msg-bubble"><?= nl2br(htmlspecialchars($m['cuerpo'])) ?></div>
-              <div class="crm-msg-meta">
-                <?= $esMio?'Tú':htmlspecialchars($m['remitente_nombre']) ?> ·
-                <?= date('d/m H:i', strtotime($m['creado_en'])) ?>
-              </div>
-            </div>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </div>
-
-        <div class="crm-chat-input-area">
-          <textarea class="crm-chat-input" id="chatInput" placeholder="Escribe un mensaje…" rows="1" data-autoresize></textarea>
-          <button class="crm-btn crm-btn-primary" onclick="enviarMensaje()">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-          </button>
-        </div>
-      <?php endif; ?>
-    </div>
-
+    <div id="msg-detalle-area" style="background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden;display:none;max-height:580px;overflow-y:auto"></div>
   </div>
-</div>
 
-<!-- Tab: Incidencias -->
-<div class="crm-tab-panel <?= $tab==='incidencias'?'active':'' ?>" id="panelIncidencias">
-  <?php if (empty($incidencias)): ?>
-  <div class="crm-empty">
-    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    <h3>Sin incidencias</h3>
-    <p>No hay tickets abiertos. ¡Todo en orden!</p>
-  </div>
-  <?php else: ?>
-  <div class="crm-table-wrap">
-    <table class="crm-table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Asunto</th>
-          <th>Usuario</th>
-          <th>Prioridad</th>
-          <th>Estado</th>
-          <th>Asignado a</th>
-          <th>Fecha</th>
-          <th style="text-align:right">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($incidencias as $inc): ?>
-        <tr>
-          <td style="font-size:12px;color:var(--crm-muted)">#<?= $inc['id'] ?></td>
-          <td style="font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-            <?= htmlspecialchars($inc['asunto']) ?>
-          </td>
-          <td style="font-size:12.5px"><?= htmlspecialchars($inc['usuario_nombre']) ?></td>
-          <td><span class="crm-badge <?= $inc['prioridad'] ?>"><?= ucfirst($inc['prioridad']) ?></span></td>
-          <td><span class="crm-badge <?= $inc['estado'] ?>"><?= ucfirst(str_replace('_',' ',$inc['estado'])) ?></span></td>
-          <td style="font-size:12.5px"><?= $inc['asignado_nombre'] ? htmlspecialchars($inc['asignado_nombre']) : '<span style="color:var(--crm-muted)">—</span>' ?></td>
-          <td style="font-size:12px;color:var(--crm-muted)"><?= date('d/m/Y H:i', strtotime($inc['creado_en'])) ?></td>
-          <td style="text-align:right">
-            <div style="display:flex;gap:4px;justify-content:flex-end">
-              <?php if ($inc['estado'] !== 'cerrada'): ?>
-              <select class="crm-filter-select" style="font-size:11.5px;padding:4px 8px" onchange="cambiarEstado(<?= $inc['id'] ?>, this.value)">
-                <option value="abierta"    <?= $inc['estado']==='abierta'   ?'selected':'' ?>>Abierta</option>
-                <option value="en_proceso" <?= $inc['estado']==='en_proceso'?'selected':'' ?>>En proceso</option>
-                <option value="cerrada"    <?= $inc['estado']==='cerrada'   ?'selected':'' ?>>Cerrada</option>
-              </select>
-              <?php endif; ?>
-            </div>
-          </td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-    <!-- Pagination incidencias -->
-    <?php if ($totalPagsInc > 1): ?>
-    <div class="crm-pagination">
-      <div class="crm-pagination-info">Página <?= $pageInc ?> de <?= $totalPagsInc ?></div>
-      <div class="crm-pag-btns">
-        <?php if ($pageInc > 1): ?>
-          <a class="crm-pag-btn" href="<?= $crmBase ?>comunicacion&tab=incidencias&pinc=<?= $pageInc-1 ?>">‹</a>
-        <?php endif; ?>
-        <?php for ($i=max(1,$pageInc-2); $i<=min($totalPagsInc,$pageInc+2); $i++): ?>
-          <a class="crm-pag-btn <?= $i===$pageInc?'active':'' ?>" href="<?= $crmBase ?>comunicacion&tab=incidencias&pinc=<?= $i ?>"><?= $i ?></a>
-        <?php endfor; ?>
-        <?php if ($pageInc < $totalPagsInc): ?>
-          <a class="crm-pag-btn" href="<?= $crmBase ?>comunicacion&tab=incidencias&pinc=<?= $pageInc+1 ?>">›</a>
-        <?php endif; ?>
-      </div>
-    </div>
-    <?php endif; ?>
-  </div>
-  <?php endif; ?>
-</div>
-
-<!-- Modal: Nueva incidencia -->
-<div class="modal fade crm-modal" id="modalIncidencia" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Nueva incidencia</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="crm-form-row">
-          <div class="crm-form-group" style="flex:2">
-            <label class="crm-label">Asunto *</label>
-            <input type="text" class="crm-input" id="incAsunto" placeholder="Describe brevemente el problema">
-          </div>
-          <div class="crm-form-group">
-            <label class="crm-label">Prioridad</label>
-            <select class="crm-select" id="incPrioridad">
-              <option value="baja">Baja</option>
-              <option value="normal" selected>Normal</option>
-              <option value="alta">Alta</option>
-              <option value="urgente">Urgente</option>
-            </select>
-          </div>
-        </div>
-        <div class="crm-form-group">
-          <label class="crm-label">Descripción del problema *</label>
-          <textarea class="crm-textarea" id="incMensaje" rows="4" placeholder="Describe el problema con detalle…"></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="crm-btn crm-btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="crm-btn crm-btn-primary" onclick="crearIncidencia()">Crear incidencia</button>
-      </div>
-    </div>
-  </div>
-</div>
+</div><!-- /ctab-mensajes -->
 
 <script>
-const CURSO_ACTUAL = <?= $cursoFiltro ?: 'null' ?>;
+const INC_ADMIN_ID = <?= (int)$_SESSION['usuario_id'] ?>;
+let incEstadoActual = 'todas';
+let incPrioridadActual = '';
+let incDetalleActual = null;
 
-function cambiarTab(tab) {
-  document.querySelectorAll('.crm-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.crm-tab-panel').forEach(p => p.classList.remove('active'));
-  event.target.closest('.crm-tab').classList.add('active');
-  document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+/**
+ * Cargar lista de incidencias
+ */
+async function incCargarLista(estado, prioridad) {
+  const listaEl = document.getElementById('inc-lista');
+  listaEl.innerHTML = '<div class="inc-empty"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg><p>Cargando…</p></div>';
+
+  try {
+    const res = await CRM.api('incidencias_lista', { estado, prioridad });
+    if (!res.ok) throw new Error(res.error);
+
+    const inc = res.incidencias || [];
+
+    // Contar abiertas + en_proceso
+    const conteo = inc.filter(i => i.estado !== 'cerrada').length;
+    const badge = document.getElementById('inc-badge-count');
+    if (conteo > 0) {
+      document.getElementById('inc-badge-num').textContent = conteo;
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    if (!inc.length) {
+      listaEl.innerHTML = '<div class="inc-empty"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><h3>Sin incidencias</h3><p>No hay tickets en esta categoría</p></div>';
+      return;
+    }
+
+    listaEl.innerHTML = inc.map(i => `
+      <div class="inc-lista-item ${incDetalleActual?.id === i.id ? 'selected' : ''}" onclick="incVerDetalle(${i.id})">
+        <div class="inc-item-chips">
+          <span class="inc-chip ${i.prioridad === 'urgente' ? 'urgente' : i.prioridad}">${incFormatPrioridad(i.prioridad)}</span>
+          <span class="inc-chip ${i.estado}">${incFormatEstado(i.estado)}</span>
+        </div>
+        <div class="inc-item-asunto">${CRM.escapeHtml(i.asunto)}</div>
+        <div class="inc-item-user">${CRM.escapeHtml(i.nombre_usuario)} · ${CRM.escapeHtml(i.email_usuario)}</div>
+        <div class="inc-item-footer">
+          <span>${incFormatFecha(i.creado_en)}</span>
+          <span>${i.num_respuestas} respuesta${i.num_respuestas !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+    `).join('');
+  } catch (e) {
+    listaEl.innerHTML = `<div class="inc-empty"><p style="color: #dc2626">Error: ${CRM.escapeHtml(e.message)}</p></div>`;
+  }
 }
 
-function seleccionarCurso(id) {
-  window.location.href = window.CRM_NAV_BASE + `comunicacion&curso=${id}&tab=mensajes`;
+/**
+ * Ver detalle de incidencia
+ */
+async function incVerDetalle(id) {
+  try {
+    const res = await CRM.api('incidencia_detalle', { id });
+    if (!res.ok) throw new Error(res.error);
+
+    incDetalleActual = res.incidencia;
+    const respuestas = res.respuestas || [];
+
+    // Marcar la fila como seleccionada
+    document.querySelectorAll('.inc-lista-item').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`.inc-lista-item[onclick="incVerDetalle(${id})"]`)?.classList.add('selected');
+
+    // Rellenar header
+    document.getElementById('inc-det-asunto').textContent = CRM.escapeHtml(incDetalleActual.asunto);
+    document.getElementById('inc-det-estado').textContent = incFormatEstado(incDetalleActual.estado);
+    document.getElementById('inc-det-prioridad').textContent = incFormatPrioridad(incDetalleActual.prioridad);
+    document.getElementById('inc-det-usuario').textContent = CRM.escapeHtml(incDetalleActual.nombre_usuario);
+    document.getElementById('inc-det-asignado').textContent = incDetalleActual.nombre_asignado ? CRM.escapeHtml(incDetalleActual.nombre_asignado) : '—';
+
+    // Botón asignarme
+    const btnAsignarm = document.getElementById('inc-btn-asignarme');
+    if (incDetalleActual.asignado_a === INC_ADMIN_ID) {
+      btnAsignarm.textContent = 'Ya asignada a ti';
+      btnAsignarm.disabled = true;
+    } else {
+      btnAsignarm.textContent = 'Asignarme';
+      btnAsignarm.disabled = false;
+    }
+
+    // Select estado
+    document.getElementById('inc-estado-select').value = '';
+
+    // Rellenar respuestas
+    const respEl = document.getElementById('inc-det-respuestas');
+    if (!respuestas.length) {
+      respEl.innerHTML = '<div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13px">Sin respuestas aún. Sé el primero en responder.</div>';
+    } else {
+      respEl.innerHTML = respuestas.map((r, idx) => {
+        const inicial = (r.nombre_autor || '?')[0].toUpperCase();
+        const fecha = incFormatFecha(r.creado_en);
+        const roleTag = r.rol_autor && r.rol_autor !== 'USUARIO' ? `<span class="inc-respuesta-role">${r.rol_autor}</span>` : '';
+        return `
+          <div class="inc-respuesta">
+            <div class="inc-respuesta-avatar">${inicial}</div>
+            <div class="inc-respuesta-body">
+              <div class="inc-respuesta-header">${CRM.escapeHtml(r.nombre_autor || '?')}${roleTag}</div>
+              <div class="inc-respuesta-meta">${fecha}</div>
+              <div class="inc-respuesta-text">${CRM.escapeHtml(r.mensaje)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Limpiar textarea
+    document.getElementById('inc-respuesta-text').value = '';
+
+    // Mostrar panel detalle
+    document.getElementById('inc-detalle').classList.add('active');
+  } catch (e) {
+    CRM.toast('Error: ' + e.message, 'error');
+  }
 }
 
-// Scroll to bottom of chat
-const chatMsgs = document.getElementById('chatMessages');
-if (chatMsgs) chatMsgs.scrollTop = chatMsgs.scrollHeight;
+/**
+ * Responder a incidencia
+ */
+async function incResponder() {
+  if (!incDetalleActual) return;
+  const mensaje = document.getElementById('inc-respuesta-text').value.trim();
+  if (!mensaje) {
+    CRM.toast('Escribe un mensaje', 'warning');
+    return;
+  }
 
-async function enviarMensaje() {
-  const input = document.getElementById('chatInput');
-  const cuerpo = input.value.trim();
-  if (!cuerpo || !CURSO_ACTUAL) return;
+  try {
+    const res = await CRM.api('incidencia_responder', {
+      incidencia_id: incDetalleActual.id,
+      mensaje
+    });
+    if (!res.ok) throw new Error(res.error);
 
-  const res = await CRM.api('enviar_mensaje', { curso_id: CURSO_ACTUAL, cuerpo });
-  if (res.ok) {
-    input.value = '';
-    input.style.height = 'auto';
-    const div = document.createElement('div');
-    div.className = 'crm-msg mine';
-    div.innerHTML = `<div class="crm-msg-bubble">${CRM.escapeHtml(cuerpo)}</div>
-      <div class="crm-msg-meta">Tú · ahora mismo</div>`;
-    chatMsgs.appendChild(div);
-    chatMsgs.scrollTop = chatMsgs.scrollHeight;
-  } else CRM.toast(res.error, 'error');
+    CRM.toast('Respuesta enviada', 'success');
+    incVerDetalle(incDetalleActual.id);
+  } catch (e) {
+    CRM.toast('Error: ' + e.message, 'error');
+  }
 }
 
-document.getElementById('chatInput')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensaje(); }
-});
+/**
+ * Asignarme la incidencia
+ */
+async function incAsignarme() {
+  if (!incDetalleActual) return;
+  try {
+    const res = await CRM.api('incidencia_estado', {
+      id: incDetalleActual.id,
+      asignado_a: INC_ADMIN_ID
+    });
+    if (!res.ok) throw new Error(res.error);
 
-async function crearIncidencia() {
-  const asunto  = document.getElementById('incAsunto').value.trim();
-  const mensaje  = document.getElementById('incMensaje').value.trim();
-  const prior    = document.getElementById('incPrioridad').value;
-  const res = await CRM.api('crear_incidencia', { asunto, mensaje, prioridad: prior });
-  if (res.ok) { CRM.toast(res.mensaje, 'success'); closeModal('modalIncidencia'); setTimeout(()=>location.reload(),800); }
-  else CRM.toast(res.error, 'error');
+    CRM.toast('Incidencia asignada', 'success');
+    incVerDetalle(incDetalleActual.id);
+    incCargarLista(incEstadoActual, incPrioridadActual);
+  } catch (e) {
+    CRM.toast('Error: ' + e.message, 'error');
+  }
 }
 
-async function cambiarEstado(id, estado) {
-  const res = await CRM.api('incidencia_estado', { id, estado });
-  if (res.ok) CRM.toast(res.mensaje, 'success');
-  else CRM.toast(res.error, 'error');
+/**
+ * Cambiar estado desde select
+ */
+async function incCambiarEstadoDetalle(estado) {
+  if (!estado || !incDetalleActual) return;
+  try {
+    const res = await CRM.api('incidencia_estado', {
+      id: incDetalleActual.id,
+      estado
+    });
+    if (!res.ok) throw new Error(res.error);
+
+    CRM.toast('Estado actualizado', 'success');
+    incVerDetalle(incDetalleActual.id);
+    incCargarLista(incEstadoActual, incPrioridadActual);
+  } catch (e) {
+    CRM.toast('Error: ' + e.message, 'error');
+  }
 }
 
-// Filter course list
-document.getElementById('searchCursoMsg')?.addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  document.querySelectorAll('#cursosCommList .crm-comm-item').forEach(item => {
-    item.style.display = item.dataset.nombre.includes(q) ? '' : 'none';
+/**
+ * Cambiar filtro estado
+ */
+function incCambiarEstado(estado) {
+  incEstadoActual = estado;
+  document.querySelectorAll('.inc-filter-btn').forEach((btn, idx) => {
+    if (idx < 4) btn.classList.toggle('active', btn.textContent.toLowerCase().includes(estado.replace('_', ' ')) || (estado === 'todas' && idx === 0));
   });
+  incCargarLista(estado, incPrioridadActual);
+}
+
+/**
+ * Cambiar filtro prioridad
+ */
+function incCambiarPrioridad(prioridad) {
+  incPrioridadActual = prioridad;
+  incCargarLista(incEstadoActual, prioridad);
+}
+
+/**
+ * Formatear estado
+ */
+function incFormatEstado(estado) {
+  const map = {
+    'abierta': 'Abierta',
+    'en_proceso': 'En proceso',
+    'cerrada': 'Cerrada'
+  };
+  return map[estado] || estado;
+}
+
+/**
+ * Formatear prioridad
+ */
+function incFormatPrioridad(prioridad) {
+  const map = {
+    'urgente': '🔴 Urgente',
+    'alta': '🟠 Alta',
+    'normal': '🔵 Normal',
+    'baja': '⚪ Baja'
+  };
+  return map[prioridad] || prioridad;
+}
+
+/**
+ * Formatear fecha
+ */
+function incFormatFecha(fecha) {
+  if (!fecha) return '—';
+  const d = new Date(fecha.replace(' ', 'T') + 'Z');
+  const hoy = new Date();
+  const ayer = new Date(hoy);
+  ayer.setDate(ayer.getDate() - 1);
+  
+  const esMismoFecha = (d1, d2) => d1.toDateString() === d2.toDateString();
+  
+  if (esMismoFecha(d, hoy)) {
+    return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  } else if (esMismoFecha(d, ayer)) {
+    return 'Ayer';
+  } else {
+    return d.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+  }
+}
+
+// Cargar lista al iniciar
+document.addEventListener('DOMContentLoaded', () => {
+  incCargarLista('todas', '');
 });
+
+// ── Tab switcher global ────────────────────────────────────────────────────────
+function comTab(tab) {
+  const showInc = tab === 'incidencias';
+  document.getElementById('ctab-incidencias').style.display = showInc ? '' : 'none';
+  document.getElementById('ctab-mensajes').style.display    = showInc ? 'none' : '';
+  document.getElementById('ctab-btn-inc').style.cssText = showInc
+    ? 'flex:1;padding:8px 14px;border:none;border-radius:9px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;background:#fff;color:#1B2336;box-shadow:0 1px 5px rgba(0,0,0,.1)'
+    : 'flex:1;padding:8px 14px;border:none;border-radius:9px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;background:transparent;color:#6b7280';
+  document.getElementById('ctab-btn-msg').style.cssText = showInc
+    ? 'flex:1;padding:8px 14px;border:none;border-radius:9px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;background:transparent;color:#6b7280'
+    : 'flex:1;padding:8px 14px;border:none;border-radius:9px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;background:#fff;color:#1B2336;box-shadow:0 1px 5px rgba(0,0,0,.1)';
+  if (!showInc && !msgCargados) msgCargarLista('recibidos');
+}
+
+// ── Mensajes generales ────────────────────────────────────────────────────────
+let msgCargados = false;
+let msgTabActual = 'recibidos';
+let msgDetalleActual = null;
+let msgUsuariosCache = null;
+
+function msgTimeAgo(str) {
+  if (!str) return '—';
+  const diff = (Date.now() - new Date(str.replace(' ', 'T') + 'Z')) / 1000;
+  if (diff < 60)     return 'ahora mismo';
+  if (diff < 3600)   return 'hace ' + Math.floor(diff / 60) + 'm';
+  if (diff < 86400)  return 'hace ' + Math.floor(diff / 3600) + 'h';
+  if (diff < 604800) return 'hace ' + Math.floor(diff / 86400) + 'd';
+  return new Date(str.replace(' ', 'T') + 'Z').toLocaleDateString('es-ES');
+}
+
+async function msgCargarLista(tab) {
+  msgTabActual = tab;
+  msgCargados  = true;
+  // update subtab buttons
+  ['recibidos','enviados'].forEach(t => {
+    const btn = document.getElementById('msg-stab-' + t);
+    if (btn) btn.style.fontWeight = t === tab ? '800' : '600', btn.style.borderBottomColor = t === tab ? '#3b82f6' : 'transparent', btn.style.color = t === tab ? '#1B2336' : '#6b7280';
+  });
+  const listaEl = document.getElementById('msg-lista');
+  listaEl.innerHTML = '<div style="padding:30px;text-align:center;color:#9ca3af;font-size:.84rem">Cargando…</div>';
+
+  const res = await CRM.api('mensajes_lista', { tab });
+  const msgs = res.mensajes || [];
+
+  if (!msgs.length) {
+    listaEl.innerHTML = '<div style="padding:40px;text-align:center;color:#9ca3af;font-size:.84rem">No hay mensajes en esta bandeja.</div>';
+    return;
+  }
+
+  listaEl.innerHTML = msgs.map(m => {
+    const otro = tab === 'recibidos' ? m.nombre_emisor : m.nombre_receptor;
+    const unread = tab === 'recibidos' && !+m.leido;
+    return `
+      <div onclick="msgVerDetalle(${m.id})" style="padding:14px 16px;border-bottom:1px solid #f0f0f0;cursor:pointer;background:${msgDetalleActual?.id===m.id?'#eff6ff':'#fff'};transition:background .1s;display:flex;align-items:flex-start;gap:12px" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='${msgDetalleActual?.id===m.id?'#eff6ff':'#fff'}'">
+        <div style="width:36px;height:36px;border-radius:10px;background:#dbeafe;color:#2563eb;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0">${CRM.escapeHtml((otro||'?')[0].toUpperCase())}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:2px">
+            <span style="font-size:.86rem;font-weight:${unread?'800':'700'};color:#1B2336">${CRM.escapeHtml(otro||'—')}</span>
+            ${unread ? '<span style="width:7px;height:7px;border-radius:50%;background:#3b82f6;display:inline-block"></span>' : ''}
+          </div>
+          <div style="font-size:.83rem;font-weight:${unread?'700':'600'};color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${CRM.escapeHtml(m.asunto||'(sin asunto)')}</div>
+          <div style="font-size:.74rem;color:#9ca3af;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${CRM.escapeHtml(m.resumen||'')}</div>
+        </div>
+        <div style="font-size:.7rem;color:#9ca3af;white-space:nowrap;flex-shrink:0">${msgTimeAgo(m.enviado_en)}</div>
+      </div>`;
+  }).join('');
+}
+
+async function msgVerDetalle(id) {
+  document.getElementById('msg-detalle-area').style.display = '';
+  document.getElementById('msg-detalle-area').innerHTML = '<div style="padding:40px;text-align:center;color:#9ca3af;font-size:.84rem">Cargando…</div>';
+
+  const res = await CRM.api('mensajes_detalle', { id });
+  if (!res.ok) { CRM.toast('Error al cargar mensaje', 'error'); return; }
+  const m = res.mensaje;
+  msgDetalleActual = m;
+  msgCargarLista(msgTabActual); // refrescar lista para highlight
+
+  document.getElementById('msg-detalle-area').innerHTML = `
+    <div style="padding:18px 20px;border-bottom:1px solid #f0f0f0">
+      <div style="font-size:1rem;font-weight:800;color:#1B2336;margin-bottom:6px">${CRM.escapeHtml(m.asunto||'(sin asunto)')}</div>
+      <div style="font-size:.78rem;color:#6b7280">
+        De: <strong>${CRM.escapeHtml(m.nombre_emisor)}</strong> →
+        Para: <strong>${CRM.escapeHtml(m.nombre_receptor)}</strong> · ${msgTimeAgo(m.enviado_en)}
+      </div>
+    </div>
+    <div style="padding:18px 20px;font-size:.9rem;color:#374151;white-space:pre-wrap;word-break:break-word;line-height:1.7;min-height:120px">${CRM.escapeHtml(m.cuerpo||'')}</div>
+    <div style="padding:14px 20px;border-top:1px solid #f0f0f0">
+      <button onclick="msgMostrarCompose(${m.emisor_id}, ${CRM.escapeHtml(JSON.stringify(m.nombre_emisor))}, 'Re: ${CRM.escapeHtml(m.asunto||'')}' )"
+        style="font-size:.82rem;font-weight:700;background:#1B2336;color:#fff;border:none;border-radius:9px;padding:8px 16px;cursor:pointer;font-family:inherit">
+        Responder
+      </button>
+    </div>`;
+}
+
+async function msgMostrarCompose(preDestId, preDestNombre, preAsunto) {
+  // Cargar usuarios si no están en cache
+  if (!msgUsuariosCache) {
+    const r = await CRM.api('usuarios_destinatarios', {});
+    msgUsuariosCache = (r.usuarios || []);
+  }
+  const opts = msgUsuariosCache.map(u => `<option value="${u.id}" ${u.id==preDestId?'selected':''}>${CRM.escapeHtml(u.nombre)} (${CRM.escapeHtml(u.email)})</option>`).join('');
+
+  document.getElementById('msg-compose-panel').innerHTML = `
+    <div style="background:#fff;border:1.5px solid #e5e7eb;border-radius:14px;padding:20px;margin-bottom:16px">
+      <div style="font-size:.92rem;font-weight:800;color:#1B2336;margin-bottom:14px">Nuevo mensaje</div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:4px">Para</label>
+        <select id="msg-c-dest" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:9px;font-family:inherit;font-size:.88rem;color:#1B2336">
+          <option value="">Seleccionar…</option>${opts}
+        </select>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:4px">Asunto</label>
+        <input id="msg-c-asunto" type="text" maxlength="150" value="${CRM.escapeHtml(preAsunto||'')}" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:9px;font-family:inherit;font-size:.88rem;color:#1B2336">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:4px">Mensaje</label>
+        <textarea id="msg-c-cuerpo" rows="5" style="width:100%;padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:9px;font-family:inherit;font-size:.88rem;color:#1B2336;resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="document.getElementById('msg-compose-panel').innerHTML=''" style="font-size:.82rem;font-weight:700;background:none;border:1.5px solid #e5e7eb;border-radius:9px;padding:7px 16px;cursor:pointer;font-family:inherit;color:#6b7280">Cancelar</button>
+        <button onclick="msgEnviarCompose()" style="font-size:.82rem;font-weight:700;background:#3b82f6;color:#fff;border:none;border-radius:9px;padding:7px 16px;cursor:pointer;font-family:inherit">Enviar</button>
+      </div>
+    </div>`;
+}
+
+async function msgEnviarCompose() {
+  const receptor_id = parseInt(document.getElementById('msg-c-dest').value);
+  const asunto = document.getElementById('msg-c-asunto').value.trim();
+  const cuerpo = document.getElementById('msg-c-cuerpo').value.trim();
+  if (!receptor_id || !cuerpo) { CRM.toast('Faltan datos obligatorios', 'warning'); return; }
+  const res = await CRM.api('mensajes_enviar', { receptor_id, asunto, cuerpo });
+  if (res.ok) {
+    CRM.toast('Mensaje enviado', 'success');
+    document.getElementById('msg-compose-panel').innerHTML = '';
+    msgCargados = false;
+    msgCargarLista(msgTabActual);
+  } else {
+    CRM.toast('Error: ' + (res.error||''), 'error');
+  }
+}
 </script>

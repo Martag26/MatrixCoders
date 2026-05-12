@@ -334,7 +334,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
         $certificado = $stmtCert->fetch(PDO::FETCH_ASSOC);
     }
 
-    $resultadoPrevio = ['nota' => $nota, 'aprobado' => $aprobado, 'realizado_en' => date('Y-m-d H:i:s')];
+    $resultadoPrevio = ['nota' => $nota, 'aprobado' => $aprobado, 'realizado_en' => date('Y-m-d H:i:s'), 'intentos' => $intentosUsados];
 
     require __DIR__ . '/../views/examen/resultado.php';
     exit;

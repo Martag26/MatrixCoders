@@ -213,6 +213,8 @@ switch ($url) {
 
     case 'buzon':
         require_once "../app/controllers/BuzonController.php";
+        $controller = new BuzonController((new Database())->connect(), $_SESSION ?? []);
+        $controller->handle();
         break;
 
     case 'api-notificaciones':

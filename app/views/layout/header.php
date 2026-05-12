@@ -56,21 +56,21 @@ $nombreMenu = function_exists('mb_convert_case')
 .nd-section:first-child{margin-top:0}
 
 /* ── Item ── */
-.nd-item{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s;text-decoration:none;color:inherit;position:relative}
-.nd-item:hover{background:rgba(107,143,113,.06);border-color:rgba(107,143,113,.18);color:inherit}
+.nd-item{display:flex!important;align-items:flex-start;gap:11px;padding:10px 12px;border-radius:10px!important;cursor:pointer;border:1px solid transparent;transition:background .15s,border-color .15s;text-decoration:none!important;color:inherit!important;position:relative;width:100%!important;height:auto!important;box-sizing:border-box;transform:none!important}
+.nd-item:hover{background:rgba(107,143,113,.06);border-color:rgba(107,143,113,.18);color:inherit!important}
 .nd-item.unread{background:rgba(107,143,113,.05);border-color:rgba(107,143,113,.14)}
 .nd-item.unread:hover{background:rgba(107,143,113,.1)}
 
 /* Icon chip */
-.nd-icon-chip{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nd-icon-chip{width:34px;height:34px;min-width:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
 /* Body */
-.nd-body{flex:1;min-width:0;padding-top:1px}
-.nd-title{font-size:13px;font-weight:500;color:#4b5563;line-height:1.4;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nd-item.unread .nd-title{font-weight:700;color:#111827}
-.nd-sub{font-size:11.5px;color:#6b7280;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 3px}
+.nd-body{flex:1 1 0;min-width:0;padding-top:1px;overflow:hidden}
+.nd-title{font-size:13px;font-weight:500;color:#4b5563!important;line-height:1.4;margin:0 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:100%}
+.nd-item.unread .nd-title{font-weight:700;color:#111827!important}
+.nd-sub{font-size:11.5px;color:#6b7280;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 0 3px;display:block;max-width:100%}
 .nd-time{font-size:10.5px;color:#9ca3af;display:block;margin-top:4px}
-.nd-dot{width:7px;height:7px;border-radius:50%;background:#6B8F71;flex-shrink:0;margin-top:5px}
+.nd-dot{width:7px;height:7px;min-width:7px;border-radius:50%;background:#6B8F71;flex-shrink:0;margin-top:5px}
 
 /* ── Empty state ── */
 .nd-empty{padding:40px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
@@ -298,13 +298,18 @@ $nombreMenu = function_exists('mb_convert_case')
 
   // Configuración visual por tipo
   const TIPOS = {
-    tarea:             { color:'#d97706', bg:'#fffbeb', border:'#fde68a', label:'Tarea',     icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-    tarea_vencida:     { color:'#dc2626', bg:'#fef2f2', border:'#fecaca', label:'Vencida',   icon:'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    expiracion:        { color:'#ea580c', bg:'#fff7ed', border:'#fed7aa', label:'Expira',    icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-    evento_calendario: { color:'#059669', bg:'#f0fdf4', border:'#bbf7d0', label:'Evento',    icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    crm:               { color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', label:'Campaña',  icon:'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
-    mensaje:           { color:'#2563eb', bg:'#eff6ff', border:'#bfdbfe', label:'Mensaje',  icon:'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-    info:              { color:'#6b7280', bg:'#f9fafb', border:'#e5e7eb', label:'Info',     icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+    tarea:             { color:'#d97706', bg:'#fffbeb', border:'#fde68a', label:'Tarea',       icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
+    tarea_vencida:     { color:'#dc2626', bg:'#fef2f2', border:'#fecaca', label:'Vencida',     icon:'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+    expiracion:        { color:'#ea580c', bg:'#fff7ed', border:'#fed7aa', label:'Expira',      icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
+    evento_calendario: { color:'#059669', bg:'#f0fdf4', border:'#bbf7d0', label:'Evento',      icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+    crm:               { color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', label:'Campaña',    icon:'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
+    mensaje:           { color:'#2563eb', bg:'#eff6ff', border:'#bfdbfe', label:'Mensaje',    icon:'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+    examen_teorico:    { color:'#0369a1', bg:'#f0f9ff', border:'#bae6fd', label:'Examen',     icon:'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    examen_practico:   { color:'#7c3aed', bg:'#f5f3ff', border:'#ddd6fe', label:'Práctico',   icon:'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4' },
+    entrega_practica:  { color:'#0891b2', bg:'#ecfeff', border:'#a5f3fc', label:'Entrega',    icon:'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' },
+    curso_completado:  { color:'#059669', bg:'#f0fdf4', border:'#6ee7b7', label:'Completado', icon:'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z' },
+    curso_fallido:     { color:'#dc2626', bg:'#fef2f2', border:'#fecaca', label:'Fallido',    icon:'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z' },
+    info:              { color:'#6b7280', bg:'#f9fafb', border:'#e5e7eb', label:'Info',       icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
   };
   const DEF = TIPOS.info;
 

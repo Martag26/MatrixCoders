@@ -147,6 +147,11 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     Resultados
   </button>
+  <button class="crm-editor-tab" data-tab="mensajes" onclick="switchTab('mensajes')">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+    Mensajes
+    <span id="crm-msg-badge" class="crm-badge" style="display:none"></span>
+  </button>
 </div>
 
 <!-- ================================================================ -->
@@ -850,6 +855,78 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
   </div>
 </div>
 
+<!-- ================================================================ -->
+<!-- TAB 5: MENSAJES                                                  -->
+<!-- ================================================================ -->
+<div id="tab-mensajes" class="crm-tab-panel">
+
+  <!-- Toolbar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+              margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;gap:8px">
+      <button class="crm-btn crm-btn-sm" id="msg-tab-rec"
+              onclick="msgCambiarTab('recibidos')" style="font-weight:700">
+        Recibidos
+      </button>
+      <button class="crm-btn crm-btn-sm crm-btn-outline" id="msg-tab-env"
+              onclick="msgCambiarTab('enviados')">
+        Enviados
+      </button>
+    </div>
+    <button class="crm-btn crm-btn-primary crm-btn-sm"
+            onclick="msgAbrirComposer()">
+      ✉ Nuevo mensaje
+    </button>
+  </div>
+
+  <!-- Composer (oculto por defecto) -->
+  <div id="msg-composer" style="display:none;background:#f8fafc;border:1.5px solid
+       #e2e8f0;border-radius:12px;padding:18px;margin-bottom:16px">
+    <h4 style="margin:0 0 14px;font-size:.95rem;font-weight:800">Nuevo mensaje</h4>
+    <div style="margin-bottom:10px">
+      <label style="font-size:.8rem;font-weight:700;color:#374151">Para</label>
+      <select id="msg-receptor" class="crm-input" style="margin-top:4px">
+        <option value="">Cargando usuarios…</option>
+      </select>
+    </div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:.8rem;font-weight:700;color:#374151">Asunto</label>
+      <input id="msg-asunto" type="text" maxlength="150"
+             class="crm-input" style="margin-top:4px" placeholder="Asunto…">
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:.8rem;font-weight:700;color:#374151">Mensaje</label>
+      <textarea id="msg-cuerpo" rows="5" class="crm-input"
+                style="margin-top:4px;resize:vertical"
+                placeholder="Escribe tu mensaje…"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="crm-btn crm-btn-primary crm-btn-sm"
+              onclick="msgEnviar()">Enviar</button>
+      <button class="crm-btn crm-btn-sm crm-btn-outline"
+              onclick="msgCerrarComposer()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Lista de mensajes -->
+  <div id="msg-lista" style="display:flex;flex-direction:column;gap:6px">
+    <p style="color:#9ca3af;font-size:.85rem">Cargando…</p>
+  </div>
+
+  <!-- Detalle de mensaje (oculto por defecto) -->
+  <div id="msg-detalle" style="display:none;background:#fff;border:1.5px solid
+       #e2e8f0;border-radius:12px;padding:22px;margin-top:14px">
+    <button onclick="msgCerrarDetalle()"
+            style="font-size:.8rem;font-weight:700;color:#6b7280;
+                   background:none;border:none;cursor:pointer;
+                   margin-bottom:14px;padding:0">
+      ← Volver
+    </button>
+    <div id="msg-detalle-content"></div>
+  </div>
+
+</div>
+
 <!-- Modal: Vista previa examen test -->
 <div class="modal fade crm-modal" id="modalPreviewExamen" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1077,6 +1154,7 @@ const CURSO_ID       = <?= $curso['id'] ?>;
 const INSTR_MAP      = <?= json_encode($instructoresMap, JSON_UNESCAPED_UNICODE) ?>;
 const PRAC_NOTA_MIN  = <?= (float)($examenPractico['nota_minima'] ?? 5) ?>;
 const PRAC_TIENE_EXAM = <?= (!empty($tareasPracticas) || !empty($examenPractico)) ? 'true' : 'false' ?>;
+const ES_ADMIN       = <?= ($_SESSION['usuario_rol'] ?? '') === 'ADMINISTRADOR' ? 'true' : 'false' ?>;
 
 /* ===== Unsaved-changes guard ===== */
 const _FIELDS_INFO = ['cTitulo','cDesc','cInfoExtra','cQueAprenderas','cPrecio','cNivel','cCategoria','cDestacado','cActivo'];
@@ -2165,13 +2243,17 @@ async function cargarResultados(force = false) {
 
     // Certificado: requiere test aprobado Y (sin práctico configurado O práctico completamente revisado Y nota media >= mínima)
     const pracRevisadoOk = totalT === 0 ||
-      ((prac?.revisadas || 0) >= totalT && (prac?.nota_media ?? 0) >= PRAC_NOTA_MIN);
+      ((prac?.revisadas || 0) >= (prac?.total || totalT) && (prac?.nota_media ?? 0) >= PRAC_NOTA_MIN);
     const aprobadoFinal = !!test?.aprobado && pracRevisadoOk;
 
+    const btnCertificar = ES_ADMIN && !!test?.aprobado && !aprobadoFinal
+      ? `<button class="crm-btn crm-btn-sm" style="background:rgba(16,185,129,.12);color:#065f46;border:1px solid rgba(16,185,129,.3);margin-top:4px" onclick="generarCertificado(${al.id},'${CRM.escapeHtml(al.nombre)}')">🎓 Certificar</button>`
+      : '';
+
     const certCell = aprobadoFinal
-      ? `<span class="crm-badge activo" title="Test aprobado${totalT > 0 ? ' + Práctico revisado' : ''}">✓</span>`
+      ? `<span class="crm-badge activo" title="Test aprobado${totalT > 0 ? ' + Práctico revisado' : ''}">✓ Certificado</span>`
       : (test?.aprobado && totalT > 0 && !pracRevisadoOk)
-        ? `<span style="font-size:10px;color:var(--crm-warning);font-weight:600" title="Test aprobado · Práctico pendiente de revisión">⏳ Test ✓</span>`
+        ? `<div><span style="font-size:10px;color:var(--crm-warning);font-weight:600" title="Test aprobado · Práctico pendiente de revisión">⏳ Test ✓</span>${btnCertificar}</div>`
         : `<span style="font-size:11px;color:var(--crm-muted)">—</span>`;
 
     return `<tr>
@@ -2456,6 +2538,17 @@ async function guardarCalificaciones() {
   if (_entregasPracLoaded) { _entregasPracLoaded = false; cargarEntregasPrac(); }
 }
 
+async function generarCertificado(alumnoId, nombre) {
+  if (!confirm(`¿Generar certificado manualmente para ${nombre}?\n\nEsto marcará la matrícula como completada y enviará la notificación al alumno.`)) return;
+  const res = await CRM.api('generar_certificado', { alumno_id: alumnoId, curso_id: CURSO_ID });
+  if (res.ok) {
+    CRM.toast('Certificado generado correctamente', 'success');
+    resultadosLoaded = false; cargarResultados(true);
+  } else {
+    CRM.toast(res.error || 'Error al generar el certificado', 'error');
+  }
+}
+
 const _spinStyle = document.createElement('style');
 _spinStyle.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 document.head.appendChild(_spinStyle);
@@ -2652,4 +2745,158 @@ function initAllFBlocks(root) {
 
 // Init on load
 document.addEventListener('DOMContentLoaded', () => { initAllFBlocks(); });
+
+// ══════════ MENSAJES CRM ══════════
+let msgTabActual = 'recibidos';
+
+function msgCargarNoLeidos() {
+  CRM.api('mensajes_no_leidos').then(d => {
+    const b = document.getElementById('crm-msg-badge');
+    if (d.count > 0) { b.textContent = d.count; b.style.display = ''; }
+    else b.style.display = 'none';
+  }).catch(() => {});
+}
+
+function msgCambiarTab(tab) {
+  msgTabActual = tab;
+  document.getElementById('msg-tab-rec').className =
+    'crm-btn crm-btn-sm' + (tab === 'recibidos' ? ' crm-btn-primary' : ' crm-btn-outline');
+  document.getElementById('msg-tab-env').className =
+    'crm-btn crm-btn-sm' + (tab === 'enviados'  ? ' crm-btn-primary' : ' crm-btn-outline');
+  msgCerrarComposer();
+  msgCargarLista();
+}
+
+function msgCargarLista() {
+  document.getElementById('msg-lista').innerHTML =
+    '<p style="color:#9ca3af;font-size:.85rem">Cargando…</p>';
+  document.getElementById('msg-detalle').style.display = 'none';
+  CRM.api('mensajes_lista', { tab: msgTabActual }).then(d => {
+    const msgs = d.mensajes || [];
+    const el = document.getElementById('msg-lista');
+    if (!msgs.length) {
+      el.innerHTML = '<p style="color:#9ca3af;font-size:.85rem;text-align:center;padding:30px 0">Sin mensajes</p>';
+      return;
+    }
+    el.innerHTML = msgs.map(m => {
+      const otro = msgTabActual === 'recibidos' ? m.nombre_emisor : m.nombre_receptor;
+      const leido = parseInt(m.leido);
+      const fecha = m.enviado_en ? m.enviado_en.substring(0,16).replace('T',' ') : '';
+      return `<div onclick="msgVerDetalle(${m.id})"
+        style="background:#fff;border:1.5px solid ${!leido && msgTabActual==='recibidos' ? '#3b82f6':'#e2e8f0'};
+               border-radius:10px;padding:13px 16px;cursor:pointer;
+               transition:box-shadow .15s;display:flex;gap:12px;align-items:flex-start">
+        <div style="width:38px;height:38px;border-radius:10px;background:#eff6ff;
+                    color:#3b82f6;display:flex;align-items:center;justify-content:center;
+                    font-weight:800;font-size:.95rem;flex-shrink:0">
+          ${(otro||'?')[0].toUpperCase()}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <span style="font-weight:${!leido&&msgTabActual==='recibidos'?'800':'600'};font-size:.88rem">
+              ${escHtml(otro||'')}
+            </span>
+            <span style="font-size:.7rem;color:#9ca3af;margin-left:auto;white-space:nowrap">
+              ${escHtml(fecha)}
+            </span>
+          </div>
+          <div style="font-weight:${!leido&&msgTabActual==='recibidos'?'700':'500'};
+                      font-size:.85rem;color:#1B2336;margin-bottom:2px">
+            ${escHtml(m.asunto||'Sin asunto')}
+          </div>
+          <div style="font-size:.78rem;color:#6b7280;overflow:hidden;
+                      white-space:nowrap;text-overflow:ellipsis">
+            ${escHtml(m.resumen||'')}
+          </div>
+        </div>
+        ${!leido&&msgTabActual==='recibidos'
+          ? '<div style="width:8px;height:8px;border-radius:50%;background:#3b82f6;margin-top:6px;flex-shrink:0"></div>'
+          : ''}
+      </div>`;
+    }).join('');
+  }).catch(() => {
+    document.getElementById('msg-lista').innerHTML =
+      '<p style="color:#dc2626;font-size:.85rem">Error al cargar mensajes</p>';
+  });
+}
+
+function msgVerDetalle(id) {
+  document.getElementById('msg-detalle').style.display = 'block';
+  document.getElementById('msg-detalle-content').innerHTML =
+    '<p style="color:#9ca3af;font-size:.85rem">Cargando…</p>';
+  CRM.api('mensajes_detalle', { id }).then(d => {
+    const m = d.mensaje || {};
+    const fecha = m.enviado_en ? m.enviado_en.substring(0,16).replace('T',' ') : '';
+    document.getElementById('msg-detalle-content').innerHTML = `
+      <h3 style="font-size:1rem;font-weight:800;margin:0 0 6px">${escHtml(m.asunto||'Sin asunto')}</h3>
+      <p style="font-size:.82rem;color:#6b7280;margin:0 0 16px">
+        De: <strong>${escHtml(m.nombre_emisor||'')}</strong>
+        → Para: <strong>${escHtml(m.nombre_receptor||'')}</strong>
+        · ${escHtml(fecha)}
+      </p>
+      <div style="font-size:.92rem;color:#374151;line-height:1.7;
+                  white-space:pre-wrap;word-break:break-word;
+                  background:#f8fafc;border-radius:10px;padding:16px">
+        ${escHtml(m.cuerpo||'')}
+      </div>`;
+    msgCargarNoLeidos();
+    msgCargarLista();
+  }).catch(() => {
+    document.getElementById('msg-detalle-content').innerHTML =
+      '<p style="color:#dc2626">Error al cargar el mensaje</p>';
+  });
+}
+
+function msgCerrarDetalle() {
+  document.getElementById('msg-detalle').style.display = 'none';
+}
+
+function msgAbrirComposer() {
+  document.getElementById('msg-composer').style.display = 'block';
+  CRM.api('usuarios_destinatarios').then(d => {
+    const users = d.usuarios || [];
+    const sel = document.getElementById('msg-receptor');
+    sel.innerHTML = '<option value="">Selecciona un usuario…</option>' +
+      users.map(u => `<option value="${u.id}">${escHtml(u.nombre)} (${escHtml(u.email)}) — ${u.rol}</option>`).join('');
+  }).catch(() => {});
+}
+
+function msgCerrarComposer() {
+  document.getElementById('msg-composer').style.display = 'none';
+  document.getElementById('msg-receptor').value = '';
+  document.getElementById('msg-asunto').value = '';
+  document.getElementById('msg-cuerpo').value = '';
+}
+
+function msgEnviar() {
+  const receptor_id = parseInt(document.getElementById('msg-receptor').value);
+  const asunto      = document.getElementById('msg-asunto').value.trim();
+  const cuerpo      = document.getElementById('msg-cuerpo').value.trim();
+  if (!receptor_id) { alert('Selecciona un destinatario'); return; }
+  if (!cuerpo)      { alert('El mensaje no puede estar vacío'); return; }
+  CRM.api('mensajes_enviar', { receptor_id, asunto, cuerpo }).then(r => {
+    if (r.ok) {
+      msgCerrarComposer();
+      msgCambiarTab('enviados');
+    }
+  }).catch(() => alert('Error al enviar'));
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Cargar badge al iniciar y cuando se abre la pestaña mensajes
+msgCargarNoLeidos();
+document.querySelector('[data-tab="mensajes"]')
+  ?.addEventListener('click', () => {
+    msgCargarLista();
+  });
+
+// Si la pestaña mensajes ya está activa al cargar la página, precarga la lista
+if (document.getElementById('tab-mensajes')?.style.display !== 'none') {
+  msgCargarLista();
+}
 </script>
