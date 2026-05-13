@@ -236,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
         $file    = $_FILES['archivo'];
         $ext     = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $allowed = ['pdf','doc','docx','zip','rar','txt','png','jpg','jpeg','mp4','py','js','html','css','php'];
+        $allowed = ['pdf','doc','docx','zip','rar','txt','png','jpg','jpeg','mp4','py'];
         if (!in_array($ext, $allowed)) {
             echo json_encode(['ok' => false, 'error' => 'Tipo de archivo no permitido']);
             exit;

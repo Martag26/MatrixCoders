@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../helpers/LoginRateLimit.php';
 
 class AuthController
 {
@@ -47,6 +48,15 @@ class AuthController
         $database = new Database();
         $conexion = $database->connect();
 
+        // Rate limit: bloquear tras N intentos fallidos por IP+email
+        $rate = new LoginRateLimit($conexion);
+        if (($faltan = $rate->bloqueadoSegundos($email)) > 0) {
+            $mins = (int)ceil($faltan / 60);
+            $_SESSION['login_error'] = "Demasiados intentos fallidos. Inténtalo de nuevo en ~{$mins} min.";
+            header("Location: " . BASE_URL . "/index.php?url=login");
+            exit;
+        }
+
         // Buscar el usuario por su email (máximo 1 resultado)
         $stmt = $conexion->prepare("SELECT * FROM usuario WHERE email = ? LIMIT 1");
         $stmt->execute([$email]);
@@ -54,11 +64,13 @@ class AuthController
 
         // Verificar que el usuario existe y que la contraseña coincide
         if (!$user || !password_verify($pass, $user['contraseña'])) {
-            // Guardar mensaje de error en sesión y redirigir al login
+            $rate->registrarFallo($email);
             $_SESSION['login_error'] = "Email o contraseña incorrectos";
             header("Location: " . BASE_URL . "/index.php?url=login");
             exit;
         }
+
+        $rate->registrarExito($email);
 
         $rol = $user['rol'] ?? 'USUARIO';
 

@@ -11,6 +11,7 @@ $appRoot = dirname(__DIR__) . '/app';
 
 require_once $appRoot . '/config.php';   // defines BASE_URL, GEMINI_API_KEY …
 require_once $appRoot . '/db.php';       // Database class
+require_once $appRoot . '/helpers/LoginRateLimit.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -41,29 +42,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['crm_login'])) {
     } else {
         try {
             $db   = (new Database())->connect();
-            $stmt = $db->prepare('SELECT * FROM usuario WHERE email = ? LIMIT 1');
-            $stmt->execute([$email]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $rate = new LoginRateLimit($db);
 
-            if (!$user) {
-                $loginError = 'Credenciales incorrectas.';
-            } elseif (!password_verify($password, $user['contraseña'] ?? '')) {
-                $loginError = 'Credenciales incorrectas.';
+            if (($faltan = $rate->bloqueadoSegundos($email)) > 0) {
+                $mins = (int)ceil($faltan / 60);
+                $loginError = "Demasiados intentos fallidos. Espera ~{$mins} min.";
             } else {
-                $rol          = $user['rol']          ?? 'USUARIO';
-                $esAdmin      = ($rol === 'ADMINISTRADOR');
-                $esModerador  = ($rol === 'MODERADOR');
-                $esInstructor = ($rol === 'INSTRUCTOR');
+                $stmt = $db->prepare('SELECT * FROM usuario WHERE email = ? LIMIT 1');
+                $stmt->execute([$email]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if (!$esAdmin && !$esModerador && !$esInstructor) {
-                    $loginError = 'No tienes permisos para acceder al CRM.';
+                if (!$user) {
+                    $rate->registrarFallo($email);
+                    $loginError = 'Credenciales incorrectas.';
+                } elseif (!password_verify($password, $user['contraseña'] ?? '')) {
+                    $rate->registrarFallo($email);
+                    $loginError = 'Credenciales incorrectas.';
                 } else {
-                    $_SESSION['usuario_id']     = $user['id'];
-                    $_SESSION['usuario_nombre'] = $user['nombre'];
-                    $_SESSION['usuario_rol']    = $rol;
-                    session_regenerate_id(true);
-                    header('Location: ' . ADMIN_BASE_URL . '/index.php');
-                    exit;
+                    $rol          = $user['rol']          ?? 'USUARIO';
+                    $esAdmin      = ($rol === 'ADMINISTRADOR');
+                    $esModerador  = ($rol === 'MODERADOR');
+                    $esInstructor = ($rol === 'INSTRUCTOR');
+
+                    if (!$esAdmin && !$esModerador && !$esInstructor) {
+                        $loginError = 'No tienes permisos para acceder al CRM.';
+                    } else {
+                        $rate->registrarExito($email);
+                        $_SESSION['usuario_id']     = $user['id'];
+                        $_SESSION['usuario_nombre'] = $user['nombre'];
+                        $_SESSION['usuario_rol']    = $rol;
+                        session_regenerate_id(true);
+                        header('Location: ' . ADMIN_BASE_URL . '/index.php');
+                        exit;
+                    }
                 }
             }
         } catch (Exception $e) {

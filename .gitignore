@@ -4,3 +4,6 @@ storage/logs/*
 .claude/
 BATERIA_PRUEBAS.md
 vendor/
+CREDENCIALES_SEGURAS.txt
+app/data/database.sqlite.backup-*
+_tmp_*.php
