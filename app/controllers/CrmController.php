@@ -27,11 +27,11 @@ class CrmController
         $standalone = defined('CRM_STANDALONE') && CRM_STANDALONE;
 
         if ($standalone) {
-            $this->crmBase       = '/matrixcoders/admin/index.php?sec=';
-            $this->crmApiUrl     = '/matrixcoders/admin/index.php?crm_api=1';
-            $this->crmFormBase   = '/matrixcoders/admin/index.php';
+            $this->crmBase       = ADMIN_BASE_URL . '/index.php?sec=';
+            $this->crmApiUrl     = ADMIN_BASE_URL . '/index.php?crm_api=1';
+            $this->crmFormBase   = ADMIN_BASE_URL . '/index.php';
             $this->crmFormHidden = '';
-            $this->crmLogoutUrl  = '/matrixcoders/admin/index.php?auth=logout';
+            $this->crmLogoutUrl  = ADMIN_BASE_URL . '/index.php?auth=logout';
             $this->crmSiteUrl    = BASE_URL . '/index.php?url=login';
         } else {
             $this->crmBase       = BASE_URL . '/index.php?url=crm&sec=';
@@ -44,7 +44,7 @@ class CrmController
 
         if (empty($_SESSION['usuario_id'])) {
             if ($standalone) {
-                header('Location: /matrixcoders/admin/index.php');
+                header('Location: ' . ADMIN_BASE_URL . '/index.php');
             } else {
                 header('Location: ' . BASE_URL . '/index.php?url=login');
             }
@@ -71,7 +71,7 @@ class CrmController
             if ($standalone) {
                 $_SESSION = [];
                 session_destroy();
-                header('Location: /matrixcoders/admin/index.php?error=acceso');
+                header('Location: ' . ADMIN_BASE_URL . '/index.php?error=acceso');
             } else {
                 header('Location: ' . BASE_URL . '/index.php?url=dashboard');
             }

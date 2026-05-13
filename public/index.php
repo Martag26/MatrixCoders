@@ -314,7 +314,7 @@ switch ($url) {
             setcookie(session_name(), '', time() - 42000, $p['path'], $p['domain'], $p['secure'], $p['httponly']);
         }
         session_destroy();
-        header('Location: /matrixcoders/admin/');
+        header('Location: ' . ADMIN_BASE_URL . '/');
         exit;
 
     default:

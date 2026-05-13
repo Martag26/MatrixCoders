@@ -151,7 +151,7 @@
 
         <!-- Columna 1: logo y descripción de la plataforma -->
         <div>
-            <img class="footer-logo" src="/matrixcoders/public/img/logo.png" alt="logo">
+            <img class="footer-logo" src="<?= BASE_URL ?>/img/logo.png" alt="logo">
             <p>
                 Plataforma de aprendizaje en línea especializada en desarrollo de software. Aprende a tu ritmo con cursos
                 prácticos, materiales descargables y certificaciones que te ayudarán a crecer profesionalmente.

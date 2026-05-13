@@ -8,9 +8,9 @@
 
     <!-- Bootstrap y hojas de estilo propias -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/matrixcoders/public/css/inicio.css">
-    <link rel="stylesheet" href="/matrixcoders/public/css/header.css">
-    <link rel="stylesheet" href="/matrixcoders/public/css/footer.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/inicio.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
 </head>
 
 <body>
@@ -263,7 +263,7 @@
             <div class="row justify-content-center mt-4 g-4">
                 <div class="col-12 col-md-4">
                     <div class="benefit-item">
-                        <img src="/matrixcoders/public/img/aprendiendo.png" alt="Aprende">
+                        <img src="<?= BASE_URL ?>/img/aprendiendo.png" alt="Aprende">
                         <h5>01. Aprende</h5>
                         <p>Domina habilidades prácticas con proyectos reales y apoyo experto.</p>
                     </div>
@@ -271,7 +271,7 @@
 
                 <div class="col-12 col-md-4">
                     <div class="benefit-item">
-                        <img src="/matrixcoders/public/img/gorro-de-graduacion.png" alt="Gradúate">
+                        <img src="<?= BASE_URL ?>/img/gorro-de-graduacion.png" alt="Gradúate">
                         <h5>02. Gradúate</h5>
                         <p>Consigue certificación y un portafolio listo para mostrar.</p>
                     </div>
@@ -279,7 +279,7 @@
 
                 <div class="col-12 col-md-4">
                     <div class="benefit-item">
-                        <img src="/matrixcoders/public/img/trabajapng.png" alt="Trabaja">
+                        <img src="<?= BASE_URL ?>/img/trabajapng.png" alt="Trabaja">
                         <h5>03. Trabaja</h5>
                         <p>Conecta con empresas, mejora tu CV y accede a ofertas.</p>
                     </div>

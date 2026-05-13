@@ -25,7 +25,7 @@ if (isset($_GET['auth']) && $_GET['auth'] === 'logout') {
             $p['path'], $p['domain'], $p['secure'], $p['httponly']);
     }
     session_destroy();
-    header('Location: /matrixcoders/admin/index.php');
+    header('Location: ' . ADMIN_BASE_URL . '/index.php');
     exit;
 }
 
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['crm_login'])) {
                     $_SESSION['usuario_nombre'] = $user['nombre'];
                     $_SESSION['usuario_rol']    = $rol;
                     session_regenerate_id(true);
-                    header('Location: /matrixcoders/admin/index.php');
+                    header('Location: ' . ADMIN_BASE_URL . '/index.php');
                     exit;
                 }
             }

@@ -74,7 +74,7 @@
                         </p>
                         <p class="auth-small text-center">
                             ¿Eres administrador?
-                            <a class="fw-bold" href="/matrixcoders/admin/">Accede aquí</a>
+                            <a class="fw-bold" href="<?= ADMIN_BASE_URL ?>/">Accede aquí</a>
                         </p>
                     </form>
                 </section>

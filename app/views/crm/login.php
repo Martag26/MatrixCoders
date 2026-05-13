@@ -185,7 +185,7 @@ html, body {
     </div>
     <?php endif; ?>
 
-    <form method="POST" action="/matrixcoders/admin/index.php" autocomplete="on">
+    <form method="POST" action="<?= ADMIN_BASE_URL ?>/index.php" autocomplete="on">
       <input type="hidden" name="crm_login" value="1">
 
       <div class="login-group">
