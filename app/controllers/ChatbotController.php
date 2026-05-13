@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../helpers/GeminiService.php';
+require_once __DIR__ . '/../helpers/ChatbotFallback.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
@@ -63,11 +64,16 @@ Responde siempre en español, de forma amigable y concisa. Máximo 3-4 párrafos
         $historial = array_slice($historial, -20);
     }
 
-    $gemini    = new GeminiService();
-    $resultado = $gemini->chatbotConHistorial($pregunta, $systemPrompt, $historial);
+    // Si GEMINI_API_KEY está configurada -> IA real. Si no -> respuestas
+    // predefinidas basadas en palabras clave (modo demo sin coste).
+    if (defined('GEMINI_API_KEY') && GEMINI_API_KEY !== '') {
+        $gemini    = new GeminiService();
+        $resultado = $gemini->chatbotConHistorial($pregunta, $systemPrompt, $historial);
+    } else {
+        $resultado = ChatbotFallback::responder($pregunta, $nombreAlumno, $cursosAlumno);
+    }
 
     if ($resultado['ok']) {
-        // Guardar en historial de sesión
         $historial[] = ['role' => 'user',  'text' => $pregunta];
         $historial[] = ['role' => 'model', 'text' => $resultado['respuesta']];
         $_SESSION['chatbot_historial'] = $historial;

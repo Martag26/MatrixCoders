@@ -11,10 +11,16 @@
     min-height: 70vh;
 }
 
+.auth-page .mc-container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
 .auth-grid {
     display: grid;
     grid-template-columns: 1fr 1.4fr;
-    gap: 22px;
+    gap: 28px;
     align-items: start;
 }
 
@@ -40,9 +46,17 @@
     color: var(--mc-dark);
 }
 
+.input-mc {
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--mc-border);
+    font-size: 0.95rem;
+    width: 100%;
+}
+
 .auth-form .input-mc {
     border-radius: 12px;
-    padding: 12px 12px;
+    padding: 12px 14px;
     border: 1px solid var(--mc-border);
     margin-bottom: 12px;
 }

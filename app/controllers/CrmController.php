@@ -1579,27 +1579,29 @@ class CrmController
         $conflicto = $this->detectarConflictoCampana($titulo, $tipo, $inicio, $fin, $cursos, null);
         if ($conflicto) return ['ok' => false, 'error' => $conflicto];
 
-        $this->db->prepare("INSERT INTO campana_crm (titulo,cuerpo,tipo,fecha_inicio,fecha_fin,descuento_pct,activa,audiencia,dias_registro) VALUES(?,?,?,?,?,?,1,?,?)")
-                 ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc,$audiencia,$diasReg]);
-        $id = (int)$this->db->lastInsertId();
+        try {
+            $this->db->prepare("INSERT INTO campana_crm (titulo,cuerpo,tipo,fecha_inicio,fecha_fin,descuento_pct,activa,audiencia,dias_registro) VALUES(?,?,?,?,?,?,1,?,?)")
+                     ->execute([$titulo,$cuerpo,$tipo,$inicio,$fin,$desc,$audiencia,$diasReg]);
+            $id = (int)$this->db->lastInsertId();
 
-        foreach ($cursos as $cid) {
-            $cid = (int)$cid;
-            if ($cid) {
-                $this->db->prepare("INSERT OR IGNORE INTO campana_curso (campana_id,curso_id,descuento) VALUES(?,?,?)")->execute([$id,$cid,$desc]);
+            foreach ($cursos as $cid) {
+                $cid = (int)$cid;
+                if ($cid) {
+                    $this->db->prepare("INSERT OR IGNORE INTO campana_curso (campana_id,curso_id,descuento) VALUES(?,?,?)")->execute([$id,$cid,$desc]);
+                }
             }
+
+            $urlAccion = BASE_URL . '/index.php?url=buscar';
+            foreach ($cursos as $cid) {
+                if ((int)$cid) { $urlAccion = BASE_URL . '/index.php?url=detallecurso&id=' . (int)$cid; break; }
+            }
+
+            $enviados = $this->notificarUsuarios($titulo, $cuerpo, $id, $audiencia, $diasReg, $urlAccion);
+            $this->logActividad("Campaña creada: $titulo", 'info');
+            return ['ok' => true, 'id' => $id, 'mensaje' => "Campaña creada y notificación enviada a $enviados usuario(s)"];
+        } catch (\Exception $e) {
+            return ['ok' => false, 'error' => 'No se pudo crear la campaña: ' . $e->getMessage()];
         }
-
-        // URL de la notificación: primer curso vinculado o búsqueda general
-        $urlAccion = BASE_URL . '/index.php?url=buscar';
-        foreach ($cursos as $cid) {
-            if ((int)$cid) { $urlAccion = BASE_URL . '/index.php?url=detallecurso&id=' . (int)$cid; break; }
-        }
-
-        $enviados = $this->notificarUsuarios($titulo, $cuerpo, $id, $audiencia, $diasReg, $urlAccion);
-
-        $this->logActividad("Campaña creada: $titulo", 'info');
-        return ['ok' => true, 'id' => $id, 'mensaje' => "Campaña creada y notificación enviada a $enviados usuario(s)"];
     }
 
     private function apiEditarCampana(): array
@@ -1815,22 +1817,24 @@ class CrmController
                 $cid = (int)$cid;
                 if (!$cid) continue;
 
+                // Solapamiento correcto: rangos [A,B] y [C,D] solapan si A<=D y B>=C.
+                // Si alguno de los extremos es NULL, lo tratamos como -infinito o +infinito.
+                $newIni = $inicio ?: '0000-01-01';
+                $newFin = $fin    ?: '9999-12-31';
                 $overlapQ = "
-                    SELECT c.titulo FROM campana_crm cam
+                    SELECT cur.titulo FROM campana_crm cam
                     JOIN campana_curso cc ON cc.campana_id=cam.id
+                    JOIN curso cur       ON cur.id=cc.curso_id
                     WHERE cc.curso_id=?
                       AND cam.tipo='oferta'
                       AND cam.activa=1
                       " . ($excludeId ? "AND cam.id<>$excludeId" : '') . "
-                      AND (
-                        -- cam solapada con el nuevo rango
-                        (? IS NULL OR cam.fecha_fin IS NULL OR cam.fecha_fin >= ?)
-                        AND (? IS NULL OR cam.fecha_inicio IS NULL OR cam.fecha_inicio <= ?)
-                      )
+                      AND COALESCE(cam.fecha_inicio,'0000-01-01') <= ?
+                      AND COALESCE(cam.fecha_fin,   '9999-12-31') >= ?
                     LIMIT 1
                 ";
                 $ov = $this->db->prepare($overlapQ);
-                $ov->execute([$cid, $fin, $inicio ?? '2000-01-01', $inicio, $fin ?? '2099-12-31']);
+                $ov->execute([$cid, $newFin, $newIni]);
                 $cursoRow = $ov->fetch(PDO::FETCH_ASSOC);
                 if ($cursoRow) {
                     $cursoNombre = $cursoRow['titulo'] ?? "ID $cid";
@@ -2048,6 +2052,9 @@ class CrmController
         $ins = $this->db->prepare("INSERT INTO tarea_entregable (curso_id,unidad_id,titulo,descripcion,fecha_limite) VALUES(?,?,?,?,?)");
         $upd = $this->db->prepare("UPDATE tarea_entregable SET unidad_id=?,titulo=?,descripcion=?,fecha_limite=? WHERE id=? AND curso_id=?");
 
+        // Cap superior: 90 días desde hoy (= máximo periodo de validez de matrículas)
+        $maxFecha = date('Y-m-d', strtotime('+90 days'));
+
         foreach ($tareas as $t) {
             $id          = (int)($t['id'] ?? 0);
             $titulo      = trim($t['titulo'] ?? '');
@@ -2055,6 +2062,12 @@ class CrmController
             $unidadId    = ($t['unidad_id'] ?? '') !== '' ? (int)$t['unidad_id'] : null;
             $descripcion = trim($t['descripcion'] ?? '');
             $fechaLimite = !empty($t['fecha_limite']) ? $t['fecha_limite'] : null;
+
+            // Si la fecha excede el máximo (90 días), la recortamos al máximo
+            // (no rechazamos la operación entera para no perder los demás cambios).
+            if ($fechaLimite && $fechaLimite > $maxFecha) {
+                $fechaLimite = $maxFecha;
+            }
 
             if ($id) {
                 $upd->execute([$unidadId, $titulo, $descripcion, $fechaLimite, $id, $cursoId]);

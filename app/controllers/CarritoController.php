@@ -204,8 +204,19 @@ class CarritoController
                 $productData['description'] = "Descuento {$pct}% aplicado · Precio original " . number_format($precio, 2) . '€';
             }
             if (!empty($c['imagen'])) {
-                $imageUrl = $this->absoluteBaseUrl() . BASE_URL . '/img/' . $c['imagen'];
-                $productData['images'] = [$imageUrl];
+                $base    = basename($c['imagen']);
+                $noExt   = pathinfo($base, PATHINFO_FILENAME);
+                $ext     = strtolower(pathinfo($base, PATHINFO_EXTENSION));
+                // Stripe solo acepta JPEG/PNG; los SVG los sustituimos por el thumb generado
+                if (in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
+                    $imgFile = $base;
+                } else {
+                    $imgFile = $noExt . '-thumb.png';
+                }
+                $imgDisk = dirname(__DIR__, 2) . '/public/img/cursos/' . $imgFile;
+                if (file_exists($imgDisk)) {
+                    $productData['images'] = [$this->absoluteBaseUrl() . BASE_URL . '/img/cursos/' . $imgFile];
+                }
             }
 
             $lineItems[] = [

@@ -39,6 +39,8 @@ function buildBuzonUrl(array $overrides = []): string {
 <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="<?= BASE_URL ?>/css/header.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/css/footer.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/css/sidebar.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/css/dashboard.css">
 <style>
 *,*::before,*::after{box-sizing:border-box}
 body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
@@ -152,11 +154,17 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
 <body>
 <?php require __DIR__ . '/../layout/header.php'; ?>
 
-<div class="buzon-layout">
+<main class="main-dashboard">
+  <div class="mc-container">
+    <div class="contenedor-dashboard-content">
 
-  <a class="back-link" href="<?= BASE_URL ?>/index.php?url=notificaciones">
+      <?php require __DIR__ . '/../layout/sidebar.php'; ?>
+
+      <div class="buzon-layout" style="flex:1;min-width:0;max-width:none;">
+
+  <a class="back-link" href="<?= BASE_URL ?>/index.php?url=dashboard">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    Volver a notificaciones
+    Volver al espacio de trabajo
   </a>
 
   <div class="buzon-header">
@@ -598,5 +606,11 @@ function escHtml(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+
+      </div><!-- /buzon-layout -->
+    </div><!-- /contenedor-dashboard-content -->
+  </div><!-- /mc-container -->
+</main>
+
 </body>
 </html>

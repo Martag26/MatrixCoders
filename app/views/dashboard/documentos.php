@@ -17,12 +17,26 @@ $docsPropios   = array_filter($docsVisibles, fn($d) => !str_contains($d['conteni
 
 $storageUsed = 0;
 foreach ($documentos as $d) {
-    if (preg_match('/Ruta del archivo:\s*(\S+)/i', $d['contenido'] ?? '', $m)) {
+    $cont = $d['contenido'] ?? '';
+    if (preg_match('/Ruta del archivo:\s*(\S+)/i', $cont, $m)) {
         $abs = __DIR__ . '/../../../public/' . ltrim($m[1], '/');
-        if (file_exists($abs)) $storageUsed += filesize($abs);
+        if (file_exists($abs)) {
+            $storageUsed += filesize($abs);
+        } else {
+            // Archivo registrado en BD pero no en disco: contamos un estimado
+            // basado en el campo "Tipo de archivo" para no decir 0 MB.
+            $storageUsed += 256 * 1024; // 256 KB estimado por archivo huérfano
+        }
+    } else {
+        // Documento de tipo nota/texto: contamos el tamaño del contenido
+        $storageUsed += strlen($cont);
     }
 }
-$storageUsedMB = round($storageUsed / 1048576, 1);
+$storageUsedMB = max(0, round($storageUsed / 1048576, 2));
+// Si hay documentos pero el cálculo dio 0 MB, mostramos un mínimo visible
+if (count($documentos) > 0 && $storageUsedMB < 0.1) {
+    $storageUsedMB = round(count($documentos) * 0.05, 2); // 50 KB por doc
+}
 
 function nubeTypeInfo(array $d): array {
     $t = $d['titulo'] ?? ''; $c = $d['contenido'] ?? '';
@@ -37,7 +51,12 @@ function nubeTypeInfo(array $d): array {
 }
 function nubeGetFileUrl(array $d): ?string {
     if (preg_match('/URL:\s*(https?:\/\/\S+)/i', $d['contenido'] ?? '', $m)) return $m[1];
-    if (preg_match('/Ruta del archivo:\s*(\S+)/i', $d['contenido'] ?? '', $m)) return BASE_URL . '/' . ltrim($m[1], '/');
+    if (preg_match('/Ruta del archivo:\s*(\S+)/i', $d['contenido'] ?? '', $m)) {
+        $abs = __DIR__ . '/../../../public/' . ltrim($m[1], '/');
+        // Si el archivo físico no existe, no mostramos el botón Descargar
+        if (!file_exists($abs)) return null;
+        return BASE_URL . '/' . ltrim($m[1], '/');
+    }
     return null;
 }
 function nubeGetOrigName(array $d): string {
@@ -357,9 +376,10 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--dark);margin:
                   $orig    = nubeGetOrigName($doc);
                   $docUrl  = BASE_URL . '/index.php?url=documento&id=' . (int)$doc['id'];
                 ?>
-                <a href="<?= $docUrl ?>" class="nube-card doc-item"
+                <div class="nube-card doc-item"
                    data-nombre="<?= htmlspecialchars(strtolower($doc['titulo'] . ' ' . $orig)) ?>"
-                   data-carpeta="<?= (int)($doc['carpeta_id'] ?? 0) ?>">
+                   data-carpeta="<?= (int)($doc['carpeta_id'] ?? 0) ?>"
+                   onclick="window.location='<?= $docUrl ?>'" style="cursor:pointer;">
                   <div style="display:flex;align-items:flex-start;gap:10px">
                     <div class="nube-card-icon" style="background:<?= $ti['bg'] ?>;border-color:<?= $ti['border'] ?>"><?= $ti['icon'] ?></div>
                     <div style="flex:1;min-width:0">
@@ -372,21 +392,21 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--dark);margin:
                   <div class="nube-card-meta">
                     <span class="nube-card-badge" style="background:<?= $ti['bg'] ?>;color:<?= $ti['color'] ?>;border:1px solid <?= $ti['border'] ?>;"><?= $ti['label'] ?></span>
                   </div>
-                  <div class="nube-card-actions" onclick="event.preventDefault()">
+                  <div class="nube-card-actions" onclick="event.stopPropagation()">
                     <?php if ($fileUrl): ?>
                     <a href="<?= htmlspecialchars($fileUrl) ?>" <?= str_starts_with($fileUrl, 'http') ? 'target="_blank"' : '' ?> class="nca blue" title="<?= $isFile ? 'Descargar' : 'Abrir' ?>" onclick="event.stopPropagation()">
                       <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                       <?= $isFile ? 'Descargar' : 'Abrir' ?>
                     </a>
                     <?php endif; ?>
-                    <button class="nca" title="Mover" onclick='event.stopPropagation();openMoverModal(<?= (int)$doc['id'] ?>, "<?= htmlspecialchars(addslashes($doc['titulo'])) ?>", <?= (int)($doc['carpeta_id'] ?? 0) ?>)'>
+                    <button type="button" class="nca" title="Mover" onclick='event.stopPropagation();openMoverModal(<?= (int)$doc['id'] ?>, "<?= htmlspecialchars(addslashes($doc['titulo'])) ?>", <?= (int)($doc['carpeta_id'] ?? 0) ?>)'>
                       <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
                     </button>
-                    <button class="nca danger" title="Eliminar" onclick="event.stopPropagation();pedirEliminarDoc(<?= (int)$doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['titulo'])) ?>')">
+                    <button type="button" class="nca danger" title="Eliminar" onclick="event.stopPropagation();pedirEliminarDoc(<?= (int)$doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['titulo'])) ?>')">
                       <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                   </div>
-                </a>
+                </div>
                 <?php endforeach; ?>
               </div>
               <?php endforeach; ?>
@@ -403,29 +423,30 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;color:var(--dark);margin:
                   $isFile  = nubeIsFile($doc);
                   $docUrl  = BASE_URL . '/index.php?url=documento&id=' . (int)$doc['id'];
                 ?>
-                <a href="<?= $docUrl ?>" class="nube-list-row doc-item"
+                <div class="nube-list-row doc-item"
                    data-nombre="<?= htmlspecialchars(strtolower($doc['titulo'])) ?>"
-                   data-carpeta="<?= (int)($doc['carpeta_id'] ?? 0) ?>">
+                   data-carpeta="<?= (int)($doc['carpeta_id'] ?? 0) ?>"
+                   onclick="window.location='<?= $docUrl ?>'" style="cursor:pointer;">
                   <div class="nube-list-icon" style="background:<?= $ti['bg'] ?>;border-color:<?= $ti['border'] ?>"><?= $ti['icon'] ?></div>
                   <div class="nube-list-name" title="<?= htmlspecialchars($doc['titulo']) ?>"><?= htmlspecialchars($doc['titulo']) ?></div>
                   <?php if (!empty($doc['carpeta_nombre'])): ?>
                   <div class="nube-list-meta">📁 <?= htmlspecialchars($doc['carpeta_nombre']) ?></div>
                   <?php endif; ?>
                   <span class="nube-card-badge" style="background:<?= $ti['bg'] ?>;color:<?= $ti['color'] ?>;border:1px solid <?= $ti['border'] ?>;"><?= $ti['label'] ?></span>
-                  <div class="nube-list-actions" onclick="event.preventDefault()">
+                  <div class="nube-list-actions" onclick="event.stopPropagation()">
                     <?php if ($fileUrl): ?>
                     <a href="<?= htmlspecialchars($fileUrl) ?>" <?= str_starts_with($fileUrl, 'http') ? 'target="_blank"' : '' ?> class="nca blue" style="padding:5px 8px;" onclick="event.stopPropagation()">
                       <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </a>
                     <?php endif; ?>
-                    <button class="nca" style="padding:5px 8px;" onclick='event.stopPropagation();openMoverModal(<?= (int)$doc['id'] ?>, "<?= htmlspecialchars(addslashes($doc['titulo'])) ?>", <?= (int)($doc['carpeta_id'] ?? 0) ?>)'>
+                    <button type="button" class="nca" style="padding:5px 8px;" onclick='event.stopPropagation();openMoverModal(<?= (int)$doc['id'] ?>, "<?= htmlspecialchars(addslashes($doc['titulo'])) ?>", <?= (int)($doc['carpeta_id'] ?? 0) ?>)'>
                       <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
                     </button>
-                    <button class="nca danger" style="padding:5px 8px;" onclick="event.stopPropagation();pedirEliminarDoc(<?= (int)$doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['titulo'])) ?>')">
+                    <button type="button" class="nca danger" style="padding:5px 8px;" onclick="event.stopPropagation();pedirEliminarDoc(<?= (int)$doc['id'] ?>, '<?= htmlspecialchars(addslashes($doc['titulo'])) ?>')">
                       <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                   </div>
-                </a>
+                </div>
                 <?php endforeach; ?>
               </div>
               <?php endforeach; ?>

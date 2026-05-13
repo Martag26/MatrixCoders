@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 500' preserveAspectRatio='xMidYMid slice'>
+<defs>
+    <linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'>
+      <stop offset='0%' stop-color='#020617'/>
+      <stop offset='60%' stop-color='#0a0f1e'/>
+      <stop offset='100%' stop-color='#020617'/>
+    </linearGradient>
+    <radialGradient id='halo1' cx='20%' cy='20%' r='65%'>
+      <stop offset='0%' stop-color='#f97316' stop-opacity='0.40'/>
+      <stop offset='70%' stop-color='#f97316' stop-opacity='0.05'/>
+      <stop offset='100%' stop-color='#f97316' stop-opacity='0'/>
+    </radialGradient>
+    <radialGradient id='halo2' cx='85%' cy='85%' r='65%'>
+      <stop offset='0%' stop-color='#dc2626' stop-opacity='0.40'/>
+      <stop offset='70%' stop-color='#dc2626' stop-opacity='0.05'/>
+      <stop offset='100%' stop-color='#dc2626' stop-opacity='0'/>
+    </radialGradient>
+    <linearGradient id='panel' x1='0%' y1='0%' x2='0%' y2='100%'>
+      <stop offset='0%' stop-color='#0d1424'/>
+      <stop offset='100%' stop-color='#0a0f1e'/>
+    </linearGradient>
+    <linearGradient id='edge' x1='0%' y1='0%' x2='100%' y2='0%'>
+      <stop offset='0%' stop-color='#f97316' stop-opacity='0.95'/>
+      <stop offset='100%' stop-color='#dc2626' stop-opacity='0.95'/>
+    </linearGradient>
+    <filter id='glow' x='-30%' y='-30%' width='160%' height='160%'>
+      <feGaussianBlur stdDeviation='9' result='b'/>
+      <feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge>
+    </filter>
+    <filter id='softGlow' x='-50%' y='-50%' width='200%' height='200%'>
+      <feGaussianBlur stdDeviation='4'/>
+    </filter></defs>
+<rect width='800' height='500' fill='url(#bg)'/>
+<rect width='800' height='500' fill='url(#halo1)'/>
+<rect width='800' height='500' fill='url(#halo2)'/>
+<circle cx='748' cy='418' r='0.8' fill='#fdba74' fill-opacity='0.55'/><circle cx='150' cy='66' r='0.8' fill='#fdba74' fill-opacity='0.67'/><circle cx='65' cy='243' r='0.8' fill='#fdba74' fill-opacity='0.69'/><circle cx='772' cy='1' r='1.6' fill='#fdba74' fill-opacity='0.23'/><circle cx='498' cy='37' r='0.8' fill='#fdba74' fill-opacity='0.6'/><circle cx='229' cy='199' r='0.8' fill='#fdba74' fill-opacity='0.74'/><circle cx='725' cy='59' r='0.8' fill='#fdba74' fill-opacity='0.53'/><circle cx='118' cy='175' r='0.8' fill='#fdba74' fill-opacity='0.25'/><circle cx='596' cy='282' r='0.8' fill='#fdba74' fill-opacity='0.25'/><circle cx='110' cy='241' r='1.6' fill='#fdba74' fill-opacity='0.53'/><circle cx='144' cy='444' r='0.8' fill='#fdba74' fill-opacity='0.42'/><circle cx='788' cy='12' r='1.6' fill='#fdba74' fill-opacity='0.31'/><circle cx='480' cy='284' r='0.8' fill='#fdba74' fill-opacity='0.25'/><circle cx='162' cy='411' r='0.8' fill='#fdba74' fill-opacity='0.27'/><circle cx='557' cy='296' r='1.6' fill='#fdba74' fill-opacity='0.36'/><circle cx='71' cy='414' r='0.8' fill='#fdba74' fill-opacity='0.21'/><circle cx='539' cy='432' r='0.8' fill='#fdba74' fill-opacity='0.65'/><circle cx='113' cy='264' r='0.8' fill='#fdba74' fill-opacity='0.21'/><circle cx='623' cy='103' r='1.6' fill='#fdba74' fill-opacity='0.42'/><circle cx='184' cy='55' r='0.8' fill='#fdba74' fill-opacity='0.48'/><circle cx='707' cy='334' r='0.8' fill='#fdba74' fill-opacity='0.61'/><circle cx='83' cy='370' r='1.6' fill='#fdba74' fill-opacity='0.71'/><circle cx='3' cy='386' r='1.6' fill='#fdba74' fill-opacity='0.35'/><circle cx='455' cy='391' r='0.8' fill='#fdba74' fill-opacity='0.27'/><circle cx='341' cy='198' r='0.8' fill='#fdba74' fill-opacity='0.4'/><circle cx='435' cy='339' r='0.8' fill='#fdba74' fill-opacity='0.67'/><circle cx='493' cy='369' r='0.8' fill='#fdba74' fill-opacity='0.63'/><circle cx='641' cy='314' r='0.8' fill='#fdba74' fill-opacity='0.54'/><circle cx='525' cy='193' r='1.6' fill='#fdba74' fill-opacity='0.37'/><circle cx='415' cy='342' r='0.8' fill='#fdba74' fill-opacity='0.44'/><circle cx='587' cy='8' r='0.8' fill='#fdba74' fill-opacity='0.31'/><circle cx='642' cy='175' r='1.6' fill='#fdba74' fill-opacity='0.34'/><circle cx='110' cy='427' r='1.6' fill='#fdba74' fill-opacity='0.72'/><circle cx='737' cy='159' r='1.6' fill='#fdba74' fill-opacity='0.45'/><circle cx='771' cy='110' r='1.6' fill='#fdba74' fill-opacity='0.32'/><circle cx='156' cy='117' r='1.6' fill='#fdba74' fill-opacity='0.7'/><circle cx='657' cy='209' r='0.8' fill='#fdba74' fill-opacity='0.63'/><circle cx='540' cy='34' r='0.8' fill='#fdba74' fill-opacity='0.63'/><circle cx='153' cy='23' r='0.8' fill='#fdba74' fill-opacity='0.24'/><circle cx='302' cy='59' r='0.8' fill='#fdba74' fill-opacity='0.65'/><circle cx='203' cy='428' r='1.6' fill='#fdba74' fill-opacity='0.41'/><circle cx='711' cy='413' r='1.6' fill='#fdba74' fill-opacity='0.69'/><circle cx='538' cy='3' r='1.6' fill='#fdba74' fill-opacity='0.25'/><circle cx='389' cy='202' r='1.6' fill='#fdba74' fill-opacity='0.55'/><circle cx='570' cy='203' r='0.8' fill='#fdba74' fill-opacity='0.26'/><circle cx='687' cy='423' r='0.8' fill='#fdba74' fill-opacity='0.5'/><circle cx='169' cy='468' r='1.6' fill='#fdba74' fill-opacity='0.33'/><circle cx='187' cy='188' r='0.8' fill='#fdba74' fill-opacity='0.68'/><circle cx='443' cy='250' r='1.6' fill='#fdba74' fill-opacity='0.21'/><circle cx='673' cy='283' r='1.6' fill='#fdba74' fill-opacity='0.57'/><circle cx='326' cy='326' r='0.8' fill='#fdba74' fill-opacity='0.5'/><circle cx='734' cy='47' r='0.8' fill='#fdba74' fill-opacity='0.6'/><circle cx='361' cy='431' r='1.6' fill='#fdba74' fill-opacity='0.31'/><circle cx='453' cy='135' r='0.8' fill='#fdba74' fill-opacity='0.5'/><circle cx='142' cy='430' r='0.8' fill='#fdba74' fill-opacity='0.58'/><circle cx='415' cy='390' r='0.8' fill='#fdba74' fill-opacity='0.67'/><circle cx='171' cy='20' r='1.6' fill='#fdba74' fill-opacity='0.22'/><circle cx='721' cy='360' r='1.6' fill='#fdba74' fill-opacity='0.39'/><circle cx='443' cy='281' r='1.6' fill='#fdba74' fill-opacity='0.48'/><circle cx='768' cy='352' r='0.8' fill='#fdba74' fill-opacity='0.27'/><circle cx='156' cy='281' r='1.6' fill='#fdba74' fill-opacity='0.49'/><circle cx='386' cy='123' r='0.8' fill='#fdba74' fill-opacity='0.23'/><circle cx='568' cy='105' r='0.8' fill='#fdba74' fill-opacity='0.71'/><circle cx='297' cy='477' r='0.8' fill='#fdba74' fill-opacity='0.39'/><circle cx='172' cy='132' r='0.8' fill='#fdba74' fill-opacity='0.61'/><circle cx='522' cy='261' r='0.8' fill='#fdba74' fill-opacity='0.53'/><circle cx='416' cy='379' r='0.8' fill='#fdba74' fill-opacity='0.29'/><circle cx='262' cy='293' r='0.8' fill='#fdba74' fill-opacity='0.21'/><circle cx='9' cy='464' r='1.6' fill='#fdba74' fill-opacity='0.43'/><circle cx='722' cy='311' r='0.8' fill='#fdba74' fill-opacity='0.53'/><circle cx='521' cy='265' r='0.8' fill='#fdba74' fill-opacity='0.35'/><circle cx='517' cy='168' r='0.8' fill='#fdba74' fill-opacity='0.23'/><circle cx='326' cy='449' r='0.8' fill='#fdba74' fill-opacity='0.27'/><circle cx='70' cy='453' r='0.8' fill='#fdba74' fill-opacity='0.59'/><circle cx='38' cy='437' r='0.8' fill='#fdba74' fill-opacity='0.44'/><circle cx='378' cy='496' r='0.8' fill='#fdba74' fill-opacity='0.52'/><circle cx='388' cy='57' r='0.8' fill='#fdba74' fill-opacity='0.41'/><circle cx='746' cy='372' r='1.6' fill='#fdba74' fill-opacity='0.22'/><circle cx='387' cy='468' r='0.8' fill='#fdba74' fill-opacity='0.74'/><circle cx='497' cy='197' r='1.6' fill='#fdba74' fill-opacity='0.43'/><circle cx='727' cy='310' r='0.8' fill='#fdba74' fill-opacity='0.67'/><circle cx='554' cy='256' r='0.8' fill='#fdba74' fill-opacity='0.69'/><circle cx='695' cy='156' r='0.8' fill='#fdba74' fill-opacity='0.58'/><circle cx='353' cy='480' r='0.8' fill='#fdba74' fill-opacity='0.74'/><circle cx='698' cy='471' r='0.8' fill='#fdba74' fill-opacity='0.54'/><circle cx='635' cy='207' r='0.8' fill='#fdba74' fill-opacity='0.68'/><circle cx='15' cy='463' r='0.8' fill='#fdba74' fill-opacity='0.6'/><circle cx='437' cy='26' r='0.8' fill='#fdba74' fill-opacity='0.55'/><circle cx='93' cy='194' r='1.6' fill='#fdba74' fill-opacity='0.35'/><circle cx='320' cy='261' r='0.8' fill='#fdba74' fill-opacity='0.36'/><line x1='289' y1='262' x2='289' y2='370' stroke='#f97316' stroke-width='1' stroke-opacity='0.14'/><line x1='262' y1='490' x2='356' y2='490' stroke='#f97316' stroke-width='1' stroke-opacity='0.08'/><line x1='345' y1='413' x2='410' y2='413' stroke='#f97316' stroke-width='1' stroke-opacity='0.12'/><line x1='617' y1='482' x2='617' y2='562' stroke='#f97316' stroke-width='1' stroke-opacity='0.08'/><line x1='478' y1='194' x2='584' y2='194' stroke='#f97316' stroke-width='1' stroke-opacity='0.11'/><line x1='558' y1='317' x2='680' y2='317' stroke='#f97316' stroke-width='1' stroke-opacity='0.13'/><line x1='19' y1='109' x2='19' y2='181' stroke='#f97316' stroke-width='1' stroke-opacity='0.11'/><line x1='380' y1='359' x2='506' y2='359' stroke='#f97316' stroke-width='1' stroke-opacity='0.11'/><line x1='90' y1='484' x2='164' y2='484' stroke='#f97316' stroke-width='1' stroke-opacity='0.14'/><line x1='150' y1='399' x2='150' y2='506' stroke='#f97316' stroke-width='1' stroke-opacity='0.08'/><line x1='346' y1='47' x2='346' y2='126' stroke='#f97316' stroke-width='1' stroke-opacity='0.14'/><line x1='561' y1='75' x2='561' y2='135' stroke='#f97316' stroke-width='1' stroke-opacity='0.11'/>
+<g stroke='#f97316' stroke-opacity='0.10' stroke-width='1'>
+        <line x1='0' y1='380' x2='800' y2='380'/>
+        <line x1='0' y1='405' x2='800' y2='405'/>
+        <line x1='0' y1='432' x2='800' y2='432'/>
+        <line x1='200' y1='380' x2='120' y2='430'/>
+        <line x1='400' y1='380' x2='400' y2='430'/>
+        <line x1='600' y1='380' x2='680' y2='430'/>
+    </g>
+    <!-- Monitor curvo -->
+    <g transform='translate(60,90)'>
+      <path d='M 0 14 Q 230 0 460 14 L 460 240 Q 230 254 0 240 Z' fill='url(#panel)' stroke='url(#edge)' stroke-width='2'/>
+      <rect x='0' y='14' width='460' height='28' fill='#0a0d12'/>
+      <text x='230' y='33' text-anchor='middle' fill='#94a3b8' font-size='11' font-family='monospace'>Matrix.java</text>
+      <g font-family='monospace' font-size='14' transform='translate(28,68)'>
+        <text fill='#c084fc'>public class <tspan fill='#fde047'>Matrix</tspan> {</text>
+        <text y='24' fill='#c084fc'>  public static void <tspan fill='#fde047'>main</tspan>(</text>
+        <text y='48' fill='#c084fc'>    String<tspan fill='#cbd5e1'>[] args) {</tspan></text>
+        <text y='72' fill='#7dd3fc'>    System<tspan fill='#cbd5e1'>.</tspan>out<tspan fill='#cbd5e1'>.</tspan><tspan fill='#fde047'>println</tspan><tspan fill='#cbd5e1'>(</tspan></text>
+        <text y='96' fill='#fb923c'>      "Hola, MatrixCoders"</text>
+        <text y='120' fill='#cbd5e1'>    );</text>
+        <text y='144' fill='#cbd5e1'>  }</text>
+        <text y='168' fill='#cbd5e1'>}</text>
+      </g>
+    </g>
+    <line x1='290' y1='338' x2='290' y2='360' stroke='#f97316' stroke-width='3'/>
+    <ellipse cx='290' cy='370' rx='110' ry='5' fill='#f97316' fill-opacity='0.15'/>
+    <!-- Taza de café Java -->
+    <g transform='translate(620,170)' stroke='#f97316' stroke-width='4' fill='none' filter='url(#glow)'>
+      <path d='M 30 60 Q 70 30 110 60' stroke-linecap='round'/>
+      <path d='M 24 80 L 28 160 Q 28 175 44 175 L 96 175 Q 112 175 112 160 L 116 80 Z' fill='#f97316' fill-opacity='0.18'/>
+      <path d='M 116 100 Q 145 105 142 130 Q 135 145 116 138' stroke-linecap='round'/>
+      <path d='M 56 20 Q 54 12 60 6 Q 66 12 64 20' stroke-linecap='round' stroke-opacity='0.7'/>
+      <path d='M 76 24 Q 74 16 80 10 Q 86 16 84 24' stroke-linecap='round' stroke-opacity='0.6'/>
+      <path d='M 96 22 Q 94 14 100 8 Q 106 14 104 22' stroke-linecap='round' stroke-opacity='0.7'/>
+    </g>
+    
+    <rect x='0' y='430' width='800' height='70' fill='#000' fill-opacity='0.62'/>
+    <text x='40' y='458' font-family='system-ui,sans-serif' font-size='11' font-weight='800' fill='#fdba74' letter-spacing='2.5'>PROGRAMACIÓN</text>
+    <text x='40' y='488' font-family='system-ui,sans-serif' font-size='24' font-weight='800' fill='#ffffff'>Java</text>
+    <rect x='0' y='0' width='3' height='500' fill='url(#edge)'/>
+</svg>

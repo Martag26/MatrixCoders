@@ -220,6 +220,24 @@ $ytId = ytId($videoUrl);
             border-color: var(--mc-green);
         }
 
+        .nav-btn-examen {
+            background: #f59e0b;
+            border-color: #d97706;
+            color: #1c1c1c;
+            padding: .65rem 1.6rem;
+            font-size: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(245,158,11,.35);
+            letter-spacing: .01em;
+        }
+
+        .nav-btn-examen:hover {
+            background: #d97706;
+            border-color: #b45309;
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(217,119,6,.45);
+        }
+
         .nav-btn-primary:hover {
             background: var(--mc-green-d);
             border-color: var(--mc-green-d);
@@ -820,9 +838,9 @@ $ytId = ytId($videoUrl);
                     </a>
                 <?php else: ?>
                     <?php if ($tieneExamen): ?>
-                        <a class="nav-btn nav-btn-primary"
+                        <a class="nav-btn nav-btn-examen"
                             href="<?= BASE_URL ?>/index.php?url=examen&curso=<?= $cursoId ?>">
-                            Ir al Examen →
+                            🎓 Ir al Examen →
                         </a>
                     <?php else: ?>
                         <a class="nav-btn nav-btn-primary"

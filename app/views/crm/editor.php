@@ -147,11 +147,7 @@ $tiposTarea     = ['texto'=>'Texto / Redacción','codigo'=>'Código / Programaci
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     Resultados
   </button>
-  <button class="crm-editor-tab" data-tab="mensajes" onclick="switchTab('mensajes')">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-    Mensajes
-    <span id="crm-msg-badge" class="crm-badge" style="display:none"></span>
-  </button>
+  <!-- Pestaña "Mensajes" retirada: la mensajería bidireccional se gestiona desde el módulo Comunicación -->
 </div>
 
 <!-- ================================================================ -->
@@ -555,7 +551,10 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
             <option value="<?= $u['id'] ?>" <?= ($te['unidad_id']==$u['id'])?'selected':'' ?>><?= htmlspecialchars($u['titulo']) ?></option>
             <?php endforeach; ?>
           </select>
-          <input type="date" class="crm-input te-fecha" value="<?= htmlspecialchars($te['fecha_limite'] ?? '') ?>" title="Fecha límite (opcional)">
+          <?php
+            $hoyTareaMax = date('Y-m-d', strtotime('+90 days'));
+          ?>
+          <input type="date" class="crm-input te-fecha" value="<?= htmlspecialchars($te['fecha_limite'] ?? '') ?>" min="<?= date('Y-m-d') ?>" max="<?= $hoyTareaMax ?>" title="Fecha límite (máx. <?= $hoyTareaMax ?>, fecha tope de expiración de matrículas)">
           <button class="crm-btn-icon danger crm-btn-sm" onclick="this.closest('.crm-te-row').remove()" title="Eliminar">
             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
@@ -856,9 +855,9 @@ $tipoLabelMap = ['pdf'=>'PDF','doc'=>'Documento','zip'=>'ZIP / Archivo','link'=>
 </div>
 
 <!-- ================================================================ -->
-<!-- TAB 5: MENSAJES                                                  -->
+<!-- TAB 5: MENSAJES (retirado — la mensajería bidireccional vive en Comunicación) -->
 <!-- ================================================================ -->
-<div id="tab-mensajes" class="crm-tab-panel">
+<div id="tab-mensajes" class="crm-tab-panel" style="display:none !important">
 
   <!-- Toolbar -->
   <div style="display:flex;align-items:center;justify-content:space-between;
@@ -1747,7 +1746,7 @@ function agregarTareaEntregable() {
         <option value="">Sin unidad asignada</option>
         ${UNIDADES_OPTIONS}
       </select>
-      <input type="date" class="crm-input te-fecha" title="Fecha límite (opcional)">
+      <input type="date" class="crm-input te-fecha" min="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d', strtotime('+90 days')) ?>" title="Fecha límite (máx. <?= date('Y-m-d', strtotime('+90 days')) ?>, tope de expiración de matrículas)">
       <button class="crm-btn-icon danger crm-btn-sm" onclick="this.closest('.crm-te-row').remove()" title="Eliminar">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>

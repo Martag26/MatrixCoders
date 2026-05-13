@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 500' preserveAspectRatio='xMidYMid slice'>
+<defs>
+    <linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'>
+      <stop offset='0%' stop-color='#020617'/>
+      <stop offset='60%' stop-color='#0a0f1e'/>
+      <stop offset='100%' stop-color='#020617'/>
+    </linearGradient>
+    <radialGradient id='halo1' cx='20%' cy='20%' r='65%'>
+      <stop offset='0%' stop-color='#06b6d4' stop-opacity='0.40'/>
+      <stop offset='70%' stop-color='#06b6d4' stop-opacity='0.05'/>
+      <stop offset='100%' stop-color='#06b6d4' stop-opacity='0'/>
+    </radialGradient>
+    <radialGradient id='halo2' cx='85%' cy='85%' r='65%'>
+      <stop offset='0%' stop-color='#a855f7' stop-opacity='0.40'/>
+      <stop offset='70%' stop-color='#a855f7' stop-opacity='0.05'/>
+      <stop offset='100%' stop-color='#a855f7' stop-opacity='0'/>
+    </radialGradient>
+    <linearGradient id='panel' x1='0%' y1='0%' x2='0%' y2='100%'>
+      <stop offset='0%' stop-color='#0d1424'/>
+      <stop offset='100%' stop-color='#0a0f1e'/>
+    </linearGradient>
+    <linearGradient id='edge' x1='0%' y1='0%' x2='100%' y2='0%'>
+      <stop offset='0%' stop-color='#06b6d4' stop-opacity='0.95'/>
+      <stop offset='100%' stop-color='#a855f7' stop-opacity='0.95'/>
+    </linearGradient>
+    <filter id='glow' x='-30%' y='-30%' width='160%' height='160%'>
+      <feGaussianBlur stdDeviation='9' result='b'/>
+      <feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge>
+    </filter>
+    <filter id='softGlow' x='-50%' y='-50%' width='200%' height='200%'>
+      <feGaussianBlur stdDeviation='4'/>
+    </filter></defs>
+<rect width='800' height='500' fill='url(#bg)'/>
+<rect width='800' height='500' fill='url(#halo1)'/>
+<rect width='800' height='500' fill='url(#halo2)'/>
+<circle cx='228' cy='221' r='1.6' fill='#67e8f9' fill-opacity='0.29'/><circle cx='350' cy='278' r='1.6' fill='#67e8f9' fill-opacity='0.49'/><circle cx='502' cy='264' r='0.8' fill='#67e8f9' fill-opacity='0.61'/><circle cx='625' cy='77' r='0.8' fill='#67e8f9' fill-opacity='0.27'/><circle cx='673' cy='215' r='0.8' fill='#67e8f9' fill-opacity='0.41'/><circle cx='676' cy='438' r='0.8' fill='#67e8f9' fill-opacity='0.74'/><circle cx='228' cy='335' r='1.6' fill='#67e8f9' fill-opacity='0.67'/><circle cx='212' cy='434' r='0.8' fill='#67e8f9' fill-opacity='0.23'/><circle cx='333' cy='175' r='0.8' fill='#67e8f9' fill-opacity='0.42'/><circle cx='489' cy='194' r='0.8' fill='#67e8f9' fill-opacity='0.74'/><circle cx='363' cy='254' r='0.8' fill='#67e8f9' fill-opacity='0.62'/><circle cx='40' cy='135' r='0.8' fill='#67e8f9' fill-opacity='0.35'/><circle cx='213' cy='202' r='0.8' fill='#67e8f9' fill-opacity='0.29'/><circle cx='392' cy='493' r='0.8' fill='#67e8f9' fill-opacity='0.49'/><circle cx='460' cy='60' r='0.8' fill='#67e8f9' fill-opacity='0.27'/><circle cx='190' cy='361' r='0.8' fill='#67e8f9' fill-opacity='0.36'/><circle cx='515' cy='379' r='1.6' fill='#67e8f9' fill-opacity='0.65'/><circle cx='159' cy='460' r='1.6' fill='#67e8f9' fill-opacity='0.71'/><circle cx='516' cy='359' r='0.8' fill='#67e8f9' fill-opacity='0.33'/><circle cx='173' cy='0' r='0.8' fill='#67e8f9' fill-opacity='0.63'/><circle cx='447' cy='252' r='0.8' fill='#67e8f9' fill-opacity='0.47'/><circle cx='9' cy='68' r='0.8' fill='#67e8f9' fill-opacity='0.63'/><circle cx='290' cy='423' r='0.8' fill='#67e8f9' fill-opacity='0.7'/><circle cx='403' cy='348' r='0.8' fill='#67e8f9' fill-opacity='0.66'/><circle cx='618' cy='233' r='0.8' fill='#67e8f9' fill-opacity='0.49'/><circle cx='767' cy='340' r='0.8' fill='#67e8f9' fill-opacity='0.72'/><circle cx='716' cy='101' r='0.8' fill='#67e8f9' fill-opacity='0.21'/><circle cx='648' cy='485' r='1.6' fill='#67e8f9' fill-opacity='0.27'/><circle cx='263' cy='493' r='0.8' fill='#67e8f9' fill-opacity='0.61'/><circle cx='279' cy='478' r='1.6' fill='#67e8f9' fill-opacity='0.49'/><circle cx='382' cy='301' r='0.8' fill='#67e8f9' fill-opacity='0.35'/><circle cx='129' cy='372' r='1.6' fill='#67e8f9' fill-opacity='0.33'/><circle cx='369' cy='487' r='0.8' fill='#67e8f9' fill-opacity='0.33'/><circle cx='640' cy='307' r='0.8' fill='#67e8f9' fill-opacity='0.64'/><circle cx='442' cy='88' r='0.8' fill='#67e8f9' fill-opacity='0.64'/><circle cx='286' cy='499' r='0.8' fill='#67e8f9' fill-opacity='0.57'/><circle cx='754' cy='13' r='0.8' fill='#67e8f9' fill-opacity='0.53'/><circle cx='490' cy='303' r='1.6' fill='#67e8f9' fill-opacity='0.74'/><circle cx='41' cy='232' r='0.8' fill='#67e8f9' fill-opacity='0.61'/><circle cx='571' cy='405' r='0.8' fill='#67e8f9' fill-opacity='0.32'/><circle cx='642' cy='109' r='1.6' fill='#67e8f9' fill-opacity='0.2'/><circle cx='262' cy='122' r='1.6' fill='#67e8f9' fill-opacity='0.53'/><circle cx='667' cy='252' r='0.8' fill='#67e8f9' fill-opacity='0.37'/><circle cx='742' cy='186' r='0.8' fill='#67e8f9' fill-opacity='0.36'/><circle cx='132' cy='245' r='0.8' fill='#67e8f9' fill-opacity='0.23'/><circle cx='215' cy='408' r='1.6' fill='#67e8f9' fill-opacity='0.73'/><circle cx='788' cy='375' r='0.8' fill='#67e8f9' fill-opacity='0.62'/><circle cx='370' cy='316' r='1.6' fill='#67e8f9' fill-opacity='0.31'/><circle cx='36' cy='113' r='0.8' fill='#67e8f9' fill-opacity='0.62'/><circle cx='672' cy='342' r='0.8' fill='#67e8f9' fill-opacity='0.66'/><circle cx='414' cy='14' r='1.6' fill='#67e8f9' fill-opacity='0.23'/><circle cx='268' cy='435' r='0.8' fill='#67e8f9' fill-opacity='0.59'/><circle cx='511' cy='114' r='0.8' fill='#67e8f9' fill-opacity='0.73'/><circle cx='182' cy='197' r='0.8' fill='#67e8f9' fill-opacity='0.73'/><circle cx='649' cy='293' r='1.6' fill='#67e8f9' fill-opacity='0.74'/><circle cx='576' cy='398' r='0.8' fill='#67e8f9' fill-opacity='0.67'/><circle cx='367' cy='106' r='0.8' fill='#67e8f9' fill-opacity='0.53'/><circle cx='308' cy='345' r='0.8' fill='#67e8f9' fill-opacity='0.71'/><circle cx='405' cy='297' r='0.8' fill='#67e8f9' fill-opacity='0.58'/><circle cx='606' cy='32' r='0.8' fill='#67e8f9' fill-opacity='0.44'/><circle cx='278' cy='124' r='0.8' fill='#67e8f9' fill-opacity='0.49'/><circle cx='409' cy='66' r='0.8' fill='#67e8f9' fill-opacity='0.68'/><circle cx='439' cy='154' r='1.6' fill='#67e8f9' fill-opacity='0.35'/><circle cx='674' cy='225' r='0.8' fill='#67e8f9' fill-opacity='0.21'/><circle cx='280' cy='149' r='0.8' fill='#67e8f9' fill-opacity='0.21'/><circle cx='704' cy='447' r='1.6' fill='#67e8f9' fill-opacity='0.47'/><circle cx='478' cy='50' r='1.6' fill='#67e8f9' fill-opacity='0.75'/><circle cx='196' cy='456' r='0.8' fill='#67e8f9' fill-opacity='0.37'/><circle cx='480' cy='208' r='0.8' fill='#67e8f9' fill-opacity='0.58'/><circle cx='748' cy='362' r='0.8' fill='#67e8f9' fill-opacity='0.7'/><circle cx='170' cy='354' r='0.8' fill='#67e8f9' fill-opacity='0.65'/><circle cx='436' cy='161' r='0.8' fill='#67e8f9' fill-opacity='0.47'/><circle cx='62' cy='483' r='0.8' fill='#67e8f9' fill-opacity='0.28'/><circle cx='364' cy='31' r='0.8' fill='#67e8f9' fill-opacity='0.42'/><circle cx='325' cy='256' r='0.8' fill='#67e8f9' fill-opacity='0.44'/><circle cx='799' cy='408' r='1.6' fill='#67e8f9' fill-opacity='0.5'/><circle cx='405' cy='234' r='0.8' fill='#67e8f9' fill-opacity='0.68'/><circle cx='452' cy='374' r='0.8' fill='#67e8f9' fill-opacity='0.29'/><circle cx='791' cy='398' r='1.6' fill='#67e8f9' fill-opacity='0.68'/><circle cx='402' cy='453' r='1.6' fill='#67e8f9' fill-opacity='0.74'/><circle cx='131' cy='389' r='0.8' fill='#67e8f9' fill-opacity='0.69'/><circle cx='531' cy='207' r='0.8' fill='#67e8f9' fill-opacity='0.43'/><circle cx='605' cy='488' r='1.6' fill='#67e8f9' fill-opacity='0.38'/><circle cx='429' cy='210' r='0.8' fill='#67e8f9' fill-opacity='0.42'/><circle cx='623' cy='308' r='0.8' fill='#67e8f9' fill-opacity='0.65'/><circle cx='176' cy='437' r='0.8' fill='#67e8f9' fill-opacity='0.2'/><circle cx='212' cy='92' r='0.8' fill='#67e8f9' fill-opacity='0.51'/><circle cx='326' cy='77' r='1.6' fill='#67e8f9' fill-opacity='0.37'/><circle cx='290' cy='48' r='0.8' fill='#67e8f9' fill-opacity='0.63'/><circle cx='728' cy='52' r='0.8' fill='#67e8f9' fill-opacity='0.28'/><line x1='760' y1='295' x2='869' y2='295' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.1'/><line x1='713' y1='32' x2='783' y2='32' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.1'/><line x1='107' y1='246' x2='107' y2='367' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.09'/><line x1='675' y1='43' x2='675' y2='125' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.08'/><line x1='681' y1='92' x2='783' y2='92' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.1'/><line x1='677' y1='132' x2='744' y2='132' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.12'/><line x1='694' y1='428' x2='694' y2='558' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.08'/><line x1='779' y1='487' x2='868' y2='487' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.09'/><line x1='530' y1='490' x2='657' y2='490' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.14'/><line x1='406' y1='60' x2='406' y2='137' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.13'/><line x1='779' y1='471' x2='779' y2='562' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.08'/><line x1='388' y1='361' x2='388' y2='488' stroke='#06b6d4' stroke-width='1' stroke-opacity='0.11'/>
+<g stroke='#06b6d4' stroke-opacity='0.10' stroke-width='1'>
+        <line x1='0' y1='380' x2='800' y2='380'/>
+        <line x1='0' y1='405' x2='800' y2='405'/>
+        <line x1='0' y1='432' x2='800' y2='432'/>
+        <line x1='200' y1='380' x2='120' y2='430'/>
+        <line x1='400' y1='380' x2='400' y2='430'/>
+        <line x1='600' y1='380' x2='680' y2='430'/>
+    </g>
+    <!-- Logo JS gigante -->
+    <g transform='translate(80,120)' filter='url(#glow)'>
+      <rect width='190' height='190' rx='20' fill='#f7df1e'/>
+      <text x='172' y='170' text-anchor='end' font-family='system-ui,sans-serif' font-size='62' font-weight='900' fill='#0a0f1e'>JS</text>
+    </g>
+    <!-- Laptop con JS -->
+    <g transform='translate(310,110) rotate(2)'>
+      <rect width='430' height='240' rx='10' fill='url(#panel)' stroke='url(#edge)' stroke-width='2'/>
+      <rect width='430' height='30' fill='#0a0d12' rx='10'/>
+      <circle cx='16' cy='15' r='4.5' fill='#ff5f56'/>
+      <circle cx='32' cy='15' r='4.5' fill='#ffbd2e'/>
+      <circle cx='48' cy='15' r='4.5' fill='#27c93f'/>
+      <text x='215' y='19' text-anchor='middle' fill='#94a3b8' font-size='11' font-family='monospace'>app.js</text>
+      <g font-family='monospace' font-size='14' transform='translate(28,58)'>
+        <text fill='#c084fc'>const <tspan fill='#7dd3fc'>cursos</tspan> = <tspan fill='#fde047'>await</tspan> <tspan fill='#fde047'>fetch</tspan>(<tspan fill='#fb923c'>'/api'</tspan>);</text>
+        <text y='26' fill='#c084fc'>const <tspan fill='#7dd3fc'>data</tspan> = <tspan fill='#fde047'>await</tspan> cursos.<tspan fill='#fde047'>json</tspan>();</text>
+        <text y='52' fill='#7dd3fc'>data<tspan fill='#cbd5e1'>.</tspan><tspan fill='#fde047'>forEach</tspan><tspan fill='#cbd5e1'>(c =&gt; {</tspan></text>
+        <text y='78' fill='#cbd5e1'>  <tspan fill='#7dd3fc'>render</tspan>(c.titulo);</text>
+        <text y='104' fill='#cbd5e1'>});</text>
+        <text y='138' fill='#64748b'>// promesas, async/await, fetch</text>
+      </g>
+    </g>
+    
+    <rect x='0' y='430' width='800' height='70' fill='#000' fill-opacity='0.62'/>
+    <text x='40' y='458' font-family='system-ui,sans-serif' font-size='11' font-weight='800' fill='#67e8f9' letter-spacing='2.5'>FRONTEND</text>
+    <text x='40' y='488' font-family='system-ui,sans-serif' font-size='24' font-weight='800' fill='#ffffff'>JavaScript</text>
+    <rect x='0' y='0' width='3' height='500' fill='url(#edge)'/>
+</svg>

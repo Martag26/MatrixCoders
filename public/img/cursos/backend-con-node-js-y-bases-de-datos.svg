@@ -1,0 +1,93 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 500' preserveAspectRatio='xMidYMid slice'>
+<defs>
+    <linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'>
+      <stop offset='0%' stop-color='#020617'/>
+      <stop offset='60%' stop-color='#0a0f1e'/>
+      <stop offset='100%' stop-color='#020617'/>
+    </linearGradient>
+    <radialGradient id='halo1' cx='20%' cy='20%' r='65%'>
+      <stop offset='0%' stop-color='#8b5cf6' stop-opacity='0.40'/>
+      <stop offset='70%' stop-color='#8b5cf6' stop-opacity='0.05'/>
+      <stop offset='100%' stop-color='#8b5cf6' stop-opacity='0'/>
+    </radialGradient>
+    <radialGradient id='halo2' cx='85%' cy='85%' r='65%'>
+      <stop offset='0%' stop-color='#ec4899' stop-opacity='0.40'/>
+      <stop offset='70%' stop-color='#ec4899' stop-opacity='0.05'/>
+      <stop offset='100%' stop-color='#ec4899' stop-opacity='0'/>
+    </radialGradient>
+    <linearGradient id='panel' x1='0%' y1='0%' x2='0%' y2='100%'>
+      <stop offset='0%' stop-color='#0d1424'/>
+      <stop offset='100%' stop-color='#0a0f1e'/>
+    </linearGradient>
+    <linearGradient id='edge' x1='0%' y1='0%' x2='100%' y2='0%'>
+      <stop offset='0%' stop-color='#8b5cf6' stop-opacity='0.95'/>
+      <stop offset='100%' stop-color='#ec4899' stop-opacity='0.95'/>
+    </linearGradient>
+    <filter id='glow' x='-30%' y='-30%' width='160%' height='160%'>
+      <feGaussianBlur stdDeviation='9' result='b'/>
+      <feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge>
+    </filter>
+    <filter id='softGlow' x='-50%' y='-50%' width='200%' height='200%'>
+      <feGaussianBlur stdDeviation='4'/>
+    </filter></defs>
+<rect width='800' height='500' fill='url(#bg)'/>
+<rect width='800' height='500' fill='url(#halo1)'/>
+<rect width='800' height='500' fill='url(#halo2)'/>
+<circle cx='623' cy='292' r='1.6' fill='#c4b5fd' fill-opacity='0.55'/><circle cx='430' cy='271' r='1.6' fill='#c4b5fd' fill-opacity='0.7'/><circle cx='380' cy='338' r='0.8' fill='#c4b5fd' fill-opacity='0.22'/><circle cx='763' cy='275' r='1.6' fill='#c4b5fd' fill-opacity='0.21'/><circle cx='283' cy='225' r='1.6' fill='#c4b5fd' fill-opacity='0.54'/><circle cx='487' cy='494' r='1.6' fill='#c4b5fd' fill-opacity='0.25'/><circle cx='580' cy='144' r='0.8' fill='#c4b5fd' fill-opacity='0.29'/><circle cx='762' cy='493' r='0.8' fill='#c4b5fd' fill-opacity='0.36'/><circle cx='792' cy='107' r='0.8' fill='#c4b5fd' fill-opacity='0.38'/><circle cx='692' cy='422' r='0.8' fill='#c4b5fd' fill-opacity='0.38'/><circle cx='567' cy='62' r='0.8' fill='#c4b5fd' fill-opacity='0.3'/><circle cx='204' cy='450' r='0.8' fill='#c4b5fd' fill-opacity='0.29'/><circle cx='699' cy='476' r='1.6' fill='#c4b5fd' fill-opacity='0.25'/><circle cx='42' cy='242' r='0.8' fill='#c4b5fd' fill-opacity='0.43'/><circle cx='259' cy='379' r='0.8' fill='#c4b5fd' fill-opacity='0.52'/><circle cx='384' cy='8' r='0.8' fill='#c4b5fd' fill-opacity='0.71'/><circle cx='284' cy='226' r='1.6' fill='#c4b5fd' fill-opacity='0.45'/><circle cx='746' cy='23' r='1.6' fill='#c4b5fd' fill-opacity='0.22'/><circle cx='161' cy='111' r='0.8' fill='#c4b5fd' fill-opacity='0.54'/><circle cx='657' cy='188' r='1.6' fill='#c4b5fd' fill-opacity='0.43'/><circle cx='624' cy='14' r='0.8' fill='#c4b5fd' fill-opacity='0.3'/><circle cx='85' cy='294' r='0.8' fill='#c4b5fd' fill-opacity='0.57'/><circle cx='312' cy='275' r='0.8' fill='#c4b5fd' fill-opacity='0.73'/><circle cx='737' cy='130' r='0.8' fill='#c4b5fd' fill-opacity='0.64'/><circle cx='738' cy='236' r='1.6' fill='#c4b5fd' fill-opacity='0.39'/><circle cx='253' cy='292' r='1.6' fill='#c4b5fd' fill-opacity='0.39'/><circle cx='212' cy='404' r='0.8' fill='#c4b5fd' fill-opacity='0.51'/><circle cx='605' cy='27' r='0.8' fill='#c4b5fd' fill-opacity='0.65'/><circle cx='379' cy='288' r='1.6' fill='#c4b5fd' fill-opacity='0.34'/><circle cx='237' cy='114' r='1.6' fill='#c4b5fd' fill-opacity='0.47'/><circle cx='206' cy='93' r='0.8' fill='#c4b5fd' fill-opacity='0.21'/><circle cx='776' cy='27' r='0.8' fill='#c4b5fd' fill-opacity='0.71'/><circle cx='291' cy='243' r='0.8' fill='#c4b5fd' fill-opacity='0.73'/><circle cx='555' cy='12' r='1.6' fill='#c4b5fd' fill-opacity='0.3'/><circle cx='479' cy='241' r='1.6' fill='#c4b5fd' fill-opacity='0.74'/><circle cx='451' cy='19' r='0.8' fill='#c4b5fd' fill-opacity='0.42'/><circle cx='540' cy='163' r='0.8' fill='#c4b5fd' fill-opacity='0.44'/><circle cx='47' cy='460' r='0.8' fill='#c4b5fd' fill-opacity='0.47'/><circle cx='481' cy='11' r='0.8' fill='#c4b5fd' fill-opacity='0.68'/><circle cx='597' cy='55' r='0.8' fill='#c4b5fd' fill-opacity='0.46'/><circle cx='508' cy='63' r='0.8' fill='#c4b5fd' fill-opacity='0.45'/><circle cx='760' cy='309' r='1.6' fill='#c4b5fd' fill-opacity='0.54'/><circle cx='77' cy='334' r='0.8' fill='#c4b5fd' fill-opacity='0.31'/><circle cx='649' cy='443' r='0.8' fill='#c4b5fd' fill-opacity='0.63'/><circle cx='662' cy='118' r='0.8' fill='#c4b5fd' fill-opacity='0.3'/><circle cx='447' cy='92' r='1.6' fill='#c4b5fd' fill-opacity='0.6'/><circle cx='446' cy='429' r='0.8' fill='#c4b5fd' fill-opacity='0.48'/><circle cx='191' cy='226' r='0.8' fill='#c4b5fd' fill-opacity='0.41'/><circle cx='205' cy='401' r='0.8' fill='#c4b5fd' fill-opacity='0.64'/><circle cx='255' cy='392' r='0.8' fill='#c4b5fd' fill-opacity='0.55'/><circle cx='275' cy='497' r='0.8' fill='#c4b5fd' fill-opacity='0.61'/><circle cx='423' cy='233' r='1.6' fill='#c4b5fd' fill-opacity='0.75'/><circle cx='506' cy='230' r='1.6' fill='#c4b5fd' fill-opacity='0.45'/><circle cx='41' cy='127' r='0.8' fill='#c4b5fd' fill-opacity='0.25'/><circle cx='641' cy='470' r='0.8' fill='#c4b5fd' fill-opacity='0.61'/><circle cx='421' cy='205' r='0.8' fill='#c4b5fd' fill-opacity='0.25'/><circle cx='328' cy='329' r='1.6' fill='#c4b5fd' fill-opacity='0.33'/><circle cx='548' cy='335' r='0.8' fill='#c4b5fd' fill-opacity='0.57'/><circle cx='687' cy='86' r='0.8' fill='#c4b5fd' fill-opacity='0.33'/><circle cx='732' cy='409' r='0.8' fill='#c4b5fd' fill-opacity='0.47'/><circle cx='153' cy='437' r='0.8' fill='#c4b5fd' fill-opacity='0.62'/><circle cx='430' cy='141' r='0.8' fill='#c4b5fd' fill-opacity='0.66'/><circle cx='378' cy='92' r='0.8' fill='#c4b5fd' fill-opacity='0.59'/><circle cx='524' cy='396' r='0.8' fill='#c4b5fd' fill-opacity='0.52'/><circle cx='512' cy='399' r='0.8' fill='#c4b5fd' fill-opacity='0.27'/><circle cx='481' cy='31' r='0.8' fill='#c4b5fd' fill-opacity='0.68'/><circle cx='268' cy='407' r='0.8' fill='#c4b5fd' fill-opacity='0.2'/><circle cx='89' cy='282' r='0.8' fill='#c4b5fd' fill-opacity='0.55'/><circle cx='713' cy='411' r='0.8' fill='#c4b5fd' fill-opacity='0.63'/><circle cx='608' cy='344' r='0.8' fill='#c4b5fd' fill-opacity='0.36'/><circle cx='404' cy='36' r='1.6' fill='#c4b5fd' fill-opacity='0.24'/><circle cx='674' cy='131' r='0.8' fill='#c4b5fd' fill-opacity='0.37'/><circle cx='35' cy='134' r='0.8' fill='#c4b5fd' fill-opacity='0.39'/><circle cx='566' cy='265' r='0.8' fill='#c4b5fd' fill-opacity='0.24'/><circle cx='505' cy='392' r='0.8' fill='#c4b5fd' fill-opacity='0.43'/><circle cx='561' cy='173' r='1.6' fill='#c4b5fd' fill-opacity='0.48'/><circle cx='438' cy='444' r='0.8' fill='#c4b5fd' fill-opacity='0.26'/><circle cx='649' cy='456' r='0.8' fill='#c4b5fd' fill-opacity='0.53'/><circle cx='69' cy='43' r='0.8' fill='#c4b5fd' fill-opacity='0.75'/><circle cx='785' cy='58' r='0.8' fill='#c4b5fd' fill-opacity='0.65'/><circle cx='362' cy='433' r='0.8' fill='#c4b5fd' fill-opacity='0.33'/><circle cx='284' cy='298' r='0.8' fill='#c4b5fd' fill-opacity='0.69'/><circle cx='274' cy='87' r='0.8' fill='#c4b5fd' fill-opacity='0.45'/><circle cx='300' cy='224' r='0.8' fill='#c4b5fd' fill-opacity='0.74'/><circle cx='748' cy='130' r='0.8' fill='#c4b5fd' fill-opacity='0.66'/><circle cx='544' cy='133' r='0.8' fill='#c4b5fd' fill-opacity='0.36'/><circle cx='521' cy='205' r='0.8' fill='#c4b5fd' fill-opacity='0.22'/><circle cx='566' cy='92' r='1.6' fill='#c4b5fd' fill-opacity='0.54'/><circle cx='776' cy='389' r='1.6' fill='#c4b5fd' fill-opacity='0.61'/><circle cx='433' cy='320' r='0.8' fill='#c4b5fd' fill-opacity='0.71'/><line x1='413' y1='40' x2='471' y2='40' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.08'/><line x1='554' y1='189' x2='554' y2='277' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.07'/><line x1='580' y1='390' x2='580' y2='497' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.11'/><line x1='401' y1='267' x2='464' y2='267' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.06'/><line x1='638' y1='444' x2='638' y2='565' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.08'/><line x1='181' y1='316' x2='257' y2='316' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.11'/><line x1='518' y1='119' x2='518' y2='199' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.13'/><line x1='140' y1='281' x2='250' y2='281' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.14'/><line x1='695' y1='355' x2='784' y2='355' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.12'/><line x1='535' y1='428' x2='535' y2='539' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.06'/><line x1='243' y1='429' x2='370' y2='429' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.08'/><line x1='28' y1='134' x2='112' y2='134' stroke='#8b5cf6' stroke-width='1' stroke-opacity='0.06'/>
+<g stroke='#8b5cf6' stroke-opacity='0.10' stroke-width='1'>
+        <line x1='0' y1='380' x2='800' y2='380'/>
+        <line x1='0' y1='405' x2='800' y2='405'/>
+        <line x1='0' y1='432' x2='800' y2='432'/>
+        <line x1='200' y1='380' x2='120' y2='430'/>
+        <line x1='400' y1='380' x2='400' y2='430'/>
+        <line x1='600' y1='380' x2='680' y2='430'/>
+    </g>
+    <!-- Server rack -->
+    <g transform='translate(60,130)'>
+      <rect x='0' y='0' width='180' height='40' rx='6' fill='#0d1424' stroke='#8b5cf6' stroke-width='1.5'/>
+      <circle cx='14' cy='20' r='4' fill='#8b5cf6'/>
+      <circle cx='30' cy='20' r='4' fill='#ec4899'/>
+      <rect x='50' y='14' width='120' height='12' rx='2' fill='#8b5cf6' fill-opacity='0.15'/>
+      <rect x='0' y='50' width='180' height='40' rx='6' fill='#0d1424' stroke='#8b5cf6' stroke-width='1.5'/>
+      <circle cx='14' cy='70' r='4' fill='#ec4899'/>
+      <circle cx='30' cy='70' r='4' fill='#8b5cf6'/>
+      <rect x='50' y='64' width='100' height='12' rx='2' fill='#8b5cf6' fill-opacity='0.15'/>
+      <rect x='0' y='100' width='180' height='40' rx='6' fill='#0d1424' stroke='#8b5cf6' stroke-width='1.5'/>
+      <circle cx='14' cy='120' r='4' fill='#8b5cf6'/>
+      <circle cx='30' cy='120' r='4' fill='#8b5cf6'/>
+      <rect x='50' y='114' width='80' height='12' rx='2' fill='#8b5cf6' fill-opacity='0.15'/>
+    </g>
+    <!-- Cables -->
+    <path d='M 240 150 Q 320 130 360 150' stroke='#8b5cf6' stroke-width='2' fill='none' stroke-opacity='0.45'/>
+    <path d='M 240 200 Q 320 220 360 200' stroke='#ec4899' stroke-width='2' fill='none' stroke-opacity='0.45'/>
+    <path d='M 240 250 Q 320 280 360 250' stroke='#8b5cf6' stroke-width='2' fill='none' stroke-opacity='0.45'/>
+    <!-- Panel código backend -->
+    <g transform='translate(340,110)'>
+      <rect width='310' height='240' rx='12' fill='url(#panel)' stroke='url(#edge)' stroke-width='2'/>
+      <rect width='310' height='28' fill='#0a0d12' rx='12'/>
+      <circle cx='14' cy='14' r='4' fill='#ff5f56'/>
+      <circle cx='28' cy='14' r='4' fill='#ffbd2e'/>
+      <circle cx='42' cy='14' r='4' fill='#27c93f'/>
+      <text x='155' y='18' text-anchor='middle' fill='#94a3b8' font-size='10' font-family='monospace'>server.js</text>
+      <g font-family='monospace' font-size='13' transform='translate(20,52)'>
+        <text fill='#7dd3fc'>app<tspan fill='#cbd5e1'>.</tspan><tspan fill='#fde047'>get</tspan><tspan fill='#cbd5e1'>(</tspan><tspan fill='#fb923c'>'/api/users'</tspan><tspan fill='#cbd5e1'>,</tspan></text>
+        <text y='22' fill='#c084fc'>  async <tspan fill='#cbd5e1'>(req, res) =&gt; {</tspan></text>
+        <text y='44' fill='#c084fc'>    const <tspan fill='#7dd3fc'>rows</tspan> = <tspan fill='#c084fc'>await</tspan></text>
+        <text y='66' fill='#cbd5e1'>      <tspan fill='#7dd3fc'>db</tspan>.<tspan fill='#fde047'>query</tspan>(<tspan fill='#fb923c'>sql</tspan>);</text>
+        <text y='88' fill='#cbd5e1'>    res.<tspan fill='#fde047'>json</tspan>(rows);</text>
+        <text y='110' fill='#cbd5e1'>  });</text>
+        <text y='140' fill='#64748b'>// node + mysql + redis</text>
+      </g>
+    </g>
+    <!-- Hexágono Node -->
+    <g transform='translate(700,200)' filter='url(#glow)'>
+      <polygon points='0,-70 60,-35 60,35 0,70 -60,35 -60,-35' fill='#10b981' fill-opacity='0.20' stroke='#10b981' stroke-width='3'/>
+      <text x='0' y='12' text-anchor='middle' font-family='system-ui,sans-serif' font-size='46' font-weight='900' fill='#10b981'>N</text>
+    </g>
+    
+    <rect x='0' y='430' width='800' height='70' fill='#000' fill-opacity='0.62'/>
+    <text x='40' y='458' font-family='system-ui,sans-serif' font-size='11' font-weight='800' fill='#c4b5fd' letter-spacing='2.5'>BACKEND</text>
+    <text x='40' y='488' font-family='system-ui,sans-serif' font-size='24' font-weight='800' fill='#ffffff'>Backend con Node.js y Bases de Datos</text>
+    <rect x='0' y='0' width='3' height='500' fill='url(#edge)'/>
+</svg>
