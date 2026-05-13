@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../helpers/PasswordPolicy.php';
 
 class PerfilController
 {
@@ -204,8 +205,8 @@ class PerfilController
             exit;
         }
 
-        if (mb_strlen($passwordNueva) < 6) {
-            $_SESSION['flash'] = ['type' => 'error', 'message' => 'La nueva contraseña debe tener al menos 6 caracteres.'];
+        if ($err = PasswordPolicy::validar($passwordNueva)) {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => $err];
             header('Location: ' . BASE_URL . '/index.php?url=perfil');
             exit;
         }

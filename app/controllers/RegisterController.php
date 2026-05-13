@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../helpers/PasswordPolicy.php';
+require_once __DIR__ . '/../helpers/RegisterRateLimit.php';
 
 class RegisterController
 {
@@ -27,8 +29,8 @@ class RegisterController
             $this->errorRedirigir("El correo electrónico no tiene un formato válido.");
         }
 
-        if (strlen($pass) < 6) {
-            $this->errorRedirigir("La contraseña debe tener al menos 6 caracteres.");
+        if ($err = PasswordPolicy::validar($pass)) {
+            $this->errorRedirigir($err);
         }
 
         if ($pass !== $pass2) {
@@ -37,6 +39,12 @@ class RegisterController
 
         $database = new Database();
         $conexion = $database->connect();
+
+        // Rate limit por IP para que un bot no cree miles de cuentas
+        $regLimit = new RegisterRateLimit($conexion);
+        if (!$regLimit->permitido()) {
+            $this->errorRedirigir("Demasiados registros desde tu conexión. Inténtalo de nuevo más tarde.");
+        }
 
         $stmt = $conexion->prepare("SELECT id FROM usuario WHERE email = ? LIMIT 1");
         $stmt->execute([$email]);
@@ -80,6 +88,8 @@ class RegisterController
         if (!$ok) {
             $this->errorRedirigir("No se pudo registrar la cuenta. Inténtalo de nuevo.");
         }
+
+        $regLimit->registrar();
 
         $_SESSION['register_ok'] = "Cuenta creada correctamente. Ya puedes iniciar sesión.";
         header("Location: " . BASE_URL . "/index.php?url=login");

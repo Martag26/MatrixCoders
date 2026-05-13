@@ -8,6 +8,7 @@
  */
 
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../helpers/PasswordPolicy.php';
 
 class AjustesController
 {
@@ -149,8 +150,8 @@ class AjustesController
             $errors[] = 'Introduce tu contraseña actual.';
         }
 
-        if (mb_strlen($nueva) < 6) {
-            $errors[] = 'La nueva contraseña debe tener al menos 6 caracteres.';
+        if ($err = PasswordPolicy::validar($nueva)) {
+            $errors[] = $err;
         }
 
         if ($nueva !== $confirmacion) {
