@@ -81,7 +81,7 @@ $nombreMenu = function_exists('mb_convert_case')
 /* ── Footer ── */
 .nd-footer{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #f3f4f6;background:#fafafa}
 .nd-footer-link{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 10px;font-size:13px;font-weight:700;color:#6b7280;text-decoration:none;transition:background .12s,color .12s;white-space:nowrap}
-.nd-footer-link:first-child{border-right:1px solid #f3f4f6}
+.nd-footer-link:first-child{border-right:1px solid #f3f4f6;padding-left:32px}
 .nd-footer-link:hover{background:#f3f4f6;color:#111827}
 .nd-footer-link.primary{color:#6B8F71}
 .nd-footer-link.primary:hover{background:#f0fdf4;color:#4a6b50}
