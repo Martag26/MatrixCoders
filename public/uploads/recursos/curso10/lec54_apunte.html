@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clonación de repositorios y gestión de Tags</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Saira',sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.7;padding:32px 24px;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:1.9rem;font-weight:800;color:#ffffff;margin-bottom:6px}
+.badge{display:inline-block;background:#6B8F71;color:#fff;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:18px}
+h2{font-size:1.2rem;font-weight:700;color:#6B8F71;margin:32px 0 10px;padding-left:12px;border-left:3px solid #6B8F71}
+h3{font-size:1rem;font-weight:700;color:#94a3b8;margin:22px 0 8px}
+p{margin-bottom:14px;color:#cbd5e1}
+ul,ol{padding-left:22px;margin-bottom:14px;color:#cbd5e1}
+li{margin-bottom:6px}
+pre{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:16px 0}
+code{font-family:'Source Code Pro',monospace;font-size:.88rem;color:#7dd3fc}
+pre code{color:#e2e8f0}
+.kw{color:#c084fc}.fn{color:#38bdf8}.str{color:#86efac}.cm{color:#64748b;font-style:italic}.num{color:#fb923c}
+.tip{background:rgba(107,143,113,.12);border-left:4px solid #6B8F71;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+.warn{background:rgba(251,146,60,.1);border-left:4px solid #fb923c;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem}
+th{background:#1e3a5f;color:#7dd3fc;padding:10px 14px;text-align:left;font-weight:700}
+td{padding:9px 14px;border-bottom:1px solid #1e293b;color:#cbd5e1}
+tr:hover td{background:rgba(255,255,255,.03)}
+.divider{border:none;border-top:1px solid #1e293b;margin:30px 0}
+.diagram{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;padding:18px 20px;font-family:'Source Code Pro',monospace;font-size:.82rem;color:#94a3b8;margin:16px 0;line-height:1.9}
+</style>
+</head>
+<body>
+<div class="wrap">
+<span class="badge">Git y GitHub</span>
+<h1>Clonación de repositorios y gestión de Tags</h1>
+<hr class="divider">
+<h2>Clonar un repositorio</h2>
+<pre><code><span class="cm"># Clonar desde GitHub</span>
+git clone https://github.com/usuario/repo.git
+
+<span class="cm"># Clonar con nombre de carpeta personalizado</span>
+git clone https://github.com/usuario/repo.git mi-carpeta
+
+<span class="cm"># Clonar solo la rama main (más rápido para repos grandes)</span>
+git clone --branch main --single-branch https://github.com/usuario/repo.git</code></pre>
+
+<h2>Historial y viaje en el tiempo</h2>
+<pre><code><span class="cm"># Ver historial detallado</span>
+git log
+
+<span class="cm"># Historial resumido con árbol de ramas</span>
+git log --oneline --graph --all
+
+<span class="cm"># Ver qué cambió en un commit</span>
+git show abc1234
+
+<span class="cm"># Volver a ver el estado en un commit pasado (modo lectura)</span>
+git checkout abc1234
+
+<span class="cm"># Volver a main</span>
+git checkout main</code></pre>
+
+<h2>Tags — marcar versiones</h2>
+<pre><code><span class="cm"># Tag anotado (recomendado para releases)</span>
+git tag -a v1.0.0 -m "Primera versión estable"
+
+<span class="cm"># Tag ligero (solo un marcador)</span>
+git tag v1.0.0-beta
+
+<span class="cm"># Ver todos los tags</span>
+git tag
+
+<span class="cm"># Subir tags a GitHub</span>
+git push origin v1.0.0
+git push origin --tags    <span class="cm"># subir todos</span>
+
+<span class="cm"># Eliminar tag</span>
+git tag -d v1.0.0-beta
+git push origin --delete v1.0.0-beta</code></pre>
+
+<h2>Semantic Versioning (SemVer)</h2>
+<table>
+  <tr><th>Formato</th><th>Cuándo incrementar</th></tr>
+  <tr><td>MAJOR (1.x.x)</td><td>Cambios incompatibles con versiones anteriores</td></tr>
+  <tr><td>MINOR (x.1.x)</td><td>Nueva funcionalidad compatible hacia atrás</td></tr>
+  <tr><td>PATCH (x.x.1)</td><td>Corrección de bugs compatible</td></tr>
+</table>
+
+<div class="tip">💡 GitHub convierte automáticamente los tags en <strong>Releases</strong>. Añade notas de la versión, changelogs y archivos binarios desde la interfaz web.</div>
+</div>
+</body>
+</html>

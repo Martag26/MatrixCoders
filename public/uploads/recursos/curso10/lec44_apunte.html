@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Instalación y configuración global de Git</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Saira',sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.7;padding:32px 24px;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:1.9rem;font-weight:800;color:#ffffff;margin-bottom:6px}
+.badge{display:inline-block;background:#6B8F71;color:#fff;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:18px}
+h2{font-size:1.2rem;font-weight:700;color:#6B8F71;margin:32px 0 10px;padding-left:12px;border-left:3px solid #6B8F71}
+h3{font-size:1rem;font-weight:700;color:#94a3b8;margin:22px 0 8px}
+p{margin-bottom:14px;color:#cbd5e1}
+ul,ol{padding-left:22px;margin-bottom:14px;color:#cbd5e1}
+li{margin-bottom:6px}
+pre{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:16px 0}
+code{font-family:'Source Code Pro',monospace;font-size:.88rem;color:#7dd3fc}
+pre code{color:#e2e8f0}
+.kw{color:#c084fc}.fn{color:#38bdf8}.str{color:#86efac}.cm{color:#64748b;font-style:italic}.num{color:#fb923c}
+.tip{background:rgba(107,143,113,.12);border-left:4px solid #6B8F71;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+.warn{background:rgba(251,146,60,.1);border-left:4px solid #fb923c;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem}
+th{background:#1e3a5f;color:#7dd3fc;padding:10px 14px;text-align:left;font-weight:700}
+td{padding:9px 14px;border-bottom:1px solid #1e293b;color:#cbd5e1}
+tr:hover td{background:rgba(255,255,255,.03)}
+.divider{border:none;border-top:1px solid #1e293b;margin:30px 0}
+.diagram{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;padding:18px 20px;font-family:'Source Code Pro',monospace;font-size:.82rem;color:#94a3b8;margin:16px 0;line-height:1.9}
+</style>
+</head>
+<body>
+<div class="wrap">
+<span class="badge">Git y GitHub</span>
+<h1>Instalación y configuración global de Git</h1>
+<hr class="divider">
+<h2>Instalación</h2>
+<ul>
+  <li><strong>Windows:</strong> descarga el instalador en <code>https://git-scm.com</code></li>
+  <li><strong>macOS:</strong> <code>brew install git</code> o viene con Xcode Command Line Tools</li>
+  <li><strong>Linux (Debian/Ubuntu):</strong> <code>sudo apt install git</code></li>
+</ul>
+<pre><code><span class="cm"># Verificar instalación</span>
+git --version   <span class="cm"># git version 2.42.0</span></code></pre>
+
+<h2>Configuración global (lo primero que haces)</h2>
+<pre><code><span class="cm"># Identidad — aparece en cada commit</span>
+git config --global user.name  "Tu Nombre"
+git config --global user.email "tu@email.com"
+
+<span class="cm"># Editor por defecto (VS Code)</span>
+git config --global core.editor "code --wait"
+
+<span class="cm"># Rama principal llamada 'main' (recomendado)</span>
+git config --global init.defaultBranch main
+
+<span class="cm"># Ver toda la configuración</span>
+git config --list</code></pre>
+
+<h2>Iniciar un repositorio</h2>
+<pre><code><span class="cm"># En un proyecto existente</span>
+cd mi-proyecto
+git init            <span class="cm"># crea carpeta .git oculta</span>
+
+<span class="cm"># Flujo básico</span>
+git status          <span class="cm"># ver estado de archivos</span>
+git add .           <span class="cm"># añadir todo al staging</span>
+git add archivo.js  <span class="cm"># añadir archivo concreto</span>
+git commit -m "Primer commit"</code></pre>
+
+<h2>El archivo .gitignore</h2>
+<pre><code><span class="cm"># .gitignore — archivos que Git debe ignorar</span>
+node_modules/
+.env
+*.log
+dist/
+.DS_Store
+*.tmp</code></pre>
+<p>Usa <code>https://gitignore.io</code> para generar un .gitignore según tu stack (Node, Python, Java, etc.).</p>
+
+<h2>Comandos esenciales del día a día</h2>
+<table>
+  <tr><th>Comando</th><th>Acción</th></tr>
+  <tr><td>git status</td><td>Ver archivos modificados/staging</td></tr>
+  <tr><td>git add .</td><td>Añadir todos los cambios al staging</td></tr>
+  <tr><td>git commit -m "msg"</td><td>Guardar snapshot en el historial</td></tr>
+  <tr><td>git log --oneline</td><td>Ver historial resumido</td></tr>
+  <tr><td>git diff</td><td>Ver cambios sin staged</td></tr>
+  <tr><td>git diff --staged</td><td>Ver cambios en staging</td></tr>
+</table>
+
+<div class="tip">💡 Escribe mensajes de commit en imperativo presente: "Add login feature" no "Added login feature". Sé descriptivo: el porqué es más valioso que el qué.</div>
+</div>
+</body>
+</html>

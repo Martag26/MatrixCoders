@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Práctica: Juego de adivinanza de números</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Saira',sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.7;padding:32px 24px;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:1.9rem;font-weight:800;color:#ffffff;margin-bottom:6px}
+.badge{display:inline-block;background:#6B8F71;color:#fff;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:18px}
+h2{font-size:1.2rem;font-weight:700;color:#6B8F71;margin:32px 0 10px;padding-left:12px;border-left:3px solid #6B8F71}
+h3{font-size:1rem;font-weight:700;color:#94a3b8;margin:22px 0 8px}
+p{margin-bottom:14px;color:#cbd5e1}
+ul,ol{padding-left:22px;margin-bottom:14px;color:#cbd5e1}
+li{margin-bottom:6px}
+pre{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:16px 0}
+code{font-family:'Source Code Pro',monospace;font-size:.88rem;color:#7dd3fc}
+pre code{color:#e2e8f0}
+.kw{color:#c084fc}.fn{color:#38bdf8}.str{color:#86efac}.cm{color:#64748b;font-style:italic}.num{color:#fb923c}.type{color:#fbbf24}
+.tip{background:rgba(107,143,113,.12);border-left:4px solid #6B8F71;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+.warn{background:rgba(251,146,60,.1);border-left:4px solid #fb923c;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem}
+th{background:#1e3a5f;color:#7dd3fc;padding:10px 14px;text-align:left;font-weight:700}
+td{padding:9px 14px;border-bottom:1px solid #1e293b;color:#cbd5e1}
+tr:hover td{background:rgba(255,255,255,.03)}
+.divider{border:none;border-top:1px solid #1e293b;margin:30px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<span class="badge">Java</span>
+<h1>Práctica: Juego de adivinanza de números</h1>
+<hr class="divider">
+<h2>Objetivo del juego</h2>
+<p>El programa genera un número secreto entre 1 y 100. El usuario tiene hasta 7 intentos para adivinarlo. Después de cada intento, el programa indica si el número es mayor o menor.</p>
+
+<h2>Código completo</h2>
+<pre><code><span class="kw">import</span> java.util.Random;
+<span class="kw">import</span> java.util.Scanner;
+
+<span class="kw">public class</span> <span class="type">JuegoAdivinanza</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="type">String</span>[] args) {
+        <span class="type">Random</span>  rnd = <span class="kw">new</span> <span class="type">Random</span>();
+        <span class="type">Scanner</span> sc  = <span class="kw">new</span> <span class="type">Scanner</span>(<span class="type">System</span>.in);
+
+        <span class="kw">int</span> secreto   = rnd.<span class="fn">nextInt</span>(<span class="num">100</span>) + <span class="num">1</span>;
+        <span class="kw">int</span> intentos  = <span class="num">0</span>;
+        <span class="kw">int</span> maxInt    = <span class="num">7</span>;
+        <span class="kw">boolean</span> ganado = <span class="kw">false</span>;
+
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"=== Juego de Adivinanza ==="</span>);
+        <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Adivina el número entre 1 y 100"</span>);
+
+        <span class="kw">while</span> (intentos < maxInt && !ganado) {
+            intentos++;
+            <span class="type">System</span>.out.<span class="fn">printf</span>(<span class="str">"Intento %d/%d: "</span>, intentos, maxInt);
+            <span class="kw">int</span> guess = sc.<span class="fn">nextInt</span>();
+
+            <span class="kw">if</span> (guess == secreto) {
+                ganado = <span class="kw">true</span>;
+            } <span class="kw">else if</span> (guess < secreto) {
+                <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Demasiado bajo ↑"</span>);
+            } <span class="kw">else</span> {
+                <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Demasiado alto ↓"</span>);
+            }
+        }
+
+        <span class="kw">if</span> (ganado) {
+            <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"¡GANASTE en "</span> + intentos + <span class="str">" intentos!"</span>);
+        } <span class="kw">else</span> {
+            <span class="type">System</span>.out.<span class="fn">println</span>(<span class="str">"Era el "</span> + secreto + <span class="str">". ¡Suerte la próxima!"</span>);
+        }
+    }
+}</code></pre>
+
+<div class="tip">💡 Este ejercicio combina: <code>Random</code>, <code>Scanner</code>, bucle <code>while</code>, condicionales <code>if/else</code> y una variable booleana de control.</div>
+</div>
+</body>
+</html>

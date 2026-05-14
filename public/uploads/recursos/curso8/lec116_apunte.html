@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Limpieza de efectos en useEffect</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Saira',sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.7;padding:32px 24px;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:1.9rem;font-weight:800;color:#ffffff;margin-bottom:6px}
+.badge{display:inline-block;background:#6B8F71;color:#fff;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:18px}
+h2{font-size:1.2rem;font-weight:700;color:#6B8F71;margin:32px 0 10px;padding-left:12px;border-left:3px solid #6B8F71}
+h3{font-size:1rem;font-weight:700;color:#94a3b8;margin:22px 0 8px}
+p{margin-bottom:14px;color:#cbd5e1}
+ul,ol{padding-left:22px;margin-bottom:14px;color:#cbd5e1}
+li{margin-bottom:6px}
+pre{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:16px 0}
+code{font-family:'Source Code Pro',monospace;font-size:.88rem;color:#7dd3fc}
+pre code{color:#e2e8f0}
+.kw{color:#c084fc}.fn{color:#38bdf8}.str{color:#86efac}.cm{color:#64748b;font-style:italic}.num{color:#fb923c}.tag{color:#f472b6}.attr{color:#fbbf24}
+.tip{background:rgba(107,143,113,.12);border-left:4px solid #6B8F71;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+.warn{background:rgba(251,146,60,.1);border-left:4px solid #fb923c;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem}
+th{background:#1e3a5f;color:#7dd3fc;padding:10px 14px;text-align:left;font-weight:700}
+td{padding:9px 14px;border-bottom:1px solid #1e293b;color:#cbd5e1}
+tr:hover td{background:rgba(255,255,255,.03)}
+.divider{border:none;border-top:1px solid #1e293b;margin:30px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<span class="badge">React</span>
+<h1>Limpieza de efectos en useEffect</h1>
+<hr class="divider">
+<h2>¿Por qué limpiar?</h2>
+<p>Algunos efectos crean recursos que deben liberarse cuando el componente se desmonta o antes de re-ejecutar el efecto: timers, listeners, suscripciones, conexiones WebSocket…</p>
+
+<h2>Función de limpieza</h2>
+<pre><code><span class="fn">useEffect</span>(() => {
+  <span class="kw">const</span> timer = <span class="fn">setInterval</span>(() => {
+    console.<span class="fn">log</span>(<span class="str">'tick'</span>);
+  }, <span class="num">1000</span>);
+
+  <span class="cm">// Retorna la función de limpieza</span>
+  <span class="kw">return</span> () => <span class="fn">clearInterval</span>(timer);
+}, []);</code></pre>
+
+<h2>Limpiar event listeners</h2>
+<pre><code><span class="fn">useEffect</span>(() => {
+  <span class="kw">const</span> <span class="fn">handleResize</span> = () => <span class="fn">setWidth</span>(window.innerWidth);
+  window.<span class="fn">addEventListener</span>(<span class="str">'resize'</span>, handleResize);
+
+  <span class="kw">return</span> () => window.<span class="fn">removeEventListener</span>(<span class="str">'resize'</span>, handleResize);
+}, []);</code></pre>
+
+<h2>Abortar peticiones fetch</h2>
+<pre><code><span class="fn">useEffect</span>(() => {
+  <span class="kw">const</span> controller = <span class="kw">new</span> <span class="fn">AbortController</span>();
+
+  <span class="fn">fetch</span>(url, { signal: controller.signal })
+    .<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+    .<span class="fn">then</span>(data => <span class="fn">setDatos</span>(data))
+    .<span class="fn">catch</span>(err => {
+      <span class="kw">if</span> (err.name !== <span class="str">'AbortError'</span>) console.<span class="fn">error</span>(err);
+    });
+
+  <span class="kw">return</span> () => controller.<span class="fn">abort</span>();
+}, [url]);</code></pre>
+
+<div class="tip">💡 Siempre limpia efectos que crean recursos asíncronos. Una petición fetch que se completa después de que el componente se desmonte puede intentar actualizar estado de un componente inexistente.</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proyecto: Buscador de información en tiempo real</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Saira',sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.7;padding:32px 24px;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:1.9rem;font-weight:800;color:#ffffff;margin-bottom:6px}
+.badge{display:inline-block;background:#6B8F71;color:#fff;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:18px}
+h2{font-size:1.2rem;font-weight:700;color:#6B8F71;margin:32px 0 10px;padding-left:12px;border-left:3px solid #6B8F71}
+h3{font-size:1rem;font-weight:700;color:#94a3b8;margin:22px 0 8px}
+p{margin-bottom:14px;color:#cbd5e1}
+ul,ol{padding-left:22px;margin-bottom:14px;color:#cbd5e1}
+li{margin-bottom:6px}
+pre{background:#0a0f1e;border:1px solid #1e3a5f;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:16px 0}
+code{font-family:'Source Code Pro',monospace;font-size:.88rem;color:#7dd3fc}
+pre code{color:#e2e8f0}
+.kw{color:#c084fc}.fn{color:#38bdf8}.str{color:#86efac}.cm{color:#64748b;font-style:italic}.num{color:#fb923c}.tag{color:#f472b6}.attr{color:#fbbf24}
+.tip{background:rgba(107,143,113,.12);border-left:4px solid #6B8F71;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+.warn{background:rgba(251,146,60,.1);border-left:4px solid #fb923c;border-radius:0 8px 8px 0;padding:14px 18px;margin:18px 0;font-size:.92rem}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.9rem}
+th{background:#1e3a5f;color:#7dd3fc;padding:10px 14px;text-align:left;font-weight:700}
+td{padding:9px 14px;border-bottom:1px solid #1e293b;color:#cbd5e1}
+tr:hover td{background:rgba(255,255,255,.03)}
+.divider{border:none;border-top:1px solid #1e293b;margin:30px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<span class="badge">React</span>
+<h1>Proyecto: Buscador de información en tiempo real</h1>
+<hr class="divider">
+<h2>Objetivo</h2>
+<p>Crear un buscador de usuarios de GitHub que muestre el avatar, nombre y bio de cualquier usuario al escribir en un input.</p>
+
+<h2>Estructura del componente</h2>
+<pre><code><span class="kw">import</span> { useState, useEffect } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">function</span> <span class="fn">BuscadorGitHub</span>() {
+  <span class="kw">const</span> [query, setQuery]     = <span class="fn">useState</span>(<span class="str">''</span>);
+  <span class="kw">const</span> [usuario, setUsuario] = <span class="fn">useState</span>(<span class="kw">null</span>);
+  <span class="kw">const</span> [cargando, setCargando] = <span class="fn">useState</span>(<span class="kw">false</span>);
+  <span class="kw">const</span> [error, setError]     = <span class="fn">useState</span>(<span class="str">''</span>);
+
+  <span class="fn">useEffect</span>(() => {
+    <span class="kw">if</span> (!query) { <span class="fn">setUsuario</span>(<span class="kw">null</span>); <span class="kw">return</span>; }
+
+    <span class="kw">const</span> timer = <span class="fn">setTimeout</span>(() => {
+      <span class="fn">setCargando</span>(<span class="kw">true</span>);
+      <span class="fn">setError</span>(<span class="str">''</span>);
+      <span class="fn">fetch</span>(<span class="str">`https://api.github.com/users/${query}`</span>)
+        .<span class="fn">then</span>(r => { <span class="kw">if</span> (!r.ok) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Usuario no encontrado'</span>); <span class="kw">return</span> r.<span class="fn">json</span>(); })
+        .<span class="fn">then</span>(data => <span class="fn">setUsuario</span>(data))
+        .<span class="fn">catch</span>(e => <span class="fn">setError</span>(e.message))
+        .<span class="fn">finally</span>(() => <span class="fn">setCargando</span>(<span class="kw">false</span>));
+    }, <span class="num">500</span>);  <span class="cm">// debounce: espera 500ms antes de buscar</span>
+
+    <span class="kw">return</span> () => <span class="fn">clearTimeout</span>(timer);
+  }, [query]);
+
+  <span class="kw">return</span> (
+    <span class="tag">&lt;div&gt;</span>
+      <span class="tag">&lt;input</span>
+        <span class="attr">value</span>={query}
+        <span class="attr">onChange</span>={e => <span class="fn">setQuery</span>(e.target.value)}
+        <span class="attr">placeholder</span>=<span class="str">"Buscar usuario GitHub..."</span>
+      <span class="tag">/&gt;</span>
+      {cargando && <span class="tag">&lt;p&gt;</span>Buscando...<span class="tag">&lt;/p&gt;</span>}
+      {error    && <span class="tag">&lt;p</span> <span class="attr">style</span>={{color:<span class="str">'red'</span>}}<span class="tag">&gt;</span>{error}<span class="tag">&lt;/p&gt;</span>}
+      {usuario  && (
+        <span class="tag">&lt;div&gt;</span>
+          <span class="tag">&lt;img</span> <span class="attr">src</span>={usuario.avatar_url} <span class="attr">width</span>=<span class="str">"80"</span> <span class="attr">alt</span>=<span class="str">"avatar"</span> <span class="tag">/&gt;</span>
+          <span class="tag">&lt;h2&gt;</span>{usuario.name}<span class="tag">&lt;/h2&gt;</span>
+          <span class="tag">&lt;p&gt;</span>{usuario.bio}<span class="tag">&lt;/p&gt;</span>
+          <span class="tag">&lt;p&gt;</span>⭐ {usuario.public_repos} repos<span class="tag">&lt;/p&gt;</span>
+        <span class="tag">&lt;/div&gt;</span>
+      )}
+    <span class="tag">&lt;/div&gt;</span>
+  );
+}</code></pre>
+
+<div class="tip">💡 El patrón <strong>debounce</strong> (setTimeout + clearTimeout en el cleanup) evita hacer una petición por cada tecla. Espera a que el usuario deje de escribir.</div>
+</div>
+</body>
+</html>
