@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Despliegue y buenas prácticas · matrixCoders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Saira',sans-serif;font-size:15px;line-height:1.7;background:#f8faf8;color:#1a2e1a;padding:32px 20px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{background:linear-gradient(135deg,#2d5a35 0%,#6B8F71 100%);color:#fff;border-radius:12px;padding:28px 32px;margin-bottom:32px}
+  header h1{font-size:1.55rem;font-weight:700;letter-spacing:-.3px}
+  header p{margin-top:6px;opacity:.85;font-size:.9rem}
+  section{background:#fff;border:1px solid #d4e6d4;border-radius:10px;padding:24px 28px;margin-bottom:22px}
+  h2{font-size:1.1rem;font-weight:700;color:#2d5a35;border-left:4px solid #6B8F71;padding-left:12px;margin-bottom:16px}
+  p{margin-bottom:12px}
+  ul,ol{padding-left:20px;margin-bottom:12px}
+  li{margin-bottom:6px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:18px;overflow-x:auto;margin:14px 0;font-size:13px;line-height:1.55}
+  code{font-family:'Source Code Pro',monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+  :not(pre)>code{background:#e8f5e9;color:#1b5e20;padding:2px 7px;border-radius:4px;font-size:.88em;font-family:'Source Code Pro',monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th{background:#2d5a35;color:#fff;padding:8px 12px;text-align:left}
+  td{padding:8px 12px;border-bottom:1px solid #d4e6d4}
+  tr:nth-child(even) td{background:#f1f8f1}
+  @media print{body{background:#fff}pre{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Despliegue y buenas prácticas</h1>
+    <p>matrixCoders · Apuntes de lección · HTML y CSS</p>
+  </header>
+  
+<section>
+  <h2>Optimización antes de publicar</h2>
+  <ul>
+    <li><strong>Imágenes</strong>: convierte a <code>.webp</code> o <code>.avif</code>, usa <code>loading="lazy"</code></li>
+    <li><strong>CSS/JS</strong>: minifica con herramientas (esbuild, Vite, Lightning CSS)</li>
+    <li><strong>Fuentes</strong>: <code>font-display: swap</code> y limita pesos cargados</li>
+    <li><strong>Cache</strong>: cabeceras correctas (estáticos con hash → <code>max-age=31536000, immutable</code>)</li>
+  </ul>
+</section>
+<section>
+  <h2>Accesibilidad (WCAG)</h2>
+  <ul>
+    <li>Contraste mínimo: <strong>4.5:1</strong> texto normal, <strong>3:1</strong> texto grande</li>
+    <li>Atajos de teclado funcionando, foco visible</li>
+    <li>Etiquetas ARIA solo cuando HTML semántico no basta</li>
+    <li>Test con lectores de pantalla: NVDA, VoiceOver</li>
+    <li>Auditoría: Lighthouse, axe DevTools</li>
+  </ul>
+</section>
+<section>
+  <h2>SEO técnico básico</h2>
+  <pre><code>&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;meta name="description" content="Aprende HTML y CSS desde cero en matrixCoders"&gt;
+
+  &lt;!-- Open Graph (redes sociales) --&gt;
+  &lt;meta property="og:title" content="Curso HTML/CSS"&gt;
+  &lt;meta property="og:image" content="https://matrixcoders.com/cover.jpg"&gt;
+  &lt;meta property="og:url" content="https://matrixcoders.com/curso/4"&gt;
+
+  &lt;link rel="canonical" href="https://matrixcoders.com/curso/4"&gt;
+&lt;/head&gt;</code></pre>
+</section>
+<section>
+  <h2>Hosting estático gratuito</h2>
+  <ul>
+    <li><strong>GitHub Pages</strong> — gratis, ideal para portfolios</li>
+    <li><strong>Netlify / Vercel</strong> — despliegue automático desde git, HTTPS gratis</li>
+    <li><strong>Cloudflare Pages</strong> — CDN global incluido</li>
+  </ul>
+  <pre><code># Deploy típico en Netlify
+git init
+git add .
+git commit -m "v1"
+git push origin main
+# Netlify detecta el push y publica automáticamente</code></pre>
+</section>
+<section>
+  <h2>Checklist final antes de publicar</h2>
+  <ul>
+    <li>✅ Páginas validan en validator.w3.org</li>
+    <li>✅ Funciona en móvil, tablet y desktop</li>
+    <li>✅ Lighthouse &gt; 90 en Performance, Accessibility, SEO, Best Practices</li>
+    <li>✅ Favicons + meta tags Open Graph</li>
+    <li>✅ Página 404 personalizada</li>
+    <li>✅ HTTPS activado</li>
+    <li>✅ Formularios con validación HTML y servidor</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

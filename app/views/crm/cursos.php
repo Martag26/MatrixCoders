@@ -43,19 +43,25 @@ $soloInstructor = ($esInstructor ?? false) && !($esAdmin ?? false);
     ['label'=>'Media de notas',         'value'=>round((float)($cursosStats['media_nota'] ?? 0),1),'color'=>'var(--crm-success)', 'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],
   ];
 else:
-  $cCols = 5;
+  $cCols = 6;
   $avgAlumnos = $cursosStats['total'] > 0 ? round($cursosStats['total_matriculas'] / $cursosStats['total'], 1) : 0;
+  $examPendGlobal = (int)($cursosStats['examenes_pendientes'] ?? 0);
   $cStrips = [
     ['label'=>'Total cursos',       'value'=>$cursosStats['total'],     'color'=>'var(--crm-primary)', 'icon'=>'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'],
     ['label'=>'Activos',            'value'=>$cursosStats['activos'],   'color'=>'var(--crm-success)', 'icon'=>'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
     ['label'=>'Inactivos',          'value'=>$cursosStats['inactivos'], 'color'=>'var(--crm-danger)',  'icon'=>'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'],
     ['label'=>'Gratuitos',          'value'=>$cursosStats['gratis'],    'color'=>'var(--crm-info)',    'icon'=>'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z'],
     ['label'=>'Media alumnos/curso','value'=>$avgAlumnos,               'color'=>'var(--crm-warning)', 'icon'=>'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8z'],
+    ['label'=>'Exámenes pendientes','value'=>$examPendGlobal,           'color'=>'var(--crm-danger)',  'icon'=>'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', 'scrollTo'=>'pending-courses'],
   ];
 endif; ?>
 <div style="display:grid;grid-template-columns:repeat(<?= $cCols ?>,1fr);gap:10px;margin-bottom:20px">
-  <?php foreach ($cStrips as $s): ?>
-  <div class="crm-card" style="padding:14px 16px;display:flex;align-items:center;gap:12px">
+  <?php foreach ($cStrips as $s):
+    $esPendientes = ($s['label'] ?? '') === 'Exámenes pendientes' && (int)$s['value'] > 0;
+  ?>
+  <div class="crm-card<?= $esPendientes ? ' card-clickable' : '' ?>"
+       style="padding:14px 16px;display:flex;align-items:center;gap:12px;<?= $esPendientes ? 'cursor:pointer;border:1.5px solid '.$s['color'].';animation:pulsePending 2.4s ease-in-out infinite' : '' ?>"
+       <?= $esPendientes ? 'onclick="togglePendientes(this)" title="Mostrar solo cursos con exámenes pendientes"' : '' ?>>
     <div style="width:34px;height:34px;border-radius:9px;background:<?= $s['color'] ?>18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
       <svg width="16" height="16" fill="none" stroke="<?= $s['color'] ?>" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="<?= $s['icon'] ?>"/></svg>
     </div>
@@ -66,6 +72,28 @@ endif; ?>
   </div>
   <?php endforeach; ?>
 </div>
+
+<style>
+@keyframes pulsePending {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.35); }
+  50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+.crm-pending-filter-active {
+  background: var(--crm-warning)15;
+  border-color: var(--crm-warning) !important;
+}
+</style>
+
+<script>
+function togglePendientes(card) {
+  const active = card.classList.toggle('crm-pending-filter-active');
+  document.querySelectorAll('.crm-course-card, .crm-table tbody tr').forEach(el => {
+    const badge = el.querySelector('.crm-course-actions a[href*="filtro=prac_pendiente"], td a[href*="filtro=prac_pendiente"] span');
+    const hasPending = !!el.querySelector('a[href*="filtro=prac_pendiente"] span');
+    el.style.display = (active && !hasPending) ? 'none' : '';
+  });
+}
+</script>
 
 <!-- Toolbar -->
 <form method="GET" action="<?= $crmFormBase ?>" id="filtroForm">
@@ -226,6 +254,19 @@ endif; ?>
           Editar
         <?php endif; ?>
       </a>
+      <?php $examPend = (int)($c['examenes_pendientes'] ?? 0); ?>
+      <a href="<?= $crmBase ?>editor&id=<?= $c['id'] ?>&tab=resultados<?= $examPend > 0 ? '&filtro=prac_pendiente' : '' ?>"
+         class="crm-btn crm-btn-sm"
+         style="flex:1;justify-content:center;position:relative;<?= $examPend > 0
+              ? 'background:var(--crm-warning);color:#fff;border:1px solid var(--crm-warning)'
+              : 'background:transparent;color:var(--crm-text);border:1px solid var(--crm-border)' ?>"
+         title="<?= $examPend > 0 ? "$examPend examen(es) pendiente(s) de calificar" : 'Ver resultados de alumnos' ?>">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Exámenes
+        <?php if ($examPend > 0): ?>
+          <span style="background:#fff;color:var(--crm-warning);font-weight:800;font-size:10px;padding:1px 6px;border-radius:99px;margin-left:2px"><?= $examPend ?></span>
+        <?php endif; ?>
+      </a>
       <?php if (!$soloInstructor): ?>
       <button class="crm-btn-icon" title="Asignar instructor" onclick='openModalInstructor(<?= $c['id'] ?>, <?= (int)($c['instructor_id']??0) ?>)'>
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -317,6 +358,16 @@ endif; ?>
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
               <?php else: ?>
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              <?php endif; ?>
+            </a>
+            <?php $examPendT = (int)($c['examenes_pendientes'] ?? 0); ?>
+            <a href="<?= $crmBase ?>editor&id=<?= $c['id'] ?>&tab=resultados<?= $examPendT > 0 ? '&filtro=prac_pendiente' : '' ?>"
+               class="crm-btn-icon"
+               title="<?= $examPendT > 0 ? "$examPendT examen(es) pendiente(s)" : 'Ver resultados' ?>"
+               style="position:relative;<?= $examPendT > 0 ? 'color:var(--crm-warning)' : '' ?>">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <?php if ($examPendT > 0): ?>
+                <span style="position:absolute;top:-4px;right:-4px;background:var(--crm-warning);color:#fff;font-weight:800;font-size:9px;padding:1px 5px;border-radius:99px;line-height:1.3"><?= $examPendT ?></span>
               <?php endif; ?>
             </a>
             <?php if (!$soloInstructor): ?>

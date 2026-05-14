@@ -163,40 +163,33 @@ CREATE TABLE IF NOT EXISTS crm_actividad (
 -- Datos de ejemplo: examen práctico del curso 11 (Bases de datos)
 -- =============================================================================
 
--- Tareas del examen práctico para el curso 11
+-- Examen práctico consolidado del curso 11 (uno por curso)
 INSERT OR IGNORE INTO tarea_practica (id, curso_id, titulo, enunciado, tipo, puntos, criterios, orden) VALUES
-(1, 11, 'Diseño de esquema entidad-relación',
- 'Diseña el modelo entidad-relación (ER) de una base de datos para gestionar una biblioteca universitaria.
-El esquema debe incluir al menos 5 entidades con sus atributos y las relaciones entre ellas.
+(1, 11, 'Examen práctico: Diseño y consulta de una base de datos',
+ 'Pondrás en práctica todo lo aprendido en el curso aplicándolo a un caso real: una base de datos para gestionar una biblioteca universitaria.
 
-Entrega un diagrama (imagen o descripción detallada) y explica las decisiones de diseño tomadas, incluyendo qué tipo de cardinalidad tiene cada relación y por qué.',
+1) DISEÑO RELACIONAL
+Diseña el modelo entidad-relación (ER) con al menos 5 entidades, sus atributos y las relaciones entre ellas. Indica claves primarias, claves foráneas y la cardinalidad de cada relación.
+
+2) DDL — CREACIÓN DEL ESQUEMA
+Escribe el script SQL completo (CREATE TABLE) que genera el esquema diseñado, respetando los tipos de datos y las restricciones de integridad.
+
+3) CONSULTAS SQL
+Sobre el esquema anterior escribe las siguientes consultas:
+  · Los 5 libros más prestados en los últimos 6 meses.
+  · Alumnos con más de 3 préstamos activos.
+  · Tiempo medio de préstamo agrupado por categoría de libro.
+  · Libros que nunca han sido prestados (usa LEFT JOIN o subconsulta).
+
+4) OPTIMIZACIÓN
+Identifica al menos un índice o vista que mejoraría el rendimiento del esquema y justifica por qué.
+
+ENTREGABLES:
+  · Un documento (PDF o ZIP) con el diagrama ER, el script DDL y las consultas SQL.
+  · Breve explicación (máx. 1 página) de las decisiones de diseño y la optimización propuesta.',
  'proyecto', 10,
- 'Modelo ER completo con ≥5 entidades (3 pts) · Cardinalidades correctas (3 pts) · Justificación de decisiones (4 pts)',
- 1),
-(2, 11, 'Consultas SQL avanzadas',
- 'Escribe las siguientes consultas SQL sobre el esquema de biblioteca que diseñaste (o sobre el esquema estándar facilitado):
-
-1. Los 5 libros más prestados en los últimos 6 meses.
-2. Alumnos con más de 3 préstamos activos en este momento.
-3. Tiempo medio de préstamo por categoría de libro.
-4. Libros que nunca han sido prestados.
-
-Incluye el código SQL de cada consulta y una breve explicación de su funcionamiento.',
- 'codigo', 10,
- 'Sintaxis SQL correcta (3 pts) · Resultados semánticamente correctos (4 pts) · Claridad y optimización (3 pts)',
- 2),
-(3, 11, 'Informe de optimización de base de datos',
- 'Dado el siguiente esquema con problemas de rendimiento, identifica al menos 3 oportunidades de mejora y redacta un informe técnico.
-
-Para cada mejora propuesta indica:
-- El problema detectado (e.g. ausencia de índice, consulta no optimizada, diseño desnormalizado)
-- La solución propuesta con el SQL correspondiente
-- El impacto esperado en rendimiento
-
-Adjunta el script SQL con el esquema original y el mejorado.',
- 'proyecto', 10,
- 'Identificación correcta de al menos 3 problemas (4 pts) · Calidad de soluciones propuestas (4 pts) · Claridad del informe (2 pts)',
- 3);
+ 'Modelo ER correcto (2 pts) · Script DDL ejecutable (2 pts) · Consultas SQL correctas (4 pts) · Optimización justificada (2 pts)',
+ 1);
 
 -- Todas las lecciones del curso 11 como vistas por el usuario 18 (para poder acceder al examen en pruebas)
 INSERT OR IGNORE INTO leccion_vista (usuario_id, leccion_id, visto_at) VALUES

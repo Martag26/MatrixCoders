@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estructura de un proyecto web · matrixCoders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Saira',sans-serif;font-size:15px;line-height:1.7;background:#f8faf8;color:#1a2e1a;padding:32px 20px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{background:linear-gradient(135deg,#2d5a35 0%,#6B8F71 100%);color:#fff;border-radius:12px;padding:28px 32px;margin-bottom:32px}
+  header h1{font-size:1.55rem;font-weight:700;letter-spacing:-.3px}
+  header p{margin-top:6px;opacity:.85;font-size:.9rem}
+  section{background:#fff;border:1px solid #d4e6d4;border-radius:10px;padding:24px 28px;margin-bottom:22px}
+  h2{font-size:1.1rem;font-weight:700;color:#2d5a35;border-left:4px solid #6B8F71;padding-left:12px;margin-bottom:16px}
+  p{margin-bottom:12px}
+  ul,ol{padding-left:20px;margin-bottom:12px}
+  li{margin-bottom:6px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:18px;overflow-x:auto;margin:14px 0;font-size:13px;line-height:1.55}
+  code{font-family:'Source Code Pro',monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+  :not(pre)>code{background:#e8f5e9;color:#1b5e20;padding:2px 7px;border-radius:4px;font-size:.88em;font-family:'Source Code Pro',monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th{background:#2d5a35;color:#fff;padding:8px 12px;text-align:left}
+  td{padding:8px 12px;border-bottom:1px solid #d4e6d4}
+  tr:nth-child(even) td{background:#f1f8f1}
+  @media print{body{background:#fff}pre{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Estructura de un proyecto web</h1>
+    <p>matrixCoders · Apuntes de lección · HTML y CSS</p>
+  </header>
+  
+<section>
+  <h2>Organización de archivos</h2>
+  <pre><code>mi-web/
+├── index.html
+├── pages/
+│   ├── nosotros.html
+│   ├── servicios.html
+│   └── contacto.html
+├── css/
+│   ├── reset.css       # normalización (Normalize.css)
+│   ├── variables.css   # custom properties
+│   ├── base.css        # tipografía, body
+│   ├── layout.css      # header, footer, grid principal
+│   └── components.css  # botones, tarjetas, modal
+├── js/
+│   └── main.js
+├── img/
+└── fonts/</code></pre>
+</section>
+<section>
+  <h2>Variables CSS (Custom Properties)</h2>
+  <pre><code>:root {
+  --color-primario:   #6B8F71;
+  --color-fondo:      #f8faf8;
+  --color-texto:      #1a2e1a;
+  --espaciado-base:   8px;
+  --radius:           10px;
+  --shadow:           0 2px 8px rgba(0,0,0,.08);
+  --font-base:        "Saira", sans-serif;
+}
+
+.btn {
+  background: var(--color-primario);
+  padding: calc(var(--espaciado-base) * 2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}</code></pre>
+  <p>Permite cambiar el tema entero con dos líneas (modo oscuro, marca blanca…).</p>
+</section>
+<section>
+  <h2>Responsive design con media queries</h2>
+  <pre><code>/* Mobile-first: estilos base para móvil */
+.container { padding: 16px; }
+
+/* Tablet en adelante */
+@media (min-width: 768px) {
+  .container { padding: 24px; }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .container { padding: 32px; max-width: 1280px; margin: 0 auto; }
+}</code></pre>
+</section>
+<section>
+  <h2>Convenciones de naming (BEM)</h2>
+  <pre><code>&lt;div class="card"&gt;
+  &lt;img class="card__imagen"&gt;
+  &lt;h3 class="card__titulo"&gt;...&lt;/h3&gt;
+  &lt;button class="card__btn card__btn--primario"&gt;Comprar&lt;/button&gt;
+&lt;/div&gt;</code></pre>
+  <ul>
+    <li><strong>Bloque</strong>: <code>.card</code></li>
+    <li><strong>Elemento</strong>: <code>.card__titulo</code> (parte del bloque)</li>
+    <li><strong>Modificador</strong>: <code>.card__btn--primario</code> (variante)</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

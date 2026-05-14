@@ -531,7 +531,9 @@ class CrmController
                         JOIN campana_crm cm2 ON cm2.id=cc2.campana_id
                         WHERE cc2.curso_id=c.id AND cm2.activa=1
                           AND (cm2.fecha_fin IS NULL OR cm2.fecha_fin >= date('now'))
-                        LIMIT 1) AS descuento_activo
+                        LIMIT 1) AS descuento_activo,
+                       (SELECT COUNT(*) FROM entrega_practica ep_pen
+                        WHERE ep_pen.curso_id=c.id AND ep_pen.revisado=0) AS examenes_pendientes
                 FROM curso c
                 LEFT JOIN usuario u ON u.id=c.instructor_id
                 $where ORDER BY $orderBy LIMIT $limit OFFSET $offset
@@ -543,7 +545,8 @@ class CrmController
             $stmt = $this->db->prepare("
                 SELECT c.*, u.nombre AS instructor_nombre_legacy,
                        0 AS alumnos, NULL AS instructor_nombre,
-                       NULL AS instructor_ids_str, 0 AS campana_activa, 0 AS descuento_activo
+                       NULL AS instructor_ids_str, 0 AS campana_activa, 0 AS descuento_activo,
+                       0 AS examenes_pendientes
                 FROM curso c
                 LEFT JOIN usuario u ON u.id=c.instructor_id
                 $where ORDER BY c.id DESC LIMIT $limit OFFSET $offset
@@ -585,7 +588,8 @@ class CrmController
                   SUM(CASE WHEN activo=1 THEN 1 ELSE 0 END) AS activos,
                   SUM(CASE WHEN activo=0 THEN 1 ELSE 0 END) AS inactivos,
                   SUM(CASE WHEN precio=0 OR precio IS NULL THEN 1 ELSE 0 END) AS gratis,
-                  (SELECT COUNT(*) FROM matricula) AS total_matriculas
+                  (SELECT COUNT(*) FROM matricula) AS total_matriculas,
+                  (SELECT COUNT(*) FROM entrega_practica WHERE revisado=0) AS examenes_pendientes
                 FROM curso
             ")->fetch(PDO::FETCH_ASSOC);
         }

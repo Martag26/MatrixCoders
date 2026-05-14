@@ -1239,10 +1239,20 @@ function togglePracConfig(forceOpen) {
 /* ===== Restore tabs on load ===== */
 // setTimeout(0) defers until after all <script> tags have run (including CRM_API_URL in base.php)
 setTimeout(function restoreTabs() {
-  const tab   = localStorage.getItem(LS_TAB)  || 'info';
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlTab    = urlParams.get('tab');
+  const urlFiltro = urlParams.get('filtro');
+
+  const tab   = urlTab || localStorage.getItem(LS_TAB)  || 'info';
   const ctab  = localStorage.getItem(LS_CTAB) || 'lecciones';
   const etab  = localStorage.getItem(LS_ETAB) || 'test';
   const pracCfgOpen = localStorage.getItem(LS_PRAC_CFG) !== '0';
+
+  // Pre-aplicar filtro de resultados si viene por URL (antes de cargarResultados)
+  if (urlFiltro) {
+    const filtroSel = document.getElementById('resFiltro');
+    if (filtroSel) filtroSel.value = urlFiltro;
+  }
 
   switchTab(tab, false);
   switchContenidoTab(ctab, false);

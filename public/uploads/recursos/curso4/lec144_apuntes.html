@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tipos de contenido y atributos clave · matrixCoders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Saira',sans-serif;font-size:15px;line-height:1.7;background:#f8faf8;color:#1a2e1a;padding:32px 20px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{background:linear-gradient(135deg,#2d5a35 0%,#6B8F71 100%);color:#fff;border-radius:12px;padding:28px 32px;margin-bottom:32px}
+  header h1{font-size:1.55rem;font-weight:700;letter-spacing:-.3px}
+  header p{margin-top:6px;opacity:.85;font-size:.9rem}
+  section{background:#fff;border:1px solid #d4e6d4;border-radius:10px;padding:24px 28px;margin-bottom:22px}
+  h2{font-size:1.1rem;font-weight:700;color:#2d5a35;border-left:4px solid #6B8F71;padding-left:12px;margin-bottom:16px}
+  p{margin-bottom:12px}
+  ul,ol{padding-left:20px;margin-bottom:12px}
+  li{margin-bottom:6px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:18px;overflow-x:auto;margin:14px 0;font-size:13px;line-height:1.55}
+  code{font-family:'Source Code Pro',monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+  :not(pre)>code{background:#e8f5e9;color:#1b5e20;padding:2px 7px;border-radius:4px;font-size:.88em;font-family:'Source Code Pro',monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th{background:#2d5a35;color:#fff;padding:8px 12px;text-align:left}
+  td{padding:8px 12px;border-bottom:1px solid #d4e6d4}
+  tr:nth-child(even) td{background:#f1f8f1}
+  @media print{body{background:#fff}pre{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Tipos de contenido y atributos clave</h1>
+    <p>matrixCoders · Apuntes de lección · HTML y CSS</p>
+  </header>
+  
+<section>
+  <h2>Atributos globales</h2>
+  <p>Disponibles en cualquier etiqueta:</p>
+  <ul>
+    <li><code>id</code> — identificador único (uno por documento)</li>
+    <li><code>class</code> — clases CSS, reutilizable</li>
+    <li><code>style</code> — estilos en línea (evitar en producción)</li>
+    <li><code>data-*</code> — datos personalizados accesibles desde JS</li>
+    <li><code>title</code> — tooltip nativo</li>
+    <li><code>hidden</code>, <code>lang</code>, <code>dir</code>, <code>contenteditable</code></li>
+  </ul>
+  <pre><code>&lt;div id="card-12"
+     class="card destacada"
+     data-precio="29.99"
+     data-categoria="hardware"&gt;
+  Producto
+&lt;/div&gt;</code></pre>
+</section>
+<section>
+  <h2>Tipos de inputs en formularios</h2>
+  <table>
+    <tr><th>type</th><th>Uso</th></tr>
+    <tr><td><code>text</code></td><td>Texto libre</td></tr>
+    <tr><td><code>email</code></td><td>Validación de email integrada</td></tr>
+    <tr><td><code>password</code></td><td>Oculta lo escrito</td></tr>
+    <tr><td><code>number</code></td><td>Sólo números (con min/max/step)</td></tr>
+    <tr><td><code>date</code> / <code>time</code></td><td>Selector de fecha/hora nativo</td></tr>
+    <tr><td><code>checkbox</code> / <code>radio</code></td><td>Opciones</td></tr>
+    <tr><td><code>file</code></td><td>Subida de archivos</td></tr>
+    <tr><td><code>color</code></td><td>Selector de color</td></tr>
+    <tr><td><code>range</code></td><td>Deslizador</td></tr>
+  </table>
+</section>
+<section>
+  <h2>Medios embebidos</h2>
+  <pre><code>&lt;!-- Imagen responsiva --&gt;
+&lt;picture&gt;
+  &lt;source media="(min-width:800px)" srcset="hero-lg.webp"&gt;
+  &lt;img src="hero.webp" alt="Hero" loading="lazy"&gt;
+&lt;/picture&gt;
+
+&lt;!-- Vídeo --&gt;
+&lt;video controls width="640" poster="thumb.jpg"&gt;
+  &lt;source src="clip.mp4" type="video/mp4"&gt;
+  Tu navegador no soporta vídeo.
+&lt;/video&gt;
+
+&lt;!-- Iframe (YouTube, mapas…) --&gt;
+&lt;iframe src="https://www.youtube.com/embed/XXXX"
+        title="Vídeo demo" allowfullscreen&gt;&lt;/iframe&gt;</code></pre>
+</section>
+<section>
+  <h2>Accesibilidad esencial</h2>
+  <ul>
+    <li>Etiquetas <code>&lt;label for="..."&gt;</code> asociadas a inputs</li>
+    <li><code>alt</code> en imágenes, <code>aria-label</code> en botones de icono</li>
+    <li>Contraste mínimo 4.5:1</li>
+    <li>Navegación por teclado (no romper el foco)</li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

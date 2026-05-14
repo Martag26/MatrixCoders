@@ -69,6 +69,13 @@ $ytId = ytId($videoUrl);
             margin: 0 auto;
             overflow: hidden;
             background: #fff;
+            transition: max-width .25s ease;
+        }
+
+        /* Cuando el visor lateral está abierto, ensanchamos el wrap y añadimos una columna */
+        .leccion-wrap.visor-abierto {
+            grid-template-columns: minmax(0, 1fr) minmax(360px, 38%) 320px;
+            max-width: 1680px;
         }
 
         @media(max-width: 900px) {
@@ -79,6 +86,69 @@ $ytId = ytId($videoUrl);
             .temario-sidebar {
                 display: none;
             }
+
+            .leccion-wrap.visor-abierto {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── VISOR LATERAL ── */
+        .visor-lateral {
+            display: none;
+            flex-direction: column;
+            background: #f8fafc;
+            border-left: 1px solid var(--mc-border);
+            min-width: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        .leccion-wrap.visor-abierto .visor-lateral { display: flex; }
+        .visor-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .6rem;
+            padding: .65rem .9rem;
+            background: var(--mc-navy);
+            color: #fff;
+            border-bottom: 1px solid #1e2d4a;
+            flex-shrink: 0;
+        }
+        .visor-titulo {
+            font-size: .85rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            flex: 1;
+        }
+        .visor-actions { display: flex; gap: .35rem; flex-shrink: 0; }
+        .visor-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            background: rgba(255,255,255,.08);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .15s;
+        }
+        .visor-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+        .visor-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #fff;
+            display: block;
+        }
+        @media(max-width: 1100px) {
+            .leccion-wrap.visor-abierto { grid-template-columns: minmax(0, 1fr) minmax(320px, 45%); }
+            .leccion-wrap.visor-abierto .temario-sidebar { display: none; }
         }
 
         /* ── COLUMNA IZQUIERDA ── */
@@ -958,6 +1028,11 @@ $ytId = ytId($videoUrl);
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                     Añadir a mi nube
                                 </button>
+                                <button type="button" class="res-btn res-btn-cloud"
+                                        onclick="abrirVisorLateral('<?= addslashes(htmlspecialchars($rec['url_o_ruta'])) ?>', '<?= addslashes(htmlspecialchars($rec['nombre'])) ?>')">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    Ver junto al vídeo
+                                </button>
                                 <a class="res-btn res-btn-download" href="<?= htmlspecialchars($rec['url_o_ruta']) ?>" target="_blank"
                                    <?= $rec['descargable'] ? 'download' : '' ?>>
                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -1008,6 +1083,22 @@ $ytId = ytId($videoUrl);
 
             </div><!-- /tab-content -->
         </div><!-- /leccion-main -->
+
+        <!-- ── VISOR LATERAL DE RECURSOS (split view) ── -->
+        <div class="visor-lateral" id="visorLateral" aria-hidden="true">
+            <div class="visor-head">
+                <span class="visor-titulo" id="visorTitulo">Recurso</span>
+                <div class="visor-actions">
+                    <a class="visor-btn" id="visorAbrirNueva" href="#" target="_blank" title="Abrir en pestaña nueva">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                    <button class="visor-btn" onclick="cerrarVisorLateral()" title="Cerrar visor">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <iframe class="visor-iframe" id="visorIframe" src="about:blank" title="Recurso de la lección"></iframe>
+        </div>
 
         <!-- ── SIDEBAR TEMARIO ── -->
         <aside class="temario-sidebar">
@@ -1177,6 +1268,25 @@ $ytId = ytId($videoUrl);
                 }
             });
         });
+
+        /* ── Visor lateral de recursos (split view con el vídeo) ── */
+        function abrirVisorLateral(url, nombre) {
+            const wrap   = document.querySelector('.leccion-wrap');
+            const iframe = document.getElementById('visorIframe');
+            const titulo = document.getElementById('visorTitulo');
+            const abrirNueva = document.getElementById('visorAbrirNueva');
+            if (!wrap || !iframe) return;
+            iframe.src = url;
+            if (titulo) titulo.textContent = nombre || 'Recurso';
+            if (abrirNueva) abrirNueva.href = url;
+            wrap.classList.add('visor-abierto');
+        }
+        function cerrarVisorLateral() {
+            const wrap   = document.querySelector('.leccion-wrap');
+            const iframe = document.getElementById('visorIframe');
+            if (wrap) wrap.classList.remove('visor-abierto');
+            if (iframe) iframe.src = 'about:blank';
+        }
 
         /* ── Toast profesional ── */
         function mcToast(msg, type = 'default', duration = 3000) {

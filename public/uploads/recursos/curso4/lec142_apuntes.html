@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Introducción a HTML · matrixCoders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Saira',sans-serif;font-size:15px;line-height:1.7;background:#f8faf8;color:#1a2e1a;padding:32px 20px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{background:linear-gradient(135deg,#2d5a35 0%,#6B8F71 100%);color:#fff;border-radius:12px;padding:28px 32px;margin-bottom:32px}
+  header h1{font-size:1.55rem;font-weight:700;letter-spacing:-.3px}
+  header p{margin-top:6px;opacity:.85;font-size:.9rem}
+  section{background:#fff;border:1px solid #d4e6d4;border-radius:10px;padding:24px 28px;margin-bottom:22px}
+  h2{font-size:1.1rem;font-weight:700;color:#2d5a35;border-left:4px solid #6B8F71;padding-left:12px;margin-bottom:16px}
+  p{margin-bottom:12px}
+  ul,ol{padding-left:20px;margin-bottom:12px}
+  li{margin-bottom:6px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:18px;overflow-x:auto;margin:14px 0;font-size:13px;line-height:1.55}
+  code{font-family:'Source Code Pro',monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+  :not(pre)>code{background:#e8f5e9;color:#1b5e20;padding:2px 7px;border-radius:4px;font-size:.88em;font-family:'Source Code Pro',monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th{background:#2d5a35;color:#fff;padding:8px 12px;text-align:left}
+  td{padding:8px 12px;border-bottom:1px solid #d4e6d4}
+  tr:nth-child(even) td{background:#f1f8f1}
+  @media print{body{background:#fff}pre{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Introducción a HTML</h1>
+    <p>matrixCoders · Apuntes de lección · HTML y CSS</p>
+  </header>
+  
+<section>
+  <h2>¿Qué es HTML?</h2>
+  <p><strong>HTML</strong> (HyperText Markup Language) es el lenguaje estándar para describir el contenido y la estructura de una página web. No es un lenguaje de programación — es un lenguaje de marcado: organiza el contenido con etiquetas.</p>
+  <ul>
+    <li>Define la <strong>estructura</strong> del documento (cabeceras, párrafos, listas, imágenes…)</li>
+    <li>Se complementa con <strong>CSS</strong> (estilos) y <strong>JavaScript</strong> (interactividad)</li>
+    <li>Lo interpreta el navegador, que lo renderiza visualmente</li>
+  </ul>
+</section>
+<section>
+  <h2>Estructura mínima de un documento HTML5</h2>
+  <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="es"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Mi primera página&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hola, mundo&lt;/h1&gt;
+  &lt;p&gt;Bienvenido a HTML.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  <ul>
+    <li><code>&lt;!DOCTYPE html&gt;</code> — declara HTML5</li>
+    <li><code>&lt;html&gt;</code> — raíz del documento (con idioma)</li>
+    <li><code>&lt;head&gt;</code> — metadatos (no visibles)</li>
+    <li><code>&lt;body&gt;</code> — contenido visible</li>
+  </ul>
+</section>
+<section>
+  <h2>Etiquetas, atributos y anidamiento</h2>
+  <pre><code>&lt;a href="https://matrixcoders.com" target="_blank" rel="noopener"&gt;
+  Visita matrixCoders
+&lt;/a&gt;</code></pre>
+  <ul>
+    <li><strong>Etiqueta</strong>: <code>&lt;a&gt;...&lt;/a&gt;</code></li>
+    <li><strong>Atributos</strong>: <code>href</code>, <code>target</code>, <code>rel</code></li>
+    <li>Algunas son <strong>autocerradas</strong> (void elements): <code>&lt;img&gt;</code>, <code>&lt;br&gt;</code>, <code>&lt;hr&gt;</code>, <code>&lt;input&gt;</code></li>
+  </ul>
+</section>
+<section>
+  <h2>Herramientas para empezar</h2>
+  <ul>
+    <li><strong>Editor</strong>: VS Code con extensiones <em>Live Server</em> y <em>Prettier</em></li>
+    <li><strong>Navegador</strong>: Chrome / Firefox con DevTools (F12)</li>
+    <li><strong>Validador</strong>: <code>validator.w3.org</code></li>
+  </ul>
+</section>
+</div>
+</body>
+</html>

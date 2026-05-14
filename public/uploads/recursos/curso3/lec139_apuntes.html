@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estructura del proyecto Node.js + Express · matrixCoders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Saira',sans-serif;font-size:15px;line-height:1.7;background:#f8faf8;color:#1a2e1a;padding:32px 20px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{background:linear-gradient(135deg,#2d5a35 0%,#6B8F71 100%);color:#fff;border-radius:12px;padding:28px 32px;margin-bottom:32px}
+  header h1{font-size:1.55rem;font-weight:700;letter-spacing:-.3px}
+  header p{margin-top:6px;opacity:.85;font-size:.9rem}
+  section{background:#fff;border:1px solid #d4e6d4;border-radius:10px;padding:24px 28px;margin-bottom:22px}
+  h2{font-size:1.1rem;font-weight:700;color:#2d5a35;border-left:4px solid #6B8F71;padding-left:12px;margin-bottom:16px}
+  p{margin-bottom:12px}
+  ul,ol{padding-left:20px;margin-bottom:12px}
+  li{margin-bottom:6px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:18px;overflow-x:auto;margin:14px 0;font-size:13px;line-height:1.55}
+  code{font-family:'Source Code Pro',monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+  :not(pre)>code{background:#e8f5e9;color:#1b5e20;padding:2px 7px;border-radius:4px;font-size:.88em;font-family:'Source Code Pro',monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th{background:#2d5a35;color:#fff;padding:8px 12px;text-align:left}
+  td{padding:8px 12px;border-bottom:1px solid #d4e6d4}
+  tr:nth-child(even) td{background:#f1f8f1}
+  @media print{body{background:#fff}pre{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Estructura del proyecto Node.js + Express</h1>
+    <p>matrixCoders · Apuntes de lección · Backend con Node.js y Bases de Datos</p>
+  </header>
+  
+<section>
+  <h2>Arquitectura recomendada</h2>
+  <pre><code>mi-api/
+├── src/
+│   ├── config/          # variables de entorno, db, logger
+│   ├── controllers/     # lógica de cada recurso
+│   ├── middlewares/     # auth, validación, errores
+│   ├── models/          # esquemas Mongoose / clases BD
+│   ├── routes/          # definición de rutas Express
+│   ├── services/        # lógica de negocio
+│   └── app.js           # configuración Express
+├── tests/
+├── .env
+├── .env.example
+├── package.json
+└── server.js            # punto de entrada</code></pre>
+</section>
+<section>
+  <h2>Configuración de Express</h2>
+  <pre><code>// src/app.js
+const express = require("express");
+const helmet  = require("helmet");
+const cors    = require("cors");
+
+const app = express();
+
+app.use(helmet());                          // cabeceras de seguridad
+app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(express.json({ limit: "10kb" }));  // parse body JSON
+
+// Rutas
+app.use("/api/v1/usuarios",  require("./routes/usuarios"));
+app.use("/api/v1/productos", require("./routes/productos"));
+
+// Health-check
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+module.exports = app;
+</code></pre>
+</section>
+<section>
+  <h2>Variables de entorno (.env)</h2>
+  <pre><code>NODE_ENV=development
+PORT=3000
+DATABASE_URL=postgres://user:pass@localhost:5432/miapp
+JWT_SECRET=super_secreto_cambiar_en_produccion
+CORS_ORIGIN=http://localhost:5173</code></pre>
+  <pre><code>// config/env.js
+require("dotenv").config();
+module.exports = {
+  port:     process.env.PORT || 3000,
+  env:      process.env.NODE_ENV || "development",
+  dbUrl:    process.env.DATABASE_URL,
+  jwtSecret: process.env.JWT_SECRET,
+};
+</code></pre>
+</section>
+</div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apuntes — DDL · Creación de tablas</title>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800&family=Source+Code+Pro:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mc-green: #6B8F71;
+    --mc-green-d: #4a6b50;
+    --mc-dark: #1B2336;
+    --mc-text: #374151;
+    --mc-muted: #6b7280;
+    --mc-bg: #f8fafc;
+    --mc-border: #e5e7eb;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Saira',sans-serif;color:var(--mc-text);background:var(--mc-bg);line-height:1.65;padding:32px 28px 60px;max-width:880px;margin:0 auto}
+  header{border-bottom:3px solid var(--mc-green);padding-bottom:16px;margin-bottom:26px}
+  header .eyebrow{display:inline-block;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mc-green-d);background:rgba(107,143,113,.12);padding:4px 10px;border-radius:99px;font-weight:700;margin-bottom:10px}
+  header h1{font-family:Georgia,serif;font-size:1.85rem;color:var(--mc-dark);font-weight:700;line-height:1.2}
+  header p.subt{font-size:.86rem;color:var(--mc-muted);margin-top:6px;font-weight:500}
+  .intro{background:#fff;border:1px solid var(--mc-border);border-left:4px solid var(--mc-green);border-radius:10px;padding:14px 18px;margin-bottom:24px;font-size:.94rem}
+  section{background:#fff;border:1px solid var(--mc-border);border-radius:10px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(15,23,42,.03)}
+  section h2{font-family:Georgia,serif;font-size:1.05rem;color:var(--mc-dark);margin-bottom:10px;font-weight:700;border-bottom:1px solid var(--mc-border);padding-bottom:6px}
+  section p{font-size:.92rem;color:var(--mc-text)}
+  section + section{margin-top:10px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:14px 16px;margin-top:10px;overflow-x:auto;font-family:'Source Code Pro',monospace;font-size:.85rem;line-height:1.55}
+  pre code{background:transparent;color:inherit;padding:0;font-family:inherit}
+  footer{margin-top:30px;text-align:center;font-size:.78rem;color:var(--mc-muted);border-top:1px solid var(--mc-border);padding-top:14px}
+  footer strong{color:var(--mc-green-d)}
+  @media print{
+    body{background:#fff;padding:18px}
+    section,.intro{box-shadow:none}
+    pre{background:#1e293b !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <span class="eyebrow">matrixCoders · Apuntes</span>
+    <h1>Apuntes — DDL · Creación de tablas</h1>
+    <p class="subt">Bases de datos · UD3 · CREATE TABLE</p>
+  </header>
+  <div class="intro">CREATE TABLE define una tabla, sus columnas, tipos, restricciones y relaciones.</div>
+  <section><h2>Ejemplo completo</h2><pre><code>CREATE TABLE productos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  precio DECIMAL(10,2) NOT NULL,
+  categoria_id INT,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+);</code></pre></section><section><h2>Restricciones más comunes</h2><p>PRIMARY KEY, UNIQUE, NOT NULL, DEFAULT, CHECK, FOREIGN KEY.</p></section><section><h2>Tipos de datos habituales</h2><p>INT, BIGINT, DECIMAL(p,s), VARCHAR(n), TEXT, DATE, DATETIME, TIMESTAMP, BOOLEAN.</p></section>
+  <footer>Apuntes generados como material complementario al vídeo de la lección · <strong>matrixCoders</strong></footer>
+</body>
+</html>

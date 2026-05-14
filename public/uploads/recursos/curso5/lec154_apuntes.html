@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Funciones, closures y estructuras de control · matrixCoders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Saira',sans-serif;font-size:15px;line-height:1.7;background:#f8faf8;color:#1a2e1a;padding:32px 20px}
+  .wrap{max-width:880px;margin:0 auto}
+  header{background:linear-gradient(135deg,#2d5a35 0%,#6B8F71 100%);color:#fff;border-radius:12px;padding:28px 32px;margin-bottom:32px}
+  header h1{font-size:1.55rem;font-weight:700;letter-spacing:-.3px}
+  header p{margin-top:6px;opacity:.85;font-size:.9rem}
+  section{background:#fff;border:1px solid #d4e6d4;border-radius:10px;padding:24px 28px;margin-bottom:22px}
+  h2{font-size:1.1rem;font-weight:700;color:#2d5a35;border-left:4px solid #6B8F71;padding-left:12px;margin-bottom:16px}
+  p{margin-bottom:12px}
+  ul,ol{padding-left:20px;margin-bottom:12px}
+  li{margin-bottom:6px}
+  pre{background:#0f172a;color:#e2e8f0;border-radius:8px;padding:18px;overflow-x:auto;margin:14px 0;font-size:13px;line-height:1.55}
+  code{font-family:'Source Code Pro',monospace}
+  pre code{background:none;padding:0;color:inherit;font-size:inherit}
+  :not(pre)>code{background:#e8f5e9;color:#1b5e20;padding:2px 7px;border-radius:4px;font-size:.88em;font-family:'Source Code Pro',monospace}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9rem}
+  th{background:#2d5a35;color:#fff;padding:8px 12px;text-align:left}
+  td{padding:8px 12px;border-bottom:1px solid #d4e6d4}
+  tr:nth-child(even) td{background:#f1f8f1}
+  @media print{body{background:#fff}pre{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Funciones, closures y estructuras de control</h1>
+    <p>matrixCoders · Apuntes de lección · JavaScript</p>
+  </header>
+  
+<section>
+  <h2>Definición de funciones</h2>
+  <pre><code>// Declaración (se "hoistea")
+function saludar(nombre) {
+  return `Hola, ${nombre}`;
+}
+
+// Expresión
+const saludar2 = function(nombre) { return `Hola, ${nombre}`; };
+
+// Arrow (no tiene su propio this)
+const saludar3 = nombre => `Hola, ${nombre}`;
+const suma     = (a, b) => a + b;
+const obj      = (x, y) => ({ x, y });   // paréntesis para devolver objeto</code></pre>
+</section>
+<section>
+  <h2>Parámetros: defaults, rest, destructuring</h2>
+  <pre><code>function crearUsuario({ nombre, edad = 18, rol = "user" } = {}) {
+  return { nombre, edad, rol };
+}
+
+crearUsuario({ nombre: "Ana" });             // { nombre:"Ana", edad:18, rol:"user" }
+
+function logAll(prefijo, ...mensajes) {
+  mensajes.forEach(m => console.log(prefijo, m));
+}
+logAll("[INFO]", "uno", "dos", "tres");</code></pre>
+</section>
+<section>
+  <h2>Funciones de orden superior y callbacks</h2>
+  <pre><code>// Una función que recibe otra
+function repetir(n, fn) {
+  for (let i = 0; i < n; i++) fn(i);
+}
+repetir(3, i => console.log("iteración", i));
+
+// Una función que devuelve otra (closure)
+function multiplicador(factor) {
+  return n => n * factor;
+}
+const x2 = multiplicador(2);
+x2(10);   // 20</code></pre>
+</section>
+<section>
+  <h2>Closures</h2>
+  <p>Un <strong>closure</strong> es una función que recuerda las variables del scope donde fue creada.</p>
+  <pre><code>function contador() {
+  let n = 0;
+  return {
+    incrementar: () => ++n,
+    valor:       () => n,
+    reset:       () => (n = 0),
+  };
+}
+const c = contador();
+c.incrementar(); c.incrementar();
+c.valor();   // 2 — n vive aunque contador() ya terminó</code></pre>
+</section>
+<section>
+  <h2>Manejo del <code>this</code></h2>
+  <pre><code>const obj = {
+  nombre: "Ana",
+  saludar() { console.log(this.nombre); },        // this → obj
+  flecha:   () => console.log(this.nombre),       // this → window/undefined
+};
+obj.saludar();   // "Ana"
+obj.flecha();    // undefined
+
+// bind / call / apply
+function decir(saludo) { return `${saludo}, ${this.nombre}`; }
+decir.call({ nombre: "Ana" }, "Hola");   // "Hola, Ana"</code></pre>
+</section>
+</div>
+</body>
+</html>
