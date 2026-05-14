@@ -42,113 +42,166 @@ function buildBuzonUrl(array $overrides = []): string {
 <link rel="stylesheet" href="<?= BASE_URL ?>/css/sidebar.css">
 <link rel="stylesheet" href="<?= BASE_URL ?>/css/dashboard.css">
 <style>
+:root{
+  --bz-bg:#f1f5f9;
+  --bz-frame:#0f172a;
+  --bz-frame-2:#1e293b;
+  --bz-frame-3:#334155;
+  --bz-text-light:#e2e8f0;
+  --bz-muted:#94a3b8;
+  --bz-card:#fff;
+  --bz-border:#e2e8f0;
+  --bz-border-soft:#f1f5f9;
+  --bz-text:#0f172a;
+  --bz-text-2:#475569;
+  --bz-text-3:#94a3b8;
+  --bz-primary:#2563eb;
+  --bz-primary-d:#1d4ed8;
+  --bz-primary-soft:#eff6ff;
+}
 *,*::before,*::after{box-sizing:border-box}
-body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
+body{font-family:'Saira',sans-serif;background:var(--bz-bg);margin:0;color:var(--bz-text)}
 
-.buzon-layout{max-width:900px;margin:0 auto;padding:36px 20px 60px}
+/* Bajar un poco el sidebar */
+.contenedor-dashboard-content > .sidebar{margin-top:20px}
 
-/* Header */
-.buzon-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
-.buzon-title{font-size:1.45rem;font-weight:900;color:#1B2336;margin:0;display:flex;align-items:center;gap:10px}
-.buzon-badge-new{background:#3b82f6;color:#fff;font-size:.68rem;font-weight:800;border-radius:99px;padding:2px 8px}
+/* Layout principal */
+.buzon-layout{max-width:1240px;margin:0 auto;padding:14px 24px 50px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--bz-text-2);text-decoration:none;margin-bottom:12px;transition:color .15s;text-transform:uppercase;letter-spacing:.5px}
+.back-link:hover{color:var(--bz-text)}
 
-/* Tabs */
-.buzon-tabs{display:flex;gap:4px;background:#e2e8f0;border-radius:12px;padding:4px;margin-bottom:24px}
-.buzon-tab-btn{flex:1;padding:9px 14px;border:none;border-radius:9px;font-family:inherit;font-size:.86rem;font-weight:700;cursor:pointer;background:transparent;color:#6b7280;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
-.buzon-tab-btn.active{background:#fff;color:#1B2336;box-shadow:0 1px 5px rgba(0,0,0,.1)}
+/* Cabecera externa */
+.buzon-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.buzon-title{font-size:1.4rem;font-weight:900;color:var(--bz-text);margin:0;display:flex;align-items:center;gap:10px;letter-spacing:-.3px}
+.buzon-badge-new{background:var(--bz-primary);color:#fff;font-size:.66rem;font-weight:800;border-radius:99px;padding:3px 9px;letter-spacing:.3px}
 
-/* Panel mensaje activo */
-.buzon-msg-panel{background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;margin-bottom:20px;overflow:hidden}
-.buzon-msg-panel-head{padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:14px}
+/* ═══════════════ FRAME PRINCIPAL OSCURO (Outlook) ═══════════════ */
+.msg-frame{background:var(--bz-frame);border-radius:18px;padding:16px;display:flex;flex-direction:column;box-shadow:0 20px 50px -10px rgba(15,23,42,.35);border:1px solid var(--bz-frame-2)}
+
+/* Topbar del frame */
+.msg-frame-topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--bz-frame-2);margin-bottom:14px}
+.msg-frame-actions{display:flex;align-items:center;gap:10px}
+
+/* Tabs estilo Outlook */
+.buzon-tabs{display:flex;gap:2px;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;margin:0}
+.buzon-tab-btn{padding:8px 16px;border:none;border-radius:7px;font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer;background:transparent;color:var(--bz-muted);transition:all .18s;display:flex;align-items:center;gap:7px}
+.buzon-tab-btn svg{opacity:.7}
+.buzon-tab-btn:hover{color:#fff}
+.buzon-tab-btn:hover svg{opacity:1}
+.buzon-tab-btn.active{background:rgba(255,255,255,.1);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.buzon-tab-btn.active svg{opacity:1}
+
+/* Buscador */
+.msg-search{display:flex;align-items:center;background:rgba(255,255,255,.05);border:1px solid var(--bz-frame-2);border-radius:8px;padding:7px 11px;gap:8px;min-width:260px;transition:border-color .15s,background .15s}
+.msg-search:focus-within{border-color:var(--bz-primary);background:rgba(255,255,255,.08)}
+.msg-search svg{color:var(--bz-muted);flex-shrink:0}
+.msg-search input{background:transparent;border:none;color:#fff;font-family:inherit;font-size:.82rem;outline:none;width:100%}
+.msg-search input::placeholder{color:var(--bz-muted)}
+
+/* Botón primario */
+.msg-btn-new{display:inline-flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700;background:var(--bz-primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap;box-shadow:0 1px 3px rgba(37,99,235,.4)}
+.msg-btn-new:hover{background:var(--bz-primary-d);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.4)}
+
+/* ═══════════════ TABLA DE MENSAJES ═══════════════ */
+.msg-table-container{background:var(--bz-card);border-radius:12px;overflow:hidden;flex:1;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.msg-table-header{display:grid;grid-template-columns:150px 1.2fr 2fr 130px 50px;background:#f8fafc;border-bottom:1px solid var(--bz-border);font-size:.7rem;font-weight:800;color:var(--bz-text-2);text-transform:uppercase;letter-spacing:.5px}
+.msg-table-header > span{padding:14px 18px;display:flex;align-items:center}
+.msg-table-body{display:flex;flex-direction:column;flex:1}
+.msg-row{display:grid;grid-template-columns:150px 1.2fr 2fr 130px 50px;border-bottom:1px solid var(--bz-border-soft);text-decoration:none;color:inherit;transition:background .12s;position:relative;min-height:64px}
+.msg-row > div{padding:14px 18px;display:flex;align-items:center;min-width:0}
+.msg-row:hover{background:#f8fafc}
+.msg-row.unread{background:linear-gradient(to right,rgba(37,99,235,.06),transparent 70%)}
+.msg-row.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bz-primary);z-index:1}
+.msg-row.active-msg{background:var(--bz-primary-soft)}
+.msg-row-empty{display:grid;grid-template-columns:150px 1.2fr 2fr 130px 50px;border-bottom:1px solid var(--bz-border-soft);min-height:64px;background:repeating-linear-gradient(0deg,transparent 0,transparent 63px,var(--bz-border-soft) 63px,var(--bz-border-soft) 64px)}
+.msg-row-empty > div{padding:14px 18px}
+.msg-row-empty:last-child{border-bottom:none}
+
+.msg-cell-tipo{display:flex;align-items:center}
+.msg-cell-emisor{display:flex;align-items:center;gap:11px;min-width:0}
+.buzon-avatar{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:800;flex-shrink:0}
+.msg-emisor-nombre{font-size:.86rem;font-weight:700;color:var(--bz-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-cell-asunto{min-width:0}
+.msg-asunto-text{font-size:.88rem;font-weight:600;color:var(--bz-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.msg-row.unread .msg-asunto-text{font-weight:800}
+.msg-preview-text{font-size:.76rem;color:var(--bz-text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;margin-top:3px}
+.msg-cell-fecha{font-size:.78rem;color:var(--bz-text-3);font-weight:600}
+.msg-cell-status{display:flex;justify-content:center}
+.buzon-unread-dot{width:9px;height:9px;border-radius:50%;background:var(--bz-primary);flex-shrink:0;box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+
+.rol-chip{display:inline-flex;align-items:center;font-size:.66rem;font-weight:700;border-radius:99px;padding:3px 10px;border:1px solid transparent;white-space:nowrap;letter-spacing:.2px}
+
+/* Panel mensaje activo (cuando se abre un mensaje) */
+.buzon-msg-panel{background:var(--bz-card);border-radius:12px;margin-bottom:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.buzon-msg-panel-head{padding:18px 22px 14px;border-bottom:1px solid var(--bz-border);display:flex;align-items:flex-start;gap:14px}
 .buzon-msg-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;flex-shrink:0}
-.buzon-msg-meta h2{font-size:1rem;font-weight:800;color:#1B2336;margin:0 0 4px}
-.buzon-msg-meta p{font-size:.82rem;color:#6b7280;margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.rol-chip{display:inline-flex;align-items:center;font-size:.7rem;font-weight:700;border-radius:99px;padding:2px 9px;border:1px solid transparent}
-.buzon-msg-body{padding:20px 22px;font-size:.92rem;color:#374151;line-height:1.7;white-space:pre-wrap;word-break:break-word}
-.buzon-msg-close{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;font-weight:700;color:#6b7280;text-decoration:none;padding:7px 14px;border:1.5px solid #e5e7eb;border-radius:9px;transition:all .15s;margin:0 22px 18px}
-.buzon-msg-close:hover{border-color:#3b82f6;color:#3b82f6}
+.buzon-msg-meta h2{font-size:1.05rem;font-weight:800;color:var(--bz-text);margin:0 0 5px;letter-spacing:-.2px}
+.buzon-msg-meta p{font-size:.82rem;color:var(--bz-text-2);margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.buzon-msg-body{padding:20px 22px;font-size:.92rem;color:var(--bz-text-2);line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.buzon-msg-actions{display:flex;align-items:center;gap:10px;padding:0 22px 18px}
+.buzon-msg-close{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--bz-text-2);text-decoration:none;padding:7px 14px;border:1px solid var(--bz-border);border-radius:8px;transition:all .15s;background:#fff}
+.buzon-msg-close:hover{border-color:var(--bz-primary);color:var(--bz-primary);background:var(--bz-primary-soft)}
+.msg-btn-reply{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:#fff;padding:7px 14px;border:none;border-radius:8px;cursor:pointer;background:var(--bz-primary);transition:background .15s}
+.msg-btn-reply:hover{background:var(--bz-primary-d)}
+.inc-input-static{display:block;padding:9px 13px;font-size:.86rem;color:var(--bz-text-2);background:var(--bz-border-soft);border-radius:8px}
 
-/* Lista mensajes */
-.buzon-list{display:flex;flex-direction:column;gap:7px}
-.buzon-item{display:flex;align-items:flex-start;gap:13px;background:#fff;border:1.5px solid #e5e7eb;border-radius:13px;padding:14px 16px;transition:box-shadow .15s,border-color .15s;cursor:pointer;text-decoration:none;color:inherit;position:relative}
-.buzon-item:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);border-color:#d1d5db}
-.buzon-item.unread{border-left:3px solid #3b82f6;background:linear-gradient(to right,rgba(59,130,246,.03),transparent 40%)}
-.buzon-item.active-msg{border-color:#3b82f6;background:#eff6ff}
-.buzon-avatar{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:800;flex-shrink:0}
-.buzon-body{flex:1;min-width:0}
-.buzon-item-top{display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap}
-.buzon-emisor{font-size:.88rem;font-weight:700;color:#1B2336}
-.buzon-asunto{font-size:.88rem;font-weight:700;color:#1B2336;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.buzon-item.unread .buzon-asunto{font-weight:800}
-.buzon-preview{font-size:.78rem;color:#6b7280;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-top:2px}
-.buzon-side{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
-.buzon-time{font-size:.7rem;color:#9ca3af;white-space:nowrap}
-.buzon-unread-dot{width:8px;height:8px;border-radius:50%;background:#3b82f6;flex-shrink:0}
-
-/* Vacío */
-.buzon-empty{text-align:center;padding:60px 20px;color:#9ca3af}
-.buzon-empty svg{opacity:.2;display:block;margin:0 auto 18px}
-.buzon-empty h3{font-size:1.05rem;font-weight:700;color:#374151;margin:0 0 6px}
-.buzon-empty p{font-size:.86rem;margin:0}
+/* Empty state */
+.buzon-empty{text-align:center;padding:80px 20px;color:var(--bz-text-3)}
+.buzon-empty svg{opacity:.25;display:block;margin:0 auto 18px}
+.buzon-empty h3{font-size:1rem;font-weight:700;color:var(--bz-text-2);margin:0 0 6px}
+.buzon-empty p{font-size:.85rem;margin:0}
 
 /* Paginación */
-.buzon-pag{display:flex;justify-content:center;gap:5px;margin-top:24px}
-.buzon-pag-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:8px;font-size:.83rem;font-weight:700;border:1.5px solid #e5e7eb;background:#fff;color:#374151;text-decoration:none;transition:all .15s}
-.buzon-pag-btn:hover{border-color:#3b82f6;color:#3b82f6}
-.buzon-pag-btn.active{background:#3b82f6;color:#fff;border-color:#3b82f6}
+.buzon-pag{display:flex;gap:6px;margin-top:14px;align-items:center;padding:4px}
+.buzon-pag-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 12px;border-radius:8px;font-size:.78rem;font-weight:700;border:1px solid var(--bz-frame-2);background:rgba(255,255,255,.04);color:var(--bz-muted);text-decoration:none;transition:all .15s}
+.buzon-pag-btn:hover{border-color:var(--bz-primary);color:#fff;background:rgba(37,99,235,.15)}
+.buzon-pag-btn.active{background:var(--bz-primary);color:#fff;border-color:var(--bz-primary)}
 .buzon-pag-btn.disabled{opacity:.35;pointer-events:none}
 
-/* Volver */
-.back-link{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:#6b7280;text-decoration:none;margin-bottom:18px;transition:color .15s}
-.back-link:hover{color:#1B2336}
-
 /* Compose mensaje */
-.msg-compose-wrap{background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:22px;margin-bottom:18px}
-.msg-compose-wrap h3{font-size:.95rem;font-weight:800;color:#1B2336;margin:0 0 14px}
-.msg-toolbar{display:flex;justify-content:flex-end;margin-bottom:16px}
-.msg-btn-new{display:inline-flex;align-items:center;gap:6px;font-size:.84rem;font-weight:700;background:#1B2336;color:#fff;border:none;border-radius:10px;padding:9px 18px;cursor:pointer;transition:background .15s;font-family:inherit}
-.msg-btn-new:hover{background:#2d3a52}
+.msg-compose-wrap{background:var(--bz-card);border-radius:12px;padding:22px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.msg-compose-wrap h3{font-size:.95rem;font-weight:800;color:var(--bz-text);margin:0 0 14px}
 
-/* ── Incidencias ── */
-.inc-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap}
-.inc-btn-new{display:inline-flex;align-items:center;gap:6px;font-size:.84rem;font-weight:700;background:#1B2336;color:#fff;border:none;border-radius:10px;padding:9px 18px;cursor:pointer;transition:background .15s;font-family:inherit}
-.inc-btn-new:hover{background:#2d3a52}
-.inc-list{display:flex;flex-direction:column;gap:7px}
-.inc-item{background:#fff;border:1.5px solid #e5e7eb;border-radius:13px;padding:14px 18px;cursor:pointer;transition:box-shadow .15s,border-color .15s}
-.inc-item:hover{box-shadow:0 4px 18px rgba(0,0,0,.07);border-color:#d1d5db}
-.inc-item.active{border-color:#3b82f6;background:#eff6ff}
+/* ═══════════════ INCIDENCIAS ═══════════════ */
+.inc-list{display:flex;flex-direction:column;gap:8px}
+.inc-item{background:var(--bz-card);border:1px solid var(--bz-border);border-radius:10px;padding:14px 18px;cursor:pointer;transition:all .15s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.inc-item:hover{box-shadow:0 4px 14px rgba(0,0,0,.07);border-color:#cbd5e1;transform:translateY(-1px)}
+.inc-item.active{border-color:var(--bz-primary);background:var(--bz-primary-soft)}
 .inc-item-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
-.inc-asunto{font-size:.9rem;font-weight:800;color:#1B2336;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.inc-estado{font-size:.68rem;font-weight:700;border-radius:99px;padding:2px 9px;border:1px solid transparent;white-space:nowrap}
+.inc-asunto{font-size:.9rem;font-weight:800;color:var(--bz-text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inc-estado{font-size:.66rem;font-weight:700;border-radius:99px;padding:3px 10px;border:1px solid transparent;white-space:nowrap;letter-spacing:.3px}
 .inc-estado-abierta{background:#fef9c3;color:#854d0e;border-color:#fde68a}
 .inc-estado-en_proceso{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
 .inc-estado-cerrada{background:#f0fdf4;color:#166534;border-color:#86efac}
-.inc-meta{font-size:.75rem;color:#9ca3af}
-.inc-detail{background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;overflow:hidden;margin-bottom:16px}
-.inc-detail-head{padding:16px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.inc-detail-title{font-size:1rem;font-weight:800;color:#1B2336;margin:0 0 5px}
-.inc-detail-back{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;font-weight:700;color:#6b7280;background:none;border:1.5px solid #e5e7eb;border-radius:9px;padding:6px 13px;cursor:pointer;font-family:inherit;transition:all .15s}
-.inc-detail-back:hover{border-color:#3b82f6;color:#3b82f6}
-.inc-respuestas{padding:12px 20px;display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto}
-.inc-resp{background:#f8fafc;border-radius:10px;padding:10px 14px}
-.inc-resp.admin{background:#eff6ff}
-.inc-resp-autor{font-size:.72rem;font-weight:700;color:#374151;margin-bottom:3px}
-.inc-resp-cuerpo{font-size:.86rem;color:#374151;white-space:pre-wrap;word-break:break-word}
-.inc-no-resp{padding:20px;text-align:center;font-size:.84rem;color:#9ca3af}
-.inc-new-form{background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;padding:22px;margin-bottom:18px}
-.inc-new-form h3{font-size:.95rem;font-weight:800;color:#1B2336;margin:0 0 14px}
-.inc-label{display:block;font-size:.8rem;font-weight:700;color:#374151;margin-bottom:5px}
-.inc-input{width:100%;padding:9px 13px;border:1.5px solid #e5e7eb;border-radius:10px;font-family:inherit;font-size:.9rem;color:#1B2336;transition:border-color .15s;outline:none}
-.inc-input:focus{border-color:#3b82f6}
-.inc-textarea{resize:vertical;min-height:90px}
+.inc-meta{font-size:.74rem;color:var(--bz-text-3)}
+.inc-detail{background:var(--bz-card);border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.inc-detail-head{padding:16px 20px;border-bottom:1px solid var(--bz-border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.inc-detail-title{font-size:1rem;font-weight:800;color:var(--bz-text);margin:0 0 5px}
+.inc-detail-back{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:700;color:var(--bz-text-2);background:#fff;border:1px solid var(--bz-border);border-radius:8px;padding:6px 13px;cursor:pointer;font-family:inherit;transition:all .15s}
+.inc-detail-back:hover{border-color:var(--bz-primary);color:var(--bz-primary)}
+.inc-respuestas{padding:14px 20px;display:flex;flex-direction:column;gap:10px;max-height:380px;overflow-y:auto}
+.inc-resp{background:#f8fafc;border-radius:10px;padding:11px 14px;border:1px solid var(--bz-border-soft)}
+.inc-resp.admin{background:var(--bz-primary-soft);border-color:#dbeafe}
+.inc-resp-autor{font-size:.7rem;font-weight:700;color:var(--bz-text-2);margin-bottom:3px}
+.inc-resp-cuerpo{font-size:.86rem;color:var(--bz-text-2);white-space:pre-wrap;word-break:break-word}
+.inc-no-resp{padding:24px;text-align:center;font-size:.84rem;color:var(--bz-text-3)}
+.inc-new-form{background:var(--bz-card);border-radius:12px;padding:22px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.inc-new-form h3{font-size:.95rem;font-weight:800;color:var(--bz-text);margin:0 0 14px}
+.inc-label{display:block;font-size:.78rem;font-weight:700;color:var(--bz-text-2);margin-bottom:6px}
+.inc-input{width:100%;padding:10px 13px;border:1px solid var(--bz-border);border-radius:8px;font-family:inherit;font-size:.9rem;color:var(--bz-text);transition:all .15s;outline:none;background:#fff}
+.inc-input:focus{border-color:var(--bz-primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.inc-textarea{resize:vertical;min-height:100px}
 .inc-form-row{margin-bottom:14px}
-.inc-form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
-.inc-btn-cancel{background:none;border:1.5px solid #e5e7eb;border-radius:10px;padding:8px 18px;font-family:inherit;font-size:.84rem;font-weight:700;color:#6b7280;cursor:pointer;transition:all .15s}
-.inc-btn-cancel:hover{border-color:#d1d5db;color:#374151}
-.inc-btn-submit{background:#3b82f6;color:#fff;border:none;border-radius:10px;padding:8px 20px;font-family:inherit;font-size:.84rem;font-weight:700;cursor:pointer;transition:background .15s}
-.inc-btn-submit:hover{background:#2563eb}
+.inc-form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+.inc-btn-cancel{background:#fff;border:1px solid var(--bz-border);border-radius:8px;padding:9px 18px;font-family:inherit;font-size:.82rem;font-weight:700;color:var(--bz-text-2);cursor:pointer;transition:all .15s}
+.inc-btn-cancel:hover{border-color:#cbd5e1;color:var(--bz-text)}
+.inc-btn-submit{background:var(--bz-primary);color:#fff;border:none;border-radius:8px;padding:9px 22px;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(37,99,235,.4)}
+.inc-btn-submit:hover{background:var(--bz-primary-d);box-shadow:0 4px 12px rgba(37,99,235,.4)}
 .inc-btn-submit:disabled{opacity:.5;cursor:not-allowed}
-.inc-loading{text-align:center;padding:40px;color:#9ca3af;font-size:.88rem}
+.inc-loading{text-align:center;padding:50px;color:var(--bz-text-3);font-size:.86rem;background:#fff;border-radius:10px}
+
+/* Texto de paginación */
+.buzon-pag-info{margin-left:auto;font-size:.76rem;color:var(--bz-muted);align-self:center;font-weight:600}
 </style>
 </head>
 <body>
@@ -160,7 +213,7 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
 
       <?php require __DIR__ . '/../layout/sidebar.php'; ?>
 
-      <div class="buzon-layout" style="flex:1;min-width:0;max-width:none;">
+      <div class="buzon-layout" style="flex:1;min-width:0;max-width:none;min-height:calc(100vh - 80px);">
 
   <a class="back-link" href="<?= BASE_URL ?>/index.php?url=dashboard">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
@@ -177,18 +230,37 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
     </h1>
   </div>
 
-  <!-- Pestañas -->
-  <div class="buzon-tabs" role="tablist">
-    <button class="buzon-tab-btn active" id="btn-tab-mensajes" onclick="buzonTab('mensajes')">
-      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-      Mensajes recibidos
-      <?php if ($noLeidos > 0): ?><span class="buzon-badge-new"><?= $noLeidos ?></span><?php endif; ?>
-    </button>
-    <button class="buzon-tab-btn" id="btn-tab-incidencias" onclick="buzonTab('incidencias')">
-      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-      Mis incidencias
-    </button>
-  </div>
+  <!-- ══════════ FRAME OSCURO PRINCIPAL ══════════ -->
+  <div class="msg-frame">
+
+    <!-- Topbar del frame: tabs + acciones -->
+    <div class="msg-frame-topbar">
+      <div class="buzon-tabs" role="tablist">
+        <button class="buzon-tab-btn active" id="btn-tab-mensajes" onclick="buzonTab('mensajes')">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          Mensajes recibidos
+          <?php if ($noLeidos > 0): ?><span class="buzon-badge-new"><?= $noLeidos ?></span><?php endif; ?>
+        </button>
+        <button class="buzon-tab-btn" id="btn-tab-incidencias" onclick="buzonTab('incidencias')">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          Mis incidencias
+        </button>
+      </div>
+      <div class="msg-frame-actions">
+        <div class="msg-search">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar en el buzón...">
+        </div>
+        <button class="msg-btn-new" id="btn-nuevo-mensajes" onclick="msgMostrarCompose()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo mensaje
+        </button>
+        <button class="msg-btn-new" id="btn-nuevo-incidencia" onclick="incMostrarNueva()" style="display:none">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva incidencia
+        </button>
+      </div>
+    </div>
 
   <!-- ══════════ TAB: MENSAJES ══════════ -->
   <div id="tab-mensajes">
@@ -216,13 +288,6 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
       </div>
     </div>
 
-    <div class="msg-toolbar" id="msg-toolbar">
-      <button class="msg-btn-new" onclick="msgMostrarCompose()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Nuevo mensaje
-      </button>
-    </div>
-
     <?php if ($msgActivo): ?>
     <?php [$rolLbl, $rolColor, $rolBg] = buzonRolLabel($msgActivo['rol_emisor']); ?>
     <div class="buzon-msg-panel">
@@ -241,60 +306,104 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
         </div>
       </div>
       <div class="buzon-msg-body"><?= htmlspecialchars($msgActivo['cuerpo']) ?></div>
-      <a class="buzon-msg-close" href="<?= buildBuzonUrl() ?>">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        Volver al listado
-      </a>
+      <div class="buzon-msg-actions">
+        <button class="msg-btn-reply" onclick="msgMostrarReply(<?= (int)$msgActivo['id'] ?>, <?= (int)$msgActivo['emisor_id'] ?>, '<?= addslashes(htmlspecialchars($msgActivo['asunto'] ?: 'Sin asunto')) ?>')">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+          Responder
+        </button>
+        <a class="buzon-msg-close" href="<?= buildBuzonUrl() ?>">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          Volver al listado
+        </a>
+      </div>
+
+      <!-- Formulario de respuesta (oculto por defecto) -->
+      <div class="msg-compose-wrap" id="msg-reply-wrap" style="display:none">
+        <h3>Responder</h3>
+        <input type="hidden" id="reply-dest-id">
+        <div class="inc-form-row">
+          <label class="inc-label">Para</label>
+          <span class="inc-input-static" id="reply-dest-name"></span>
+        </div>
+        <div class="inc-form-row">
+          <label class="inc-label">Asunto</label>
+          <span class="inc-input-static" id="reply-asunto"></span>
+        </div>
+        <div class="inc-form-row">
+          <label class="inc-label" for="reply-cuerpo">Mensaje</label>
+          <textarea class="inc-input inc-textarea" id="reply-cuerpo" placeholder="Escribe tu respuesta…"></textarea>
+        </div>
+        <div class="inc-form-actions">
+          <button class="inc-btn-cancel" onclick="msgCancelarReply()">Cancelar</button>
+          <button class="inc-btn-submit" id="reply-btn-enviar" onclick="msgEnviarReply()">Enviar respuesta</button>
+        </div>
+      </div>
     </div>
     <?php endif; ?>
 
-    <?php if (empty($mensajes)): ?>
-    <div class="buzon-empty">
-      <svg width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-      <h3>Buzón vacío</h3>
-      <p>No hay mensajes de administradores o editores todavía.</p>
-    </div>
-    <?php else: ?>
-    <div class="buzon-list">
-      <?php foreach ($mensajes as $msg):
-        [$rolLbl, $rolColor, $rolBg] = buzonRolLabel($msg['rol_emisor']);
-        $esLeido  = (bool)$msg['leido'];
-        $esActivo = $msgActivo && $msgActivo['id'] === $msg['id'];
-        $href     = buildBuzonUrl(['msg' => $msg['id']]);
-      ?>
-      <a href="<?= htmlspecialchars($href) ?>"
-         class="buzon-item <?= !$esLeido ? 'unread' : '' ?> <?= $esActivo ? 'active-msg' : '' ?>">
-        <div class="buzon-avatar" style="background:<?= $rolBg ?>;color:<?= $rolColor ?>">
-          <?= mb_strtoupper(mb_substr($msg['nombre_emisor'], 0, 1, 'UTF-8'), 'UTF-8') ?>
+    <div class="msg-table-container">
+        <div class="msg-table-header">
+          <span>Tipo</span>
+          <span>Remitente</span>
+          <span>Asunto</span>
+          <span>Fecha</span>
+          <span></span>
         </div>
-        <div class="buzon-body">
-          <div class="buzon-item-top">
-            <span class="buzon-emisor"><?= htmlspecialchars($msg['nombre_emisor']) ?></span>
-            <span class="rol-chip" style="background:<?= $rolBg ?>;color:<?= $rolColor ?>;border-color:<?= $rolColor ?>44"><?= $rolLbl ?></span>
-          </div>
-          <div class="buzon-asunto"><?= htmlspecialchars($msg['asunto'] ?: 'Sin asunto') ?></div>
-          <div class="buzon-preview"><?= htmlspecialchars(mb_substr($msg['cuerpo'], 0, 100)) ?></div>
-        </div>
-        <div class="buzon-side">
-          <span class="buzon-time"><?= buzonTimeAgo($msg['enviado_en']) ?></span>
-          <?php if (!$esLeido): ?>
-            <span class="buzon-unread-dot" title="No leído"></span>
-          <?php endif; ?>
-        </div>
-      </a>
-      <?php endforeach; ?>
-    </div>
+        <div class="msg-table-body">
+          <?php
+          $filasOcupadas = count($mensajes);
+          foreach ($mensajes as $msg):
+            [$rolLbl, $rolColor, $rolBg] = buzonRolLabel($msg['rol_emisor']);
+            $esLeido  = (bool)$msg['leido'];
+            $esActivo = $msgActivo && $msgActivo['id'] === $msg['id'];
+            $href     = buildBuzonUrl(['msg' => $msg['id']]);
+          ?>
+          <a href="<?= htmlspecialchars($href) ?>"
+             class="msg-row <?= !$esLeido ? 'unread' : '' ?> <?= $esActivo ? 'active-msg' : '' ?>">
+            <div class="msg-cell-tipo">
+              <span class="rol-chip" style="background:<?= $rolBg ?>;color:<?= $rolColor ?>;border-color:<?= $rolColor ?>44"><?= $rolLbl ?></span>
+            </div>
+            <div class="msg-cell-emisor">
+              <div class="buzon-avatar" style="background:<?= $rolBg ?>;color:<?= $rolColor ?>">
+                <?= mb_strtoupper(mb_substr($msg['nombre_emisor'], 0, 1, 'UTF-8'), 'UTF-8') ?>
+              </div>
+              <span class="msg-emisor-nombre"><?= htmlspecialchars($msg['nombre_emisor']) ?></span>
+            </div>
+            <div class="msg-cell-asunto">
+              <div style="min-width:0;display:flex;flex-direction:column">
+                <span class="msg-asunto-text"><?= htmlspecialchars($msg['asunto'] ?: 'Sin asunto') ?></span>
+                <span class="msg-preview-text"><?= htmlspecialchars(mb_substr($msg['cuerpo'], 0, 80)) ?></span>
+              </div>
+            </div>
+            <div class="msg-cell-fecha"><?= buzonTimeAgo($msg['enviado_en']) ?></div>
+            <div class="msg-cell-status" style="justify-content:center">
+              <?php if (!$esLeido): ?>
+                <span class="buzon-unread-dot" title="No leído"></span>
+              <?php endif; ?>
+            </div>
+          </a>
+          <?php endforeach; ?>
 
-    <?php if ($totalPags > 1): ?>
+          <?php
+          // Filas vacías para rellenar como hoja de cálculo
+          $filasVacias = max(0, 6 - $filasOcupadas);
+          for ($i = 0; $i < $filasVacias; $i++):
+          ?>
+          <div class="msg-row-empty">
+            <div></div><div></div><div></div><div></div><div></div>
+          </div>
+          <?php endfor; ?>
+        </div>
+      </div>
+
     <div class="buzon-pag">
-      <a href="<?= buildBuzonUrl(['p' => max(1, $page - 1)]) ?>" class="buzon-pag-btn <?= $page <= 1 ? 'disabled' : '' ?>">‹</a>
-      <?php for ($i = max(1, $page - 2); $i <= min($totalPags, $page + 2); $i++): ?>
+      <a href="<?= buildBuzonUrl(['p' => max(1, $page - 1)]) ?>" class="buzon-pag-btn <?= $page <= 1 ? 'disabled' : '' ?>">‹ Anterior</a>
+      <?php for ($i = max(1, $page - 2); $i <= min(max(1,$totalPags), $page + 2); $i++): ?>
       <a href="<?= buildBuzonUrl(['p' => $i]) ?>" class="buzon-pag-btn <?= $i === $page ? 'active' : '' ?>"><?= $i ?></a>
       <?php endfor; ?>
-      <a href="<?= buildBuzonUrl(['p' => min($totalPags, $page + 1)]) ?>" class="buzon-pag-btn <?= $page >= $totalPags ? 'disabled' : '' ?>">›</a>
+      <a href="<?= buildBuzonUrl(['p' => min(max(1,$totalPags), $page + 1)]) ?>" class="buzon-pag-btn <?= $page >= $totalPags ? 'disabled' : '' ?>">Siguiente ›</a>
+      <span class="buzon-pag-info">Página <?= $page ?> de <?= max(1,$totalPags) ?> · <?= count($mensajes) ?> mensaje<?= count($mensajes) !== 1 ? 's' : '' ?></span>
     </div>
-    <?php endif; ?>
-    <?php endif; ?>
 
   </div><!-- /tab-mensajes -->
 
@@ -339,12 +448,8 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
 
     <!-- Lista de incidencias -->
     <div id="inc-list-wrapper">
-      <div class="inc-toolbar">
-        <span style="font-size:.84rem;color:#6b7280;font-weight:600" id="inc-count-label">Cargando…</span>
-        <button class="inc-btn-new" onclick="incMostrarNueva()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nueva incidencia
-        </button>
+      <div style="margin-bottom:12px;padding:8px 12px;background:#fff;border-radius:8px">
+        <span style="font-size:.78rem;color:#6b7280;font-weight:600" id="inc-count-label">Cargando…</span>
       </div>
       <div id="inc-list" class="inc-list">
         <div class="inc-loading">Cargando incidencias…</div>
@@ -353,9 +458,8 @@ body{font-family:'Saira',sans-serif;background:#f1f5f9;margin:0;color:#1B2336}
 
   </div><!-- /tab-incidencias -->
 
-</div>
+  </div><!-- /msg-frame -->
 
-<?php require __DIR__ . '/../layout/footer.php'; ?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 const BUZON_BASE = '<?= BASE_URL ?>/index.php?url=buzon&action=';
@@ -392,6 +496,59 @@ function msgCancelarCompose() {
     document.getElementById('msg-compose-wrap').style.display = 'none';
     document.getElementById('msg-toolbar').style.display = '';
 }
+
+// ── Reply ─────────────────────────────────────────────────────────────────────
+function msgMostrarReply(msgId, destId, asunto) {
+    const wrap = document.getElementById('msg-reply-wrap');
+    if (!wrap) return;
+    document.getElementById('reply-dest-id').value = destId;
+    document.getElementById('reply-dest-name').textContent = document.querySelector('.buzon-msg-meta h2') ? document.querySelector('.buzon-msg-meta p strong')?.textContent || '' : '';
+    document.getElementById('reply-asunto').textContent = 'Re: ' + asunto;
+    document.getElementById('reply-cuerpo').value = '';
+    wrap.style.display = '';
+    document.getElementById('reply-cuerpo').focus();
+}
+
+function msgCancelarReply() {
+    const wrap = document.getElementById('msg-reply-wrap');
+    if (wrap) wrap.style.display = 'none';
+}
+
+function msgEnviarReply() {
+    const receptor_id = document.getElementById('reply-dest-id').value;
+    const asunto = document.getElementById('reply-asunto').textContent.trim();
+    const cuerpo = document.getElementById('reply-cuerpo').value.trim();
+    if (!cuerpo) { document.getElementById('reply-cuerpo').focus(); return; }
+
+    const btn = document.getElementById('reply-btn-enviar');
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+
+    fetch(BUZON_BASE + 'enviar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receptor_id: parseInt(receptor_id), asunto, cuerpo })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            msgCancelarReply();
+            const ok = document.createElement('div');
+            ok.textContent = 'Respuesta enviada correctamente.';
+            ok.style.cssText = 'background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 16px;font-size:.86rem;font-weight:700;color:#166534;margin:0 22px 14px';
+            document.querySelector('.buzon-msg-panel').appendChild(ok);
+            setTimeout(() => ok.remove(), 4000);
+        } else {
+            alert('Error: ' + (data.error || 'inténtalo de nuevo'));
+        }
+    })
+    .catch(() => alert('Error de red. Inténtalo de nuevo.'))
+    .finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Enviar respuesta';
+    });
+}
+
 
 function msgEnviar() {
     const receptor_id = document.getElementById('msg-dest').value;
@@ -436,6 +593,8 @@ function buzonTab(tab) {
     document.getElementById('tab-incidencias').style.display = tab === 'incidencias' ? '' : 'none';
     document.getElementById('btn-tab-mensajes').classList.toggle('active',    tab === 'mensajes');
     document.getElementById('btn-tab-incidencias').classList.toggle('active', tab === 'incidencias');
+    document.getElementById('btn-nuevo-mensajes').style.display   = tab === 'mensajes'    ? '' : 'none';
+    document.getElementById('btn-nuevo-incidencia').style.display = tab === 'incidencias' ? '' : 'none';
     if (tab === 'incidencias' && !incCargadas) incCargarLista();
 }
 
@@ -611,6 +770,8 @@ function escHtml(s) {
     </div><!-- /contenedor-dashboard-content -->
   </div><!-- /mc-container -->
 </main>
+
+<?php require __DIR__ . '/../layout/footer.php'; ?>
 
 </body>
 </html>

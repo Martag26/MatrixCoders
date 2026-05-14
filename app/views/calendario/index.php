@@ -36,14 +36,15 @@
            El calendario central ocupa siempre el espacio restante (1fr)          */
         .cal-page{
             display:grid;
-            /* Sidebar expandido por defecto: right-panel oculto */
-            grid-template-columns:1fr 0;
-            gap:0 20px;
+            /* Sidebar expandido: right-panel comprimido (solo iconos) */
+            grid-template-columns:1fr 40px;
+            gap:0 8px;
             align-items:start;
             transition:grid-template-columns .2s cubic-bezier(.4,0,.2,1);
+            min-height:calc(100vh - 80px);
         }
 
-        /* Sidebar colapsado → right-panel visible */
+        /* Sidebar colapsado → right-panel expandido a 280px */
         .contenedor-dashboard-content.sidebar--collapsed .cal-page{
             grid-template-columns:1fr 280px;
         }
@@ -53,6 +54,20 @@
             overflow-y:auto;
             overflow-x:hidden;
         }
+        .contenedor-dashboard-content.sidebar--collapsed .rp-icons-strip{ display:none; }
+        .contenedor-dashboard-content.sidebar--collapsed .rp-card{ display:grid; }
+
+        /* Tira de iconos (estado comprimido) */
+        .rp-icons-strip{
+            display:flex;flex-direction:column;align-items:center;gap:6px;padding:108px 0 8px;
+        }
+        .rp-icon-btn{
+            width:32px;height:32px;border:none;background:var(--mc-card);
+            border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+            color:var(--mc-muted);border:1px solid var(--mc-border);
+            transition:background .15s,color .15s;
+        }
+        .rp-icon-btn:hover{ background:#f0f5f1;color:var(--mc-green); }
         /* ── Scrollbar panel derecho ── */
         .right-panel::-webkit-scrollbar{width:5px}
         .right-panel::-webkit-scrollbar-track{background:transparent;margin:6px 0}
@@ -65,15 +80,16 @@
         /* Firefox */
         .right-panel{scrollbar-width:thin;scrollbar-color:#d1d5db transparent}
 
-        /* Right-panel: invisible cuando el grid-column es 0 */
         .right-panel{
             display:grid;gap:12px;min-width:0;
-            opacity:0;pointer-events:none;overflow:hidden;
+            opacity:1;pointer-events:auto;overflow:hidden;
             transition:opacity .18s ease .05s;
             position:sticky;top:16px;
             max-height:calc(100vh - 100px);
             align-self:start;
         }
+        /* Ocultar las tarjetas cuando está comprimido */
+        .right-panel .rp-card{ display:none; }
 
         @media(max-width:768px){
             .cal-page{grid-template-columns:1fr!important}
@@ -596,6 +612,18 @@
 
         <!-- ── PANEL DERECHO ── -->
         <aside class="right-panel">
+            <!-- Iconos visibles cuando el panel está comprimido -->
+            <div class="rp-icons-strip">
+                <button class="rp-icon-btn" id="rpExpandBtn" title="Ver panel de sugerencias">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </button>
+                <button class="rp-icon-btn" id="rpExpandBtn2" title="Smart Slots">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </button>
+                <button class="rp-icon-btn" id="rpExpandBtn3" title="Perfil de habilidades">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </button>
+            </div>
 
             <!-- ── AGENDA: Hoy / Próximos (panel unificado con pestañas) ── -->
             <?php
@@ -1138,6 +1166,15 @@
                 }, 240);
             });
         }
+
+        // Iconos del panel comprimido → colapsar sidebar para expandir panel derecho
+        ['rpExpandBtn','rpExpandBtn2','rpExpandBtn3'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn && sidebarToggleBtn) {
+                btn.addEventListener('click', () => sidebarToggleBtn.click());
+            }
+        });
+
         window.addEventListener('resize', function () {
             if (calendar && calendar.view.type.startsWith('timeGrid')) {
                 calendar.setOption('height', calcTimeGridHeight());

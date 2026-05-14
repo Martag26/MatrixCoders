@@ -58,20 +58,6 @@ $rolLabel = match(true) {
     </div>
   </div>
 
-  <div class="crm-stat-card green">
-    <div class="crm-stat-header">
-      <div class="crm-stat-icon green">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      </div>
-      <span class="crm-stat-trend up">matriculaciones</span>
-    </div>
-    <div class="crm-stat-value"><?= number_format($totalMatriculas ?? 0) ?></div>
-    <div class="crm-stat-label">Total matriculaciones</div>
-    <div style="font-size:11px;color:var(--crm-muted);margin-top:4px">
-      ~<?= $totalCursos > 0 ? round(($totalMatriculas ?? 0) / $totalCursos, 1) : 0 ?> por curso
-    </div>
-  </div>
-
   <div class="crm-stat-card orange">
     <div class="crm-stat-header">
       <div class="crm-stat-icon orange">
